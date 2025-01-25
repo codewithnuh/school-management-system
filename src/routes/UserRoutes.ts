@@ -1,11 +1,7 @@
-import express from "express";
-// import { UserController } from "@/controllers/UserController"; // Import the controller
-import { createUser, getAllUsers } from "@/controllers/UserController";
-const router = express.Router();
-// const userController = new UserController(); // Instantiate the controller
+import express from 'express'
+import UserController from '@/controllers/UserController'
+const router = express.Router()
+router.post('/', UserController.createUser)
+router.post('/', UserController.getAllUsers)
 
-// router.get("/", userController.getAllUsers);
-router.post("/", createUser);
-router.post("/a", getAllUsers);
-
-export default router;
+export default router

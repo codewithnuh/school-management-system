@@ -1,18 +1,20 @@
 {
-  "compilerOptions": {
-    "target": "es2020",
-    "module": "commonjs",
-    "outDir": "./dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true, // Important for Sequelize decorators
-    "emitDecoratorMetadata": true, // Important for Sequelize decorators
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["*"]
-    }
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+    // Removed schema reference due to accessibility issues
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "es2020",
+        "outDir": "./dist",
+        "strict": true,
+        "esModuleInterop": true,
+        "experimentalDecorators": true, // Important for Sequelize decorators
+        "emitDecoratorMetadata": true, // Important for Sequelize decorators
+        "forceConsistentCasingInFileNames": true,
+        "baseUrl": "./src",
+        "paths": {
+            "@/*": ["*"]
+        },
+        "moduleResolution": "node"
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules"]
 }
