@@ -1,10 +1,10 @@
-import { UUIDV4 } from "sequelize";
+import { DataTypes, UUIDV4 } from "sequelize";
 import { Table, Column, Model, DataType, Default } from "sequelize-typescript";
 
 type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
-interface UserAttributes {
-  id: number;
+export interface UserAttributes {
+  id?: number;
   firstName: string;
   middleName?: string; // Optional middle name
   lastName: string;
@@ -38,6 +38,8 @@ interface UserAttributes {
   allergies?: string;
   healthInsuranceInfo?: string;
   doctorContact?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 @Table({
@@ -122,7 +124,6 @@ export class User extends Model<UserAttributes> implements UserAttributes {
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    validate: { isNumeric: true, len: [13, 13] },
   })
   guardianName!: string;
 
@@ -179,4 +180,8 @@ export class User extends Model<UserAttributes> implements UserAttributes {
 
   @Column({ type: DataType.STRING })
   doctorContact?: string;
+  @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
+  createdAt?: Date;
+  @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
+  updatedAt?: Date;
 }
