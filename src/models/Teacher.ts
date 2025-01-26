@@ -1,36 +1,21 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript'
-type Subject =
-    | 'English'
-    | 'Urdu'
-    | 'Computer Science'
-    | 'Physics'
-    | 'Maths'
-    | 'Pakistan Study'
-    | 'Chemistry'
-interface TeacherAttributes {
-    id: number
-    firstName: string
-    middleName?: string
-    lastName: string
-    dateOfBirth: Date
-    gender: 'Male' | 'Female' | 'Other'
-    nationality?: string
-    email: string
-    phoneNo: string
-    address: string
-    isClassTeacher: boolean
-    currentAddress?: string
-    cnic: string
-    highestQualification: string
-    specialization?: string
-    experienceYears?: number
-    joiningDate: Date
-    photo?: string
-    emergencyContactName: string
-    emergencyContactNumber: string
+import {
+    Table,
+    Column,
+    Model,
+    DataType,
+    Default,
+    IsUUID,
+} from 'sequelize-typescript'
+import { z } from 'zod'
+import UUIDV4 from 'sequelize'
+import { Subject, teacherSchema } from '@/schema/teacher.schema'
+
+// Interface for Teacher Attributes (derived from Zod schema)
+export type TeacherAttributes = z.infer<typeof teacherSchema> & {
+    id?: number
+    uuid?: string
     isVerified?: boolean
-    verificationDocument?: string
-    subject: Subject
+    role: 'TEACHER' | 'ADMIN'
 }
 
 @Table({
@@ -47,6 +32,15 @@ export class Teacher
         autoIncrement: true,
     })
     id!: number
+
+    @Default(UUIDV4)
+    @IsUUID(4)
+    @Column({
+        type: DataType.UUID,
+        allowNull: true,
+        unique: true,
+    })
+    uuid?: string
 
     @Column({ type: DataType.STRING, allowNull: false })
     firstName!: string
@@ -80,22 +74,21 @@ export class Teacher
     @Column({
         type: DataType.STRING,
         allowNull: false,
-        validate: { isNumeric: true, len: [10, 15] },
+        validate: { isNumeric: true },
     })
     phoneNo!: string
-
+    @Column({ type: DataType.STRING, allowNull: true })
+    password!: string
     @Column({ type: DataType.STRING, allowNull: false })
     address!: string
-    @Column({ type: DataType.BOOLEAN, allowNull: false })
-    isClassTeacher!: boolean
+
     @Column({ type: DataType.STRING })
     currentAddress?: string
 
     @Column({
         type: DataType.STRING,
-        unique: true,
         allowNull: false,
-        validate: { isNumeric: true, len: [13, 13] },
+        validate: { isNumeric: true },
     })
     cnic!: string
 
@@ -120,7 +113,7 @@ export class Teacher
     @Column({
         type: DataType.STRING,
         allowNull: false,
-        validate: { isNumeric: true, len: [10, 15] },
+        validate: { isNumeric: true },
     })
     emergencyContactNumber!: string
 
@@ -131,7 +124,18 @@ export class Teacher
     verificationDocument?: string
 
     @Column({ type: DataType.STRING })
-    cvUrl?: string // Path or URL to CV
-    @Column({ type: DataType.STRING })
-    subject!: Subject
+    cvPath?: string
+
+    @Default('TEACHER')
+    @Column({
+        type: DataType.STRING,
+        defaultValue: 'TEACHER',
+        allowNull: false,
+    })
+    role!: 'TEACHER'
+
+    @Column({
+        type: DataType.JSON, // Store subjects as JSON array
+    })
+    subjects?: Subject[]
 }

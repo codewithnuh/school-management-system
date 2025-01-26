@@ -1,43 +1,84 @@
-import sequelize from './config/database'
 import express from 'express'
+import sequelize from './config/database'
 import router from './routes/UserRoutes'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
-import { acceptStudentApplication } from './services/user.service'
 import cookieParser from 'cookie-parser'
-const app = express()
-app.use(cookieParser())
-// Middleware to parse JSON request bodies
-app.use(express.json())
-// Middleware to parse URL-encoded request bodies
-app.use(express.urlencoded({ extended: true }))
-// Enable CORS
-app.use(cors())
+import { authenticate } from './middleware/auth'
+import { generalLimiter } from './middleware/rateLimit.middleware'
+import { requestLogger } from './middleware/loggin.middleware'
+import { acceptStudentApplication } from './services/user.service'
 
-// Secure your app by setting various HTTP headers
-app.use(helmet())
+// Define User interface
+interface User {
+    id: string
+    email: string
+    role: string
+}
 
-// HTTP request logger
-app.use(morgan('combined'))
-
-// Compress response bodies
-app.use(compression())
-const port = process.env.PORT || 3000
-
-async function startServer() {
-    try {
-        await sequelize.authenticate()
-        //2083e10b-2c08-442c-8065-e5c69731ea31
-        // await acceptStudentApplication(1)
-        app.use('/users', router)
-        app.listen(port, () => {
-            console.log(`Server is running on port http:localhost://${port}`)
-        })
-    } catch (error) {
-        console.error('Unable to connect to the database:', error)
+// Declare type augmentation
+declare global {
+    namespace Express {
+        interface Request {
+            user?: User
+        }
     }
 }
 
-startServer()
+const app = express()
+const port = process.env.PORT || 3000
+
+// Combine all middleware in a single function for better organization
+const configureMiddleware = (app: express.Application) => {
+    // Security middleware
+    app.use(helmet())
+    app.use(cors())
+    app.use(generalLimiter)
+
+    // Request parsing middleware
+    app.use(express.json())
+    app.use(express.urlencoded({ extended: true }))
+    app.use(cookieParser())
+
+    // Logging middleware
+    app.use(requestLogger)
+
+    // Performance middleware
+    app.use(compression())
+}
+
+// Configure routes
+const configureRoutes = (app: express.Application) => {
+    app.use('/users', router)
+    app.get('/protected', authenticate, (req, res) => {
+        res.json({ message: 'You have access!', user: req.user })
+    })
+}
+
+const startServer = async () => {
+    try {
+        // Database connection
+        await sequelize.authenticate()
+        console.log('Database connection established successfully')
+
+        // Configure middleware and routes
+        configureMiddleware(app)
+        configureRoutes(app)
+
+        // Start server
+        app.listen(port, () => {
+            console.log(`Server is running on http://localhost:${port}`)
+        })
+    } catch (error) {
+        console.error('Unable to connect to the database:', error)
+        process.exit(1)
+    }
+}
+
+// Start the application
+startServer().catch(error => {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+})
