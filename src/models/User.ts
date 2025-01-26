@@ -1,48 +1,22 @@
+import { userSchema } from '@/schema/user.schema'
 import { DataTypes, UUIDV4 } from 'sequelize'
 import { Table, Column, Model, DataType, Default } from 'sequelize-typescript'
+import { z } from 'zod'
 
-type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
-
-export interface UserAttributes {
-    id?: number
-    firstName: string
-    middleName?: string // Optional middle name
-    lastName: string
-    dateOfBirth: Date
-    gender: 'Male' | 'Female' | 'Other' // Use enum or string literal type
-    placeOfBirth?: string
-    nationality?: string
-    email: string
-    phoneNo: string
-    emergencyContactName?: string
-    emergencyContactNumber?: string
-    address: string
-    currentAddress?: string
-    studentId: string
-    previousSchool?: string
-    previousGrade?: string
-    previousMarks?: string // Consider storing as JSON if more complex
-    isRegistered: boolean
-    guardianName: string
-    guardianCNIC: string
-    guardianPhone?: string
-    guardianEmail?: string
-    CNIC: string
-    class: Grade
-    uuid?: string
-    enrollmentDate: Date
-    photo?: string // Store path or URL to photo
-    transportation?: string
-    extracurriculars?: string
-    medicalConditions?: string
-    allergies?: string
-    healthInsuranceInfo?: string
-    doctorContact?: string
-    password?: string
-    createdAt?: Date
-    updatedAt?: Date
-}
-
+type UserAttributes = z.infer<typeof userSchema>
+type Grade =
+    | '1'
+    | '2'
+    | '3'
+    | '4'
+    | '5'
+    | '6'
+    | '7'
+    | '8'
+    | '9'
+    | '10'
+    | '11'
+    | '12'
 @Table({
     tableName: 'users',
     timestamps: true,
@@ -64,8 +38,8 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     @Column({ type: DataType.STRING, allowNull: false })
     lastName!: string
 
-    @Column({ type: DataType.DATE, allowNull: false })
-    dateOfBirth!: Date
+    @Column({ type: DataType.STRING, allowNull: false })
+    dateOfBirth!: string
 
     @Column({
         type: DataType.ENUM('Male', 'Female', 'Other'),
@@ -93,7 +67,8 @@ export class User extends Model<UserAttributes> implements UserAttributes {
         validate: { isNumeric: true, len: [10, 15] },
     })
     phoneNo!: string
-
+    @Column({ type: DataType.STRING, defaultValue: 'STUDENT' })
+    role!: string
     @Column({ type: DataType.STRING, allowNull: false })
     emergencyContactName!: string
 
@@ -122,16 +97,13 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     @Column({ type: DataType.STRING })
     previousMarks?: string
 
-    @Column({ type: DataType.BOOLEAN, defaultValue: false })
+    @Column({ type: DataType.BOOLEAN, defaultValue: false, allowNull: true })
     isRegistered!: boolean
     @Column({
         type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-            is: /^[a-zA-Z\s]*$/i,
-        },
+        allowNull: true,
     })
-    password?: string | undefined
+    password!: string
     @Column({
         type: DataType.STRING,
         allowNull: false,
@@ -161,15 +133,15 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     })
     CNIC!: string
 
-    @Column({ type: DataType.INTEGER, allowNull: false })
+    @Column({ type: DataType.STRING, allowNull: false })
     class!: Grade
 
     @Default(UUIDV4)
     @Column({ type: DataType.UUID, allowNull: true })
     uuid?: string
 
-    @Column({ type: DataType.DATE, allowNull: false })
-    enrollmentDate!: Date
+    @Column({ type: DataType.STRING, allowNull: false })
+    enrollmentDate!: string
 
     @Column({ type: DataType.STRING })
     photo?: string
