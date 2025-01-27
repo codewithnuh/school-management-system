@@ -1,5 +1,7 @@
 import express from 'express'
 import sequelize from './config/database'
+import swaggerUi from 'swagger-ui-express'
+import swaggerSpec from './config/swagger'
 import userRoutes from '@/routes/UserRoutes'
 import teacherRoutes from '@/routes/TeacherRoutes'
 import cors from 'cors'
@@ -9,7 +11,10 @@ import cookieParser from 'cookie-parser'
 import { authenticate } from './middleware/auth'
 import { generalLimiter } from './middleware/rateLimit.middleware'
 import { requestLogger } from './middleware/loggin.middleware'
-import { deleteExpiredSessions } from './cron/session'
+import {
+    deleteExpiredPasswordResetTokens,
+    deleteExpiredSessions,
+} from './cron/session'
 
 // Define User interface
 interface User {
@@ -36,6 +41,9 @@ const configureMiddleware = (app: express.Application) => {
     app.use(helmet())
     app.use(cors())
     app.use(generalLimiter)
+
+    // Swagger Documentation
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
     // Request parsing middleware
     app.use(express.json())
@@ -65,9 +73,9 @@ const startServer = async () => {
         configureMiddleware(app)
         configureRoutes(app)
         deleteExpiredSessions()
+        deleteExpiredPasswordResetTokens()
         // Start server
-        await sequelize.sync({ force: true })
-
+        await sequelize.sync()
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
         })

@@ -57,11 +57,8 @@ class UserController {
                 return await User.create(validatedUserData, { transaction: t })
             })
 
-            res.status(201).json({
-                success: true,
-                data: user,
-                message: 'User created successfully',
-            })
+            const response = ResponseUtil.success(user, 'User created successfully', 201)
+            res.status(response.statusCode).json(response)
         } catch (error) {
             this.handleError(res, error)
         }
@@ -161,21 +158,17 @@ class UserController {
             }
 
             // Check if token is expired
-            if (new Date() > passwordResetToken.expiryDate) {
+            if (new Date() > passwordResetToken.expiresDate) {
                 await passwordResetToken.destroy()
-                res.status(400).json({
-                    success: false,
-                    message: 'Reset token has expired',
-                })
+                const response = ResponseUtil.error('Reset token has expired', 400)
+                res.status(response.statusCode).json(response)
                 return
             }
 
-            const user = await User.findByPk(passwordResetToken.userId)
+            const user = await User.findByPk(passwordResetToken.entityId)
             if (!user) {
-                res.status(404).json({
-                    success: false,
-                    message: 'User not found',
-                })
+                const response = ResponseUtil.error('User not found', 404)
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -205,10 +198,8 @@ class UserController {
             const { email, password } = req.body
 
             if (!email || !password) {
-                res.status(400).json({
-                    success: false,
-                    message: 'Email and password are required',
-                })
+                const response = ResponseUtil.error('Email and password are required', 400)
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -217,10 +208,8 @@ class UserController {
             })
 
             if (!user) {
-                res.status(401).json({
-                    success: false,
-                    message: 'Invalid credentials',
-                })
+                const response = ResponseUtil.error('Invalid credentials', 401)
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -262,15 +251,12 @@ class UserController {
                 sameSite: 'strict',
             })
 
-            res.status(200).json({
-                success: true,
-                data: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.firstName,
-                },
-                message: 'Login successful',
-            })
+            const response = ResponseUtil.success({
+                id: user.id,
+                email: user.email,
+                name: user.firstName,
+            }, 'Login successful')
+            res.status(response.statusCode).json(response)
         } catch (error) {
             this.handleError(res, error)
         }
@@ -333,16 +319,11 @@ class UserController {
     private handleError = (res: Response, error: unknown): void => {
         if (error instanceof Error) {
             const statusCode = this.getErrorStatusCode(error)
-            res.status(statusCode).json({
-                success: false,
-                error: error.message,
-                name: error.name,
-            })
+            const response = ResponseUtil.error(error.message, statusCode)
+            res.status(response.statusCode).json(response)
         } else {
-            res.status(500).json({
-                success: false,
-                error: 'An unexpected error occurred',
-            })
+            const response = ResponseUtil.error('An unexpected error occurred', 500)
+            res.status(response.statusCode).json(response)
         }
     }
 

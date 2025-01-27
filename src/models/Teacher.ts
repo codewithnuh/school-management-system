@@ -40,7 +40,8 @@ export type TeacherAttributes = z.infer<typeof teacherSchema> & {
     id?: number
     uuid?: string
     isVerified?: boolean
-    role: 'TEACHER' | 'ADMIN'
+    role: 'TEACHER'
+    subject: Subject
 }
 
 @Table({
@@ -174,11 +175,11 @@ export class Teacher
     cvPath?: string
 
     @Column({
-        type: DataType.ENUM('TEACHER', 'ADMIN'),
+        type: DataType.STRING,
         defaultValue: 'TEACHER',
         allowNull: false,
     })
-    role!: 'TEACHER' | 'ADMIN'
+    role!: 'TEACHER'
 
     @Column({
         type: DataType.ENUM(...Object.values(Subject)),

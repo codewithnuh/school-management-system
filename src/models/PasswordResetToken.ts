@@ -3,26 +3,42 @@ import {
     Column,
     Model,
     DataType,
-    ForeignKey,
-    BelongsTo,
+    BeforeCreate,
 } from 'sequelize-typescript'
-import { User } from '@/models/User' // Import your User model
-
+import * as crypto from 'crypto'
+import { Op } from 'sequelize'
+export type EntityType = 'USER' | 'TEACHER'
 interface PasswordResetTokenAttributes {
     id?: number
     token: string
-    userId: number
-    expiryDate: Date
+    expiresDate: Date
+    isUsed: boolean
+    entityType: EntityType
+    entityId: number
     createdAt?: Date
     updatedAt?: Date
 }
-
+interface PasswordResetTokenCreationAttributes {
+    entityId: number
+    entityType: EntityType
+    userId?: number // Optional for flexibility
+    teacherId?: number
+    token?: string
+    isUsed?: boolean
+    expiresDate?: Date
+}
 @Table({
-    tableName: 'password_reset_tokens', // Important: Use a descriptive table name
-    timestamps: true, // Adds createdAt and updatedAt
+    tableName: 'password_reset_tokens',
+    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt',
 })
 export class PasswordResetToken
-    extends Model<PasswordResetTokenAttributes>
+    extends Model<
+        PasswordResetTokenAttributes,
+        PasswordResetTokenCreationAttributes
+    >
     implements PasswordResetTokenAttributes
 {
     @Column({
@@ -31,33 +47,108 @@ export class PasswordResetToken
         autoIncrement: true,
     })
     id?: number
-
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-        unique: true, // Ensure tokens are unique
-    })
+    @Column({ type: DataType.STRING(100), allowNull: false, unique: true })
     token!: string
-
-    @ForeignKey(() => User) // Foreign key to User model
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    userId!: number
-
-    @BelongsTo(() => User) // Define the relationship
-    user!: User
-
-    @Column({
-        type: DataType.DATE,
-        allowNull: false,
-    })
-    expiryDate!: Date
-
-    @Column({ type: DataType.DATE, defaultValue: DataType.NOW })
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    entityId!: number
+    @Column({ type: DataType.ENUM('USER', 'TEACHER'), allowNull: false })
+    entityType!: EntityType
+    @Column({ type: DataType.DATE, allowNull: false, field: 'expiresDate' })
+    expiresDate!: Date
+    @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+    isUsed!: boolean
+    @Column({ type: DataType.DATE })
     createdAt?: Date
-
-    @Column({ type: DataType.DATE, defaultValue: DataType.NOW })
+    @Column({ type: DataType.DATE })
     updatedAt?: Date
+    @BeforeCreate
+    static async generateToken(instance: PasswordResetToken) {
+        instance.token = crypto.randomBytes(32).toString('hex')
+        instance.expiresDate = new Date(Date.now() + 3600000)
+        instance.isUsed = false
+    }
+    //Helper methods
+    static async createToken({
+        entityType,
+        entityId,
+        userId,
+        teacherId,
+    }: {
+        entityType: EntityType
+        entityId: number
+        userId?: number
+        teacherId?: number
+    }) {
+        await this.update(
+            {
+                isUsed: true,
+            },
+            {
+                where: {
+                    entityId,
+                    entityType,
+                    isUsed: false,
+                    expiresDate: {
+                        [Op.gt]: new Date(),
+                    },
+                },
+            },
+        )
+        // First cleanup any expired tokens for this entity
+        await this.destroy({
+            where: {
+                entityId,
+                entityType,
+                [Op.or]: [
+                    { expiresDate: { [Op.lt]: new Date() } },
+                    { isUsed: true },
+                ],
+            },
+        })
+        const token = crypto.randomBytes(32).toString('hex')
+        const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+        return await this.create({
+            entityId,
+            entityType,
+            isUsed: false,
+            expiresDate: expiryDate,
+            token: token,
+            ...(entityType === 'USER' ? { userId } : { teacherId }),
+        })
+    }
+    static async cleanupExpiredTokens(): Promise<number> {
+        const deleted = await this.destroy({
+            where: {
+                [Op.or]: [
+                    {
+                        expiresDate: {
+                            [Op.lt]: new Date(),
+                        },
+                    },
+                    {
+                        isUsed: true,
+                    },
+                ],
+            },
+        })
+        return deleted
+    }
+
+    static async findValidToken(
+        token: string,
+    ): Promise<PasswordResetToken | null> {
+        return await this.findOne({
+            where: {
+                token,
+                isUsed: false,
+                expiresDate: {
+                    [Op.gt]: new Date(),
+                },
+            },
+        })
+    }
+    async markAsUsed(): Promise<void> {
+        this.isUsed = true
+        await this.save()
+    }
 }

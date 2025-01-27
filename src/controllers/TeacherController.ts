@@ -1,4 +1,5 @@
 // controllers/teacher.controller.ts
+import { ResponseUtil } from '@/utils/response.util'
 import { Request, Response } from 'express'
 import { Teacher } from '../models/Teacher'
 import { teacherSchema } from '@/schema/teacher.schema'
@@ -33,10 +34,8 @@ class TeacherController {
                     email: validatedData.email,
                     cnic: validatedData.cnic,
                 })
-                res.status(409).json({
-                    success: false,
-                    message: 'Teacher with this email or CNIC already exists',
-                })
+                const response = ResponseUtil.error('Teacher with this email or CNIC already exists', 409)
+                res.status(response.statusCode).json(response)
                 return
             }
 
@@ -65,11 +64,8 @@ class TeacherController {
                 email: teacher.email,
             })
 
-            res.status(201).json({
-                success: true,
-                message: 'Teacher registered successfully',
-                data: teacherData,
-            })
+            const response = ResponseUtil.success(teacherData, 'Teacher registered successfully', 201)
+            res.status(response.statusCode).json(response)
             return
         } catch (error) {
             logger.error('Teacher registration failed', {
@@ -103,7 +99,7 @@ class TeacherController {
     /**
      * Get all teachers with pagination
      */
-    public getTeachers = async (req: Request, res: Response) => {
+    public getTeachers = async (req: Request, res: Response): Promise<void> => {
         try {
             const page = parseInt(req.query.page as string) || 1
             const limit = parseInt(req.query.limit as string) || 10
@@ -117,24 +113,22 @@ class TeacherController {
                 },
             })
 
-            return res.status(200).json({
-                success: true,
-                data: {
-                    teachers: teachers.rows,
-                    total: teachers.count,
-                    currentPage: page,
-                    totalPages: Math.ceil(teachers.count / limit),
-                },
+            const response = ResponseUtil.success({
+                teachers: teachers.rows,
+                total: teachers.count,
+                currentPage: page,
+                totalPages: Math.ceil(teachers.count / limit),
             })
+            res.status(response.statusCode).json(response)
+            return
         } catch (error) {
             logger.error('Error fetching teachers', {
                 error: error instanceof Error ? error.message : 'Unknown error',
             })
 
-            return res.status(500).json({
-                success: false,
-                message: 'Internal server error',
-            })
+            const response = ResponseUtil.error('Internal server error', 500)
+            res.status(response.statusCode).json(response)
+            return
         }
     }
 
@@ -183,6 +177,7 @@ class TeacherController {
         res: Response,
     ): Promise<void> => {
         const teacherId = req.query.id
+        console.log(teacherId)
         if (teacherId === undefined || isNaN(Number(teacherId))) {
             res.status(400).json({ error: 'Invalid or missing teacher ID' })
             return

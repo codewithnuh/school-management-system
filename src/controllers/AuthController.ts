@@ -1,6 +1,7 @@
 import { PasswordResetToken } from '@/models/PasswordResetToken'
 import { User } from '@/models/User'
 import { Request, Response } from 'express'
+import { ResponseUtil } from '@/utils/response.util'
 import bcrypt from 'bcrypt'
 export class AuthController {
     public async resetPassword(res: Response, req: Request) {
@@ -13,7 +14,8 @@ export class AuthController {
                 },
             })
             if (!resetToken || resetToken.expiryDate < new Date()) {
-                return res.status(400).send('Invalid or expired token')
+                const response = ResponseUtil.error('Invalid or expired token', 400)
+                return res.status(response.statusCode).json(response)
             }
             const userId = resetToken.userId
             // Hash the password
@@ -27,17 +29,13 @@ export class AuthController {
 
             // Delete the used token
             await resetToken.destroy()
-            res.json({
-                success: true,
-                message: 'Password reset successfully',
-            })
+            const response = ResponseUtil.success(null, 'Password reset successfully')
+            res.status(response.statusCode).json(response)
             return
         } catch (error) {
             if (error instanceof Error) {
-                res.json({
-                    success: false,
-                    message: error.message,
-                })
+                const response = ResponseUtil.error(error.message)
+                res.status(response.statusCode).json(response)
                 return
             }
         }

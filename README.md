@@ -197,3 +197,283 @@ ORM:
 - Purpose: Provides an abstraction layer for database operations and defines data models
 
 Note: This project does not have a dedicated infrastructure stack defined in CloudFormation, CDK, or Terraform. The infrastructure is primarily managed through code and configuration files within the application itself.
+
+
+
+```import {
+    Table,
+    Column,
+    Model,
+    DataType,
+    ForeignKey,
+    BelongsTo,
+    BeforeCreate,
+} from 'sequelize-typescript';
+import { User } from '@/models/User';
+import { Teacher } from '@/models/Teacher';
+import * as crypto from 'crypto';
+import { Op } from 'sequelize';
+
+type EntityType = 'USER' | 'TEACHER';
+
+interface PasswordResetTokenAttributes {
+    id?: number;
+    token: string;
+    entityId: number;
+    entityType: EntityType;
+    expiryDate: Date;
+    isUsed: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+@Table({
+    tableName: 'password_reset_tokens',
+    timestamps: true,
+})
+export class PasswordResetToken
+    extends Model<PasswordResetTokenAttributes>
+    implements PasswordResetTokenAttributes
+{
+    @Column({
+        type: DataType.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    })
+    id?: number;
+
+    @Column({
+        type: DataType.STRING(100),
+        allowNull: false,
+        unique: true,
+    })
+    token!: string;
+
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
+    entityId!: number;
+
+    @Column({
+        type: DataType.ENUM('USER', 'TEACHER'),
+        allowNull: false,
+    })
+    entityType!: EntityType;
+
+    @Column({
+        type: DataType.DATE,
+        allowNull: false,
+    })
+    expiryDate!: Date;
+
+    @Column({
+        type: DataType.BOOLEAN,
+        defaultValue: false,
+    })
+    isUsed!: boolean;
+
+    @Column({ type: DataType.DATE })
+    createdAt?: Date;
+
+    @Column({ type: DataType.DATE })
+    updatedAt?: Date;
+
+    @BeforeCreate
+    static async generateToken(instance: PasswordResetToken) {
+        instance.token = crypto.randomBytes(32).toString('hex');
+        instance.expiryDate = new Date(Date.now() + 3600000); // 1 hour from now
+    }
+
+    // Helper methods
+    static async createToken(entityId: number, entityType: EntityType): Promise<PasswordResetToken> {
+        // Invalidate any existing tokens
+        await this.update(
+            { isUsed: true },
+            {
+                where: {
+                    entityId,
+                    entityType,
+                    isUsed: false,
+                    expiryDate: {
+                        [Op.gt]: new Date(),
+                    },
+                },
+            }
+        );
+
+        return await this.create({
+            entityId,
+            entityType,
+        });
+    }
+
+    static async findValidToken(token: string): Promise<PasswordResetToken | null> {
+        return await this.findOne({
+            where: {
+                token,
+                isUsed: false,
+                expiryDate: {
+                    [Op.gt]: new Date(),
+                },
+            },
+        });
+    }
+
+    async markAsUsed(): Promise<void> {
+        this.isUsed = true;
+        await this.save();
+    }
+
+    isExpired(): boolean {
+        return new Date() > this.expiryDate;
+    }
+
+    isValid(): boolean {
+        return !this.isUsed && !this.isExpired();
+    }
+}
+
+// Password Reset Service
+export class PasswordResetService {
+    static async generateResetToken(
+        email: string, 
+        entityType: EntityType
+    ): Promise<string> {
+        let entity;
+
+        if (entityType === 'USER') {
+            entity = await User.findOne({ where: { email } });
+        } else {
+            entity = await Teacher.findOne({ where: { email } });
+        }
+
+        if (!entity) {
+            throw new Error(`${entityType.toLowerCase()} not found`);
+        }
+
+        const resetToken = await PasswordResetToken.createToken(entity.id, entityType);
+        return resetToken.token;
+    }
+
+    static async resetPassword(
+        token: string, 
+        newPassword: string
+    ): Promise<boolean> {
+        const resetToken = await PasswordResetToken.findValidToken(token);
+        
+        if (!resetToken || !resetToken.isValid()) {
+            throw new Error('Invalid or expired token');
+        }
+
+        let entity;
+        if (resetToken.entityType === 'USER') {
+            entity = await User.findByPk(resetToken.entityId);
+        } else {
+            entity = await Teacher.findByPk(resetToken.entityId);
+        }
+
+        if (!entity) {
+            throw new Error(`${resetToken.entityType.toLowerCase()} not found`);
+        }
+
+        // Update password
+        entity.password = newPassword; // Assuming you have password hashing middleware
+        await entity.save();
+
+        // Mark token as used
+        await resetToken.markAsUsed();
+
+        return true;
+    }
+
+    static async verifyToken(token: string): Promise<boolean> {
+        const resetToken = await PasswordResetToken.findValidToken(token);
+        return !!resetToken && resetToken.isValid();
+    }
+}
+
+// Controller Example
+export class PasswordController {
+    async requestReset(req: Request, res: Response) {
+        try {
+            const { email, entityType } = req.body;
+
+            if (!['USER', 'TEACHER'].includes(entityType)) {
+                throw new Error('Invalid entity type');
+            }
+
+            const token = await PasswordResetService.generateResetToken(
+                email, 
+                entityType as EntityType
+            );
+            
+            // Send email with reset link
+            await sendResetEmail(email, token, entityType);
+
+            res.json({ 
+                success: true, 
+                message: 'Password reset instructions sent to email' 
+            });
+        } catch (error) {
+            res.status(400).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
+    async resetPassword(req: Request, res: Response) {
+        try {
+            const { token, newPassword } = req.body;
+            
+            await PasswordResetService.resetPassword(token, newPassword);
+
+            res.json({ 
+                success: true, 
+                message: 'Password successfully reset' 
+            });
+        } catch (error) {
+            res.status(400).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
+    async verifyToken(req: Request, res: Response) {
+        try {
+            const { token } = req.query;
+            const isValid = await PasswordResetService.verifyToken(token as string);
+
+            res.json({ 
+                success: true, 
+                isValid 
+            });
+        } catch (error) {
+            res.status(400).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+}
+
+// Email helper function
+async function sendResetEmail(email: string, token: string, entityType: EntityType) {
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    
+    // Implement your email sending logic here
+    // You might want to use different email templates for users and teachers
+    const template = entityType === 'USER' 
+        ? 'user-reset-password' 
+        : 'teacher-reset-password';
+
+    // Send email using your preferred email service
+    // await emailService.send({
+    //     to: email,
+    //     template,
+    //     context: { resetLink }
+    // });
+}
+```

@@ -38,7 +38,7 @@ export const teacherSchema = z.object({
         .max(15, 'Emergency contact number must be between 10 and 15 digits'),
     verificationDocument: z.string().trim().optional(), // Store path or URL
     cvPath: z.string().trim().optional(), // Path or URL to CV
-    subject: z.string(),
+    subject: z.enum(Object.values(Subject) as [Subject, ...Subject[]]),
     applicationStatus: z
         .enum(['Pending', 'Interview', 'Accepted', 'Rejected'])
         .optional(),

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { User } from '@/models/User'
-import { PasswordResetToken } from '@/models/PasswordResetToken'
+import { EntityType, PasswordResetToken } from '@/models/PasswordResetToken'
 import nodemailer from 'nodemailer'
 import { generateUniqueId } from '@/utils/uniqueIdGenerator'
 import { Teacher } from '@/models/Teacher'
@@ -21,6 +21,9 @@ const transporter = nodemailer.createTransport({
     pool: true, // use pooled connections
     maxConnections: 5, // limit concurrent connections
     maxMessages: 100, // limit messages per connection
+    connectionTimeout: 3000, // 3 seconds
+    greetingTimeout: 3000,
+    socketTimeout: 3000,
 })
 
 // Email template function with improved styling
@@ -178,16 +181,14 @@ export async function acceptStudentApplication(userId: number): Promise<void> {
     }
 
     // Generate a unique token
-    const token = uuidv4()
-    const expiryDate = new Date(Date.now() + 3600000) // 1 hour from now
 
     // Store the token in the database
-    await PasswordResetToken.create({
-        token,
-        userId: user.id,
-        expiryDate,
+    const passwordReset = await PasswordResetToken.createToken({
+        entityId: userId,
+        entityType: 'USER',
+        userId: userId,
     })
-
+    const token = passwordReset.token
     // Create setup link
     const setupLink = `${process.env.FRONTEND_URL}/set-password?token=${token}`
 
@@ -345,20 +346,20 @@ export async function processTeacherApplication(
     // Only generate token and setup link for accepted applications
     if (status === 'Accepted') {
         // Generate a unique token
-        const token = uuidv4()
-        const expiryDate = new Date(Date.now() + 3600000) // 1 hour from now
 
         // Store the token in the database
-        await PasswordResetToken.create({
-            token,
-            userId: teacher.id,
-            expiryDate,
+        const passwordReset = await PasswordResetToken.createToken({
+            entityId: teacherId,
+            entityType: 'TEACHER',
+            teacherId: teacherId,
         })
-
+        const token = passwordReset.token
         // Create setup link
         setupLink = `${process.env.FRONTEND_URL}/set-password?token=${token}`
     }
-
+    if (status === 'Rejected') {
+        await teacher.destroy()
+    }
     // Prepare email options
     const mailOptions = {
         from: {
@@ -394,4 +395,66 @@ export async function processTeacherApplication(
         applicationStatus: status,
         isVerified: status === 'Accepted' ? true : false,
     })
+}
+
+// Password Reset Service
+export class PasswordResetService {
+    static async generateResetToken(
+        email: string,
+        entityType: EntityType,
+    ): Promise<string> {
+        let entity
+
+        if (entityType === 'USER') {
+            entity = await User.findOne({ where: { email } })
+        } else {
+            entity = await Teacher.findOne({ where: { email } })
+        }
+
+        if (!entity) {
+            throw new Error(`${entityType.toLowerCase()} not found`)
+        }
+
+        const resetToken = await PasswordResetToken.createToken({
+            entityId: entity.id,
+            entityType,
+        })
+        return resetToken.token
+    }
+
+    static async resetPassword(
+        token: string,
+        newPassword: string,
+    ): Promise<boolean> {
+        const resetToken = await PasswordResetToken.findValidToken(token)
+
+        if (!resetToken || resetToken.isUsed) {
+            throw new Error('Invalid or expired token')
+        }
+
+        let entity
+        if (resetToken.entityType === 'USER') {
+            entity = await User.findByPk(resetToken.entityId)
+        } else {
+            entity = await Teacher.findByPk(resetToken.entityId)
+        }
+
+        if (!entity) {
+            throw new Error(`${resetToken.entityType.toLowerCase()} not found`)
+        }
+
+        // Update password
+        entity.password = newPassword // Assuming you have password hashing middleware
+        await entity.save()
+
+        // Mark token as used
+        await resetToken.markAsUsed()
+
+        return true
+    }
+
+    static async verifyToken(token: string): Promise<boolean> {
+        const resetToken = await PasswordResetToken.findValidToken(token)
+        return !!resetToken && !!resetToken.isUsed
+    }
 }
