@@ -27,9 +27,18 @@ export class AuthController {
 
             // Delete the used token
             await resetToken.destroy()
+            res.json({
+                success: true,
+                message: 'Password reset successfully',
+            })
+            return
         } catch (error) {
             if (error instanceof Error) {
-                console.log(error)
+                res.json({
+                    success: false,
+                    message: error.message,
+                })
+                return
             }
         }
     }

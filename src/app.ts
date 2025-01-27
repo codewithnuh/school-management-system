@@ -1,15 +1,15 @@
 import express from 'express'
 import sequelize from './config/database'
-import router from './routes/UserRoutes'
+import userRoutes from '@/routes/UserRoutes'
+import teacherRoutes from '@/routes/TeacherRoutes'
 import cors from 'cors'
 import helmet from 'helmet'
-import morgan from 'morgan'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import { authenticate } from './middleware/auth'
 import { generalLimiter } from './middleware/rateLimit.middleware'
 import { requestLogger } from './middleware/loggin.middleware'
-import { acceptStudentApplication } from './services/user.service'
+import { deleteExpiredSessions } from './cron/session'
 
 // Define User interface
 interface User {
@@ -51,10 +51,8 @@ const configureMiddleware = (app: express.Application) => {
 
 // Configure routes
 const configureRoutes = (app: express.Application) => {
-    app.use('/users', router)
-    app.get('/protected', authenticate, (req, res) => {
-        res.json({ message: 'You have access!', user: req.user })
-    })
+    app.use('/users', userRoutes)
+    app.use('/teachers', teacherRoutes)
 }
 
 const startServer = async () => {
@@ -66,8 +64,10 @@ const startServer = async () => {
         // Configure middleware and routes
         configureMiddleware(app)
         configureRoutes(app)
-
+        deleteExpiredSessions()
         // Start server
+        await sequelize.sync({ force: true })
+
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
         })

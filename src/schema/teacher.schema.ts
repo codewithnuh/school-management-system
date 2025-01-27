@@ -1,12 +1,5 @@
+import { Subject } from '@/models/Teacher'
 import { z } from 'zod'
-export type Subject =
-    | 'English'
-    | 'Urdu'
-    | 'Computer Science'
-    | 'Physics'
-    | 'Maths'
-    | 'Pakistan Study'
-    | 'Chemistry'
 
 // Zod schema for Teacher Registration
 export const teacherSchema = z.object({
@@ -14,7 +7,7 @@ export const teacherSchema = z.object({
     middleName: z.string().trim().optional(),
     lastName: z.string().trim().min(1, 'Last name is required'),
     password: z.string().optional(),
-    dateOfBirth: z.date(),
+    dateOfBirth: z.coerce.date(),
     gender: z.enum(['Male', 'Female', 'Other']),
     nationality: z.string().trim().optional(),
     email: z.string().email('Invalid email format'),
@@ -32,7 +25,7 @@ export const teacherSchema = z.object({
         .min(1, 'Highest qualification is required'),
     specialization: z.string().trim().optional(),
     experienceYears: z.number().int().positive().optional(),
-    joiningDate: z.date(),
+    joiningDate: z.coerce.date().optional(),
     photo: z.string().trim().optional(), // Store path or URL
     emergencyContactName: z
         .string()
@@ -45,17 +38,8 @@ export const teacherSchema = z.object({
         .max(15, 'Emergency contact number must be between 10 and 15 digits'),
     verificationDocument: z.string().trim().optional(), // Store path or URL
     cvPath: z.string().trim().optional(), // Path or URL to CV
-    subjects: z
-        .array(
-            z.enum([
-                'English',
-                'Urdu',
-                'Computer Science',
-                'Physics',
-                'Maths',
-                'Pakistan Study',
-                'Chemistry',
-            ]),
-        )
-        .optional(), // Subjects teacher is qualified to teach
+    subject: z.string(),
+    applicationStatus: z
+        .enum(['Pending', 'Interview', 'Accepted', 'Rejected'])
+        .optional(),
 })

@@ -10,6 +10,7 @@ const sequelize = new Sequelize({
     username: 'root',
     password: process.env.MYSQL_PASSWORD,
     host: 'localhost',
+    logging: false,
     port: 3306,
     dialect: 'mysql',
     models: [User, Teacher, PasswordResetToken, Session],

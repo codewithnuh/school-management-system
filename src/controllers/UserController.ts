@@ -5,7 +5,7 @@ import { PasswordResetToken } from '@/models/PasswordResetToken'
 import bcrypt from 'bcrypt'
 import { createJWT } from '@/utils/jwt'
 import { Session } from '@/models/Session'
-import { acceptStudentApplication } from '@/services/user.service'
+import { acceptStudentApplication } from '@/services/application.service'
 
 interface UserData {
     firstName: string

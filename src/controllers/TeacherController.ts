@@ -4,16 +4,20 @@ import { Teacher } from '../models/Teacher'
 import { teacherSchema } from '@/schema/teacher.schema'
 import { logger } from '@/middleware/loggin.middleware'
 import { Op } from 'sequelize'
+import { processTeacherApplication } from '@/services/application.service'
 
-export class TeacherController {
+class TeacherController {
     /**
      * Register a new teacher
      */
-    public async registerTeacher(req: Request, res: Response) {
+    public registerTeacher = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
         try {
             // Validate request body against schema
             const validatedData = teacherSchema.parse(req.body)
-
+            console.log('validatedData', validatedData)
             // Check if teacher already exists with same email or CNIC
             const existingTeacher = await Teacher.findOne({
                 where: {
@@ -29,10 +33,11 @@ export class TeacherController {
                     email: validatedData.email,
                     cnic: validatedData.cnic,
                 })
-                return res.status(409).json({
-                    status: 'error',
+                res.status(409).json({
+                    success: false,
                     message: 'Teacher with this email or CNIC already exists',
                 })
+                return
             }
 
             // Process file uploads if any
@@ -60,37 +65,45 @@ export class TeacherController {
                 email: teacher.email,
             })
 
-            return res.status(201).json({
-                status: 'success',
+            res.status(201).json({
+                success: true,
                 message: 'Teacher registered successfully',
                 data: teacherData,
             })
+            return
         } catch (error) {
             logger.error('Teacher registration failed', {
                 error: error instanceof Error ? error.message : 'Unknown error',
                 stack: error instanceof Error ? error.stack : undefined,
             })
+
             if (error instanceof Error) {
                 if (error.name === 'ZodError') {
-                    return res.status(400).json({
-                        status: 'error',
+                    res.status(400).json({
+                        success: false,
                         message: 'Validation failed',
-                        errors: error.stack,
+                        errors: error.message, // Send message instead of stack trace
                     })
                 }
+
+                res.status(400).json({
+                    success: false,
+                    message: error.message,
+                })
+                return
             }
 
-            return res.status(500).json({
-                status: 'error',
+            res.status(500).json({
+                success: false,
                 message: 'Internal server error',
             })
+            return
         }
     }
-
     /**
      * Get all teachers with pagination
      */
-    public async getTeachers(req: Request, res: Response) {
+    public getTeachers = async (req: Request, res: Response) => {
         try {
             const page = parseInt(req.query.page as string) || 1
             const limit = parseInt(req.query.limit as string) || 10
@@ -105,7 +118,7 @@ export class TeacherController {
             })
 
             return res.status(200).json({
-                status: 'success',
+                success: true,
                 data: {
                     teachers: teachers.rows,
                     total: teachers.count,
@@ -119,7 +132,7 @@ export class TeacherController {
             })
 
             return res.status(500).json({
-                status: 'error',
+                success: false,
                 message: 'Internal server error',
             })
         }
@@ -128,7 +141,7 @@ export class TeacherController {
     /**
      * Get teacher by ID
      */
-    public async getTeacherById(req: Request, res: Response) {
+    public getTeacherById = async (req: Request, res: Response) => {
         try {
             const { id } = req.params
 
@@ -146,7 +159,7 @@ export class TeacherController {
             }
 
             return res.status(200).json({
-                status: 'success',
+                success: true,
                 data: teacher,
             })
         } catch (error) {
@@ -156,7 +169,7 @@ export class TeacherController {
             })
 
             return res.status(500).json({
-                status: 'error',
+                success: false,
                 message: 'Internal server error',
             })
         }
@@ -165,42 +178,90 @@ export class TeacherController {
     /**
      * Update teacher verification status
      */
-    public async verifyTeacher(req: Request, res: Response) {
+    public acceptTeacherApplication = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
+        const teacherId = req.query.id
+        if (teacherId === undefined || isNaN(Number(teacherId))) {
+            res.status(400).json({ error: 'Invalid or missing teacher ID' })
+            return
+        }
+
         try {
-            const { id } = req.params
-            const { isVerified } = req.body
+            const numericTeacherId = Number(teacherId)
+            await processTeacherApplication(numericTeacherId, 'Accepted')
 
-            const teacher = await Teacher.findByPk(id)
-
-            if (!teacher) {
-                return res.status(404).json({
-                    status: 'error',
-                    message: 'Teacher not found',
-                })
-            }
-
-            await teacher.update({ isVerified })
-
-            logger.info('Teacher verification status updated', {
-                teacherId: id,
-                isVerified,
-            })
-
-            return res.status(200).json({
-                status: 'success',
-                message: 'Teacher verification status updated successfully',
-                data: { isVerified },
+            res.status(200).json({
+                success: true,
+                message: 'Teacher registered successfully',
             })
         } catch (error) {
-            logger.error('Error updating teacher verification', {
-                error: error instanceof Error ? error.message : 'Unknown error',
-                teacherId: req.params.id,
-            })
+            if (error instanceof Error) {
+                res.status(400).json({
+                    success: false,
+                    message: error.message,
+                    stack: error.message,
+                })
+            }
+        }
+    }
 
-            return res.status(500).json({
-                status: 'error',
-                message: 'Internal server error',
+    public rejectTeacherApplication = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
+        const teacherId = req.query.id
+        if (teacherId === undefined || isNaN(Number(teacherId))) {
+            res.status(400).json({ error: 'Invalid or missing teacher ID' })
+            return
+        }
+
+        try {
+            const numericTeacherId = Number(teacherId)
+            await processTeacherApplication(numericTeacherId, 'Rejected')
+
+            res.status(200).json({
+                success: true,
+                message: 'Teacher application rejected successfully',
             })
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json({
+                    success: false,
+                    message: error.message,
+                    stack: error.message,
+                })
+            }
+        }
+    }
+
+    public interviewTeacherApplicant = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
+        const teacherId = req.query.id
+        if (teacherId === undefined || isNaN(Number(teacherId))) {
+            res.status(400).json({ error: 'Invalid or missing teacher ID' })
+            return
+        }
+
+        try {
+            const numericTeacherId = Number(teacherId)
+            await processTeacherApplication(numericTeacherId, 'Interview')
+
+            res.status(200).json({
+                success: true,
+                message: 'Teacher selected for interview successfully',
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json({
+                    success: false,
+                    message: error.message,
+                    stack: error.message,
+                })
+            }
         }
     }
 }

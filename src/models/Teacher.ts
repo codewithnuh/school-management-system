@@ -5,12 +5,37 @@ import {
     DataType,
     Default,
     IsUUID,
+    Index,
+    CreatedAt,
+    UpdatedAt,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import UUIDV4 from 'sequelize'
-import { Subject, teacherSchema } from '@/schema/teacher.schema'
+import { UUIDV4 } from 'sequelize'
+import { teacherSchema } from '@/schema/teacher.schema'
 
-// Interface for Teacher Attributes (derived from Zod schema)
+// Define enums for better type safety
+export enum Gender {
+    Male = 'Male',
+    Female = 'Female',
+    Other = 'Other',
+}
+export enum Subject {
+    English = 'English',
+    Urdu = 'Urdu',
+    ComputerScience = 'Computer Science',
+    Physics = 'Physics',
+    Maths = 'Maths',
+    PakistanStudy = 'Pakistan Study',
+    Chemistry = 'Chemistry',
+}
+
+export enum ApplicationStatus {
+    Pending = 'Pending',
+    Interview = 'Interview',
+    Accepted = 'Accepted',
+    Rejected = 'Rejected',
+}
+
 export type TeacherAttributes = z.infer<typeof teacherSchema> & {
     id?: number
     uuid?: string
@@ -55,10 +80,10 @@ export class Teacher
     dateOfBirth!: Date
 
     @Column({
-        type: DataType.ENUM('Male', 'Female', 'Other'),
+        type: DataType.ENUM(...Object.values(Gender)),
         allowNull: false,
     })
-    gender!: 'Male' | 'Female' | 'Other'
+    gender!: Gender
 
     @Column({ type: DataType.STRING })
     nationality?: string
@@ -69,16 +94,26 @@ export class Teacher
         unique: true,
         validate: { isEmail: true },
     })
+    @Index({ unique: true })
     email!: string
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
-        validate: { isNumeric: true },
+        validate: {
+            isNumeric: true,
+            len: [10, 15],
+        },
     })
     phoneNo!: string
-    @Column({ type: DataType.STRING, allowNull: true })
-    password!: string
+
+    // Updated password field to allow null
+    @Column({
+        type: DataType.STRING,
+        allowNull: true, // Changed to true to allow null initially
+    })
+    password?: string // Changed to optional with ?
+
     @Column({ type: DataType.STRING, allowNull: false })
     address!: string
 
@@ -88,7 +123,10 @@ export class Teacher
     @Column({
         type: DataType.STRING,
         allowNull: false,
-        validate: { isNumeric: true },
+        validate: {
+            isNumeric: true,
+            len: [13, 13],
+        },
     })
     cnic!: string
 
@@ -113,12 +151,21 @@ export class Teacher
     @Column({
         type: DataType.STRING,
         allowNull: false,
-        validate: { isNumeric: true },
+        validate: {
+            isNumeric: true,
+            len: [10, 15],
+        },
     })
     emergencyContactNumber!: string
 
     @Column({ type: DataType.BOOLEAN, defaultValue: false })
     isVerified?: boolean
+
+    @Column({
+        type: DataType.ENUM(...Object.values(ApplicationStatus)),
+        defaultValue: ApplicationStatus.Pending,
+    })
+    applicationStatus!: ApplicationStatus
 
     @Column({ type: DataType.STRING })
     verificationDocument?: string
@@ -126,16 +173,22 @@ export class Teacher
     @Column({ type: DataType.STRING })
     cvPath?: string
 
-    @Default('TEACHER')
     @Column({
-        type: DataType.STRING,
+        type: DataType.ENUM('TEACHER', 'ADMIN'),
         defaultValue: 'TEACHER',
         allowNull: false,
     })
-    role!: 'TEACHER'
+    role!: 'TEACHER' | 'ADMIN'
 
     @Column({
-        type: DataType.JSON, // Store subjects as JSON array
+        type: DataType.ENUM(...Object.values(Subject)),
+        allowNull: false,
     })
-    subjects?: Subject[]
+    subject!: Subject
+
+    @CreatedAt
+    createdAt!: Date
+
+    @UpdatedAt
+    updatedAt!: Date
 }
