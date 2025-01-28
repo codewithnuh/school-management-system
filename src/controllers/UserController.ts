@@ -6,6 +6,8 @@ import bcrypt from 'bcrypt'
 import { createJWT } from '@/utils/jwt'
 import { Session } from '@/models/Session'
 import { acceptStudentApplication } from '@/services/application.service'
+import { ResponseUtil } from '@/utils/response.util'
+import { forgotPasswordService } from '@/services/forgot-password.service'
 
 interface UserData {
     firstName: string
@@ -57,7 +59,11 @@ class UserController {
                 return await User.create(validatedUserData, { transaction: t })
             })
 
-            const response = ResponseUtil.success(user, 'User created successfully', 201)
+            const response = ResponseUtil.success(
+                user,
+                'User created successfully',
+                201,
+            )
             res.status(response.statusCode).json(response)
         } catch (error) {
             this.handleError(res, error)
@@ -160,7 +166,10 @@ class UserController {
             // Check if token is expired
             if (new Date() > passwordResetToken.expiresDate) {
                 await passwordResetToken.destroy()
-                const response = ResponseUtil.error('Reset token has expired', 400)
+                const response = ResponseUtil.error(
+                    'Reset token has expired',
+                    400,
+                )
                 res.status(response.statusCode).json(response)
                 return
             }
@@ -198,7 +207,10 @@ class UserController {
             const { email, password } = req.body
 
             if (!email || !password) {
-                const response = ResponseUtil.error('Email and password are required', 400)
+                const response = ResponseUtil.error(
+                    'Email and password are required',
+                    400,
+                )
                 res.status(response.statusCode).json(response)
                 return
             }
@@ -251,11 +263,14 @@ class UserController {
                 sameSite: 'strict',
             })
 
-            const response = ResponseUtil.success({
-                id: user.id,
-                email: user.email,
-                name: user.firstName,
-            }, 'Login successful')
+            const response = ResponseUtil.success(
+                {
+                    id: user.id,
+                    email: user.email,
+                    name: user.firstName,
+                },
+                'Login successful',
+            )
             res.status(response.statusCode).json(response)
         } catch (error) {
             this.handleError(res, error)
@@ -288,6 +303,48 @@ class UserController {
                 })
             }
         }
+    }
+    public forgotPassword = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
+        const { email } = req.body
+
+        if (!email) {
+            const response = ResponseUtil.error(
+                'Entity Id missing',
+                400,
+                'Please provide entity id',
+            )
+            res.status(400).json(response)
+            return
+        }
+        const isUserExists = await User.findOne({
+            where: {
+                email,
+            },
+        })
+        if (!isUserExists) {
+            const response = ResponseUtil.error(
+                'User not found',
+                404,
+                'You are not registered',
+            )
+            res.status(404).json(response)
+            return
+        }
+        try {
+            await forgotPasswordService({
+                email,
+                entityType: 'STUDENT',
+            })
+            const response = ResponseUtil.success(
+                '',
+                'OTP has been sent to your mail',
+                200,
+            )
+            res.status(201).json(response)
+        } catch (error) {}
     }
     public logout = async (req: Request, res: Response): Promise<void> => {
         try {
@@ -322,7 +379,10 @@ class UserController {
             const response = ResponseUtil.error(error.message, statusCode)
             res.status(response.statusCode).json(response)
         } else {
-            const response = ResponseUtil.error('An unexpected error occurred', 500)
+            const response = ResponseUtil.error(
+                'An unexpected error occurred',
+                500,
+            )
             res.status(response.statusCode).json(response)
         }
     }

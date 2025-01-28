@@ -5,7 +5,7 @@ export const otpSchema = z.object({
     id: z.number().optional(),
     otp: z.number().max(6),
     entityId: z.number(),
-    entityType: z.enum(['ADMIN', 'TEACHER', 'STUDENT']),
+    entityType: z.enum(['ADMIN', 'TEACHER', 'STUDENT', 'PARENT']),
     isUsed: z.boolean().default(false),
     expiresAt: z.date(),
     createdAt: z.date().optional(),
@@ -13,7 +13,7 @@ export const otpSchema = z.object({
 })
 
 export type OTPAttributes = z.infer<typeof otpSchema>
-export type EntityType = 'ADMIN' | 'TEACHER' | 'STUDENT'
+export type EntityType = 'ADMIN' | 'TEACHER' | 'STUDENT' | 'PARENT'
 
 @Table({
     tableName: 'otps',
@@ -40,7 +40,7 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     public entityId!: number
 
     @Column({
-        type: DataType.ENUM('ADMIN', 'TEACHER', 'STUDENT'),
+        type: DataType.ENUM('ADMIN', 'TEACHER', 'STUDENT', 'PARENT'),
         allowNull: false,
     })
     public entityType!: EntityType

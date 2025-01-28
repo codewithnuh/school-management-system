@@ -193,4 +193,5 @@ router.post('/auth/login', UserController.login)
  *         description: Unauthorized
  */
 router.post('/auth/logout', UserController.logout)
+router.post('/auth/forgot-password', UserController.forgotPassword)
 export default router

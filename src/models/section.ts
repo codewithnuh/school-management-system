@@ -1,7 +1,7 @@
 import { AutoIncrement, BelongsTo, Model } from 'sequelize-typescript'
 import { Table, Column, DataType, ForeignKey } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Class } from '@/models/class'
+import { Class } from '@/models/Class'
 import { Teacher } from '@/models/Teacher'
 
 export const SectionSchema = z.object({
