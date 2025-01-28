@@ -11,6 +11,7 @@ export const teacherSchema = z.object({
     gender: z.enum(['Male', 'Female', 'Other']),
     nationality: z.string().trim().optional(),
     email: z.string().email('Invalid email format'),
+    entityType: z.enum(['TEACHER']),
     phoneNo: z
         .string()
         .trim()

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { Op } from 'sequelize'
 export const otpSchema = z.object({
     id: z.number().optional(),
-    otp: z.string().length(6).regex(/^\d+$/),
+    otp: z.number().max(6),
     entityId: z.number(),
     entityType: z.enum(['ADMIN', 'TEACHER', 'STUDENT']),
     isUsed: z.boolean().default(false),
@@ -28,10 +28,10 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     public id!: number
 
     @Column({
-        type: DataType.STRING(6),
+        type: DataType.NUMBER,
         allowNull: false,
     })
-    public otp!: string
+    public otp!: number
 
     @Column({
         type: DataType.INTEGER,
@@ -67,8 +67,8 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     })
     public readonly updatedAt!: Date
 
-    static async generateOTP(): Promise<string> {
-        return Math.floor(100000 + Math.random() * 900000).toString()
+    static async generateOTP(): Promise<number> {
+        return Math.floor(100000 + Math.random() * 900000)
     }
 
     static async createOTP(

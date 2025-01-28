@@ -67,8 +67,8 @@ export class User extends Model<UserAttributes> implements UserAttributes {
         validate: { isNumeric: true, len: [10, 15] },
     })
     phoneNo!: string
-    @Column({ type: DataType.STRING, defaultValue: 'STUDENT' })
-    role!: string
+    @Column({ type: DataType.ENUM('STUDENT'), defaultValue: 'STUDENT' })
+    entityType!: 'STUDENT'
     @Column({ type: DataType.STRING, allowNull: false })
     emergencyContactName!: string
 

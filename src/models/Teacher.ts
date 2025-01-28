@@ -107,7 +107,12 @@ export class Teacher
         },
     })
     phoneNo!: string
-
+    @Column({
+        type: DataType.ENUM('Teacher'),
+        defaultValue: 'Teacher',
+        allowNull: false,
+    })
+    entityType!: 'TEACHER'
     // Updated password field to allow null
     @Column({
         type: DataType.STRING,

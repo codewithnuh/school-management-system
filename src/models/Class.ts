@@ -1,6 +1,6 @@
 import { Column, DataType, HasMany, Model } from 'sequelize-typescript'
 import z from 'zod'
-import { Section } from '@/models/section'
+import { Section } from '@/models/Section'
 export const ClassSchema = z.object({
     id: z.number(),
     name: z.string(),

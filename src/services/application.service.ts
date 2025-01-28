@@ -1,13 +1,11 @@
-import { v4 as uuidv4 } from 'uuid'
 import { User } from '@/models/User'
 import { EntityType, PasswordResetToken } from '@/models/PasswordResetToken'
 import nodemailer from 'nodemailer'
 import { generateUniqueId } from '@/utils/uniqueIdGenerator'
 import { Teacher } from '@/models/Teacher'
-import { Fn } from 'sequelize/types/utils'
 
 // Email configuration
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT || '587'),
     secure: process.env.EMAIL_PORT === '465',

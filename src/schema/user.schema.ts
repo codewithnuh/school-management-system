@@ -15,7 +15,7 @@ export const userSchema = z.object({
         .trim()
         .min(10, 'Phone number must be between 10 and 15 characters')
         .max(15, 'Phone number must be between 10 and 15 characters'),
-    role: z.string().optional(),
+    entityType: z.enum(['STUDENT']),
     emergencyContactName: z
         .string()
         .trim()
