@@ -311,6 +311,7 @@ class UserController {
     ): Promise<void> => {
         const { email, newPassword, otp, step } = req.body
 
+        const user = await User.findOne({ where: { email } })
         try {
             switch (step) {
                 case 'verifyEmail':
@@ -324,7 +325,6 @@ class UserController {
                         return
                     }
 
-                    const user = await User.findOne({ where: { email } })
                     if (!user) {
                         const response = ResponseUtil.error(
                             'User not found',
@@ -339,13 +339,16 @@ class UserController {
                         email,
                         entityType: 'STUDENT',
                     })
+
                     const response = ResponseUtil.success(
                         'OTP sent',
 
                         'An OTP has been sent to your email',
                         200,
                     )
+
                     res.status(200).json(response)
+
                     break
 
                 case 'verifyOtp':
@@ -360,8 +363,8 @@ class UserController {
                     }
 
                     const validOtp = await OTP.findValidOTP(
-                        otp,
-                        email,
+                        Number(otp),
+                        user!.id as number,
                         'STUDENT',
                     )
                     if (!validOtp) {
@@ -394,8 +397,8 @@ class UserController {
                     }
 
                     const isValidOtp = await OTP.findValidOTP(
-                        otp,
-                        email,
+                        Number(otp),
+                        user!.id as number,
                         'STUDENT',
                     )
                     if (!isValidOtp) {
@@ -448,9 +451,10 @@ class UserController {
             const response = ResponseUtil.error(
                 'Internal Server Error',
                 500,
-                'An error occurred while processing your request',
+                'Internal Server Error',
             )
             res.status(500).json(response)
+            return
         }
     }
     public logout = async (req: Request, res: Response): Promise<void> => {

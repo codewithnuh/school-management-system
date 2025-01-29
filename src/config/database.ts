@@ -4,6 +4,7 @@ import { config } from 'dotenv'
 import { Teacher } from '@/models/Teacher'
 import { PasswordResetToken } from '@/models/PasswordResetToken'
 import { Session } from '@/models/Session'
+import { OTP } from '@/models/OTP'
 config()
 const sequelize = new Sequelize({
     database: 'mydb',
@@ -13,7 +14,7 @@ const sequelize = new Sequelize({
     logging: false,
     port: 3306,
     dialect: 'mysql',
-    models: [User, Teacher, PasswordResetToken, Session],
+    models: [User, Teacher, PasswordResetToken, Session, OTP],
 })
 
 export default sequelize

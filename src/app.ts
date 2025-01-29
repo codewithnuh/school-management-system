@@ -8,7 +8,6 @@ import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
-import { authenticate } from './middleware/auth'
 import { generalLimiter } from './middleware/rateLimit.middleware'
 import { requestLogger } from './middleware/loggin.middleware'
 import {
@@ -59,8 +58,8 @@ const configureMiddleware = (app: express.Application) => {
 
 // Configure routes
 const configureRoutes = (app: express.Application) => {
-    app.use('/users', userRoutes)
-    app.use('/teachers', teacherRoutes)
+    app.use('/api/v1/users', userRoutes)
+    app.use('/api/v1/teachers', teacherRoutes)
 }
 
 const startServer = async () => {
@@ -75,7 +74,7 @@ const startServer = async () => {
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
         // Start server
-        await sequelize.sync()
+
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
         })

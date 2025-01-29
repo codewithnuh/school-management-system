@@ -28,7 +28,7 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     public id!: number
 
     @Column({
-        type: DataType.NUMBER,
+        type: DataType.INTEGER,
         allowNull: false,
     })
     public otp!: number
@@ -97,6 +97,7 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
                 otp,
                 entityId,
                 entityType,
+
                 isUsed: false,
                 expiresAt: {
                     [Op.gt]: new Date(),
@@ -120,5 +121,19 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
             },
         })
         return result
+    }
+    static async cleanPreviousOtps({
+        entityId,
+        entityType,
+    }: {
+        entityId: number
+        entityType: 'ADMIN' | 'TEACHER' | 'STUDENT' | 'PARENT'
+    }): Promise<void> {
+        await this.destroy({
+            where: {
+                entityId,
+                entityType,
+            },
+        })
     }
 }

@@ -38,7 +38,6 @@ export enum ApplicationStatus {
 
 export type TeacherAttributes = z.infer<typeof teacherSchema> & {
     id?: number
-    uuid?: string
     isVerified?: boolean
     role: 'TEACHER'
     subject: Subject
@@ -58,15 +57,6 @@ export class Teacher
         autoIncrement: true,
     })
     id!: number
-
-    @Default(UUIDV4)
-    @IsUUID(4)
-    @Column({
-        type: DataType.UUID,
-        allowNull: true,
-        unique: true,
-    })
-    uuid?: string
 
     @Column({ type: DataType.STRING, allowNull: false })
     firstName!: string

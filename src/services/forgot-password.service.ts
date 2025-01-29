@@ -32,6 +32,7 @@ export const sendForgotPasswordOTP = async ({
     if (!entity) {
         throw new Error('No entity found')
     }
+    await OTP.cleanPreviousOtps({ entityId: entity.id, entityType })
     const Otp = await OTP.createOTP(entity!.id, entityType)
 
     sendOtp({

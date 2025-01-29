@@ -1,5 +1,25 @@
 import nodemailer from 'nodemailer'
 
+// Function to check for missing environment variables
+const checkEnvVariables = () => {
+    const requiredEnvVars = [
+        'EMAIL_HOST',
+        'EMAIL_PORT',
+        'EMAIL_USER',
+        'EMAIL_APP_PASSWORD',
+        'EMAIL_SENDER_NAME',
+    ]
+
+    requiredEnvVars.forEach(envVar => {
+        if (!process.env[envVar]) {
+            console.error(`Error: Missing environment variable ${envVar}`)
+        }
+    })
+}
+
+// Call the function to check for missing environment variables
+checkEnvVariables()
+
 export const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT || '587'),
@@ -18,6 +38,7 @@ export const transporter = nodemailer.createTransport({
     greetingTimeout: 3000,
     socketTimeout: 3000,
 })
+
 const emailHTML = ({
     entityType,
     name,
