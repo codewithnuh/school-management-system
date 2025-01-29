@@ -8,10 +8,12 @@ import {
     Index,
     CreatedAt,
     UpdatedAt,
+    HasMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
 import { UUIDV4 } from 'sequelize'
 import { teacherSchema } from '@/schema/teacher.schema'
+import { Timetable } from './TimeTable'
 
 // Define enums for better type safety
 export enum Gender {
@@ -181,7 +183,8 @@ export class Teacher
         allowNull: false,
     })
     subject!: Subject
-
+    @HasMany(() => Timetable)
+    assignedPeriods!: Timetable[]
     @CreatedAt
     createdAt!: Date
 

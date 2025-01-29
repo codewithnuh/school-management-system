@@ -1,8 +1,9 @@
-import { AutoIncrement, BelongsTo, Model } from 'sequelize-typescript'
+import { AutoIncrement, BelongsTo, HasMany, Model } from 'sequelize-typescript'
 import { Table, Column, DataType, ForeignKey } from 'sequelize-typescript'
 import { z } from 'zod'
 import { Class } from '@/models/Class'
 import { Teacher } from '@/models/Teacher'
+import { Timetable } from './TimeTable'
 
 export const SectionSchema = z.object({
     id: z.number().optional(),
@@ -19,6 +20,7 @@ export type SectionAttributes = z.infer<typeof SectionSchema>
 @Table({
     tableName: 'sections',
     timestamps: true,
+    paranoid: true, // Enable soft deletes
 })
 export class Section extends Model<SectionAttributes> {
     @AutoIncrement
@@ -51,15 +53,18 @@ export class Section extends Model<SectionAttributes> {
 
     @BelongsTo(() => Class)
     class!: Class
+    @ForeignKey(() => Teacher)
     @Column({
-        type: DataType.NUMBER,
+        type: DataType.INTEGER, // Corrected data type
         allowNull: false,
-        validate: {
-            isNumeric: true,
+        references: {
+            model: 'teachers',
+            key: 'id',
         },
     })
-    @BelongsTo(() => Teacher)
     classTeacherId!: number
+    @HasMany(() => Timetable)
+    timetables!: Timetable[]
     static validateSection(data: Partial<SectionAttributes>) {
         return SectionSchema.parse(data)
     }
