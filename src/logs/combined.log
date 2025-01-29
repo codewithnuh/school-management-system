@@ -111,3 +111,10 @@
 {"level":"info","message":{"duration":27,"ip":"::1","method":"POST","path":"/auth/forgot-password","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T07:09:31.203Z"}
 {"level":"info","message":{"duration":172,"ip":"::1","method":"POST","path":"/auth/forgot-password","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T07:09:46.369Z"}
 {"level":"info","message":{"duration":282,"ip":"::1","method":"POST","path":"/auth/forgot-password","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T07:24:20.602Z"}
+{"level":"info","message":{"duration":16,"ip":"::1","method":"POST","path":"/api/v1/users/forgot-password","statusCode":404,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T12:37:06.592Z"}
+{"level":"info","message":{"duration":78,"ip":"::1","method":"POST","path":"/auth/forgot-password","statusCode":500,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T12:37:10.933Z"}
+{"level":"info","message":{"duration":87,"ip":"::1","method":"POST","path":"/auth/forgot-password","statusCode":500,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T12:38:55.539Z"}
+{"level":"info","message":"OTP created with entityId: 1 and entityType: STUDENT","timestamp":"2025-01-29T12:44:35.296Z"}
+{"level":"info","message":{"duration":137,"ip":"::1","method":"POST","path":"/auth/forgot-password","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T12:44:35.307Z"}
+{"level":"info","message":{"duration":774,"ip":"::1","method":"POST","path":"/auth/forgot-password","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T12:47:18.677Z"}
+{"level":"info","message":{"duration":381,"ip":"::1","method":"POST","path":"/auth/forgot-password","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-29T12:47:44.545Z"}

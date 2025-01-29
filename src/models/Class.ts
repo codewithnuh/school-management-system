@@ -2,7 +2,7 @@ import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
 import z from 'zod'
 import { Section } from '@/models/Section'
 export const ClassSchema = z.object({
-    id: z.number(),
+    id: z.number().optional(),
     name: z.string(),
     description: z.string(),
     maxStudents: z.number(),
@@ -11,6 +11,7 @@ export const ClassSchema = z.object({
 export type ClassAttributes = z.infer<typeof ClassSchema>
 @Table({
     tableName: 'classes',
+    timestamps: true,
 })
 export class Class extends Model<ClassAttributes> implements ClassAttributes {
     @Column({
@@ -34,8 +35,16 @@ export class Class extends Model<ClassAttributes> implements ClassAttributes {
     })
     description!: string
     @Column({
-        type: DataType.NUMBER,
+        type: DataType.INTEGER,
         allowNull: false,
     })
     maxStudents!: number
+    @Column({
+        type: DataType.DATE,
+    })
+    createdAt?: Date
+    @Column({
+        type: DataType.DATE,
+    })
+    updatedAt?: Date
 }

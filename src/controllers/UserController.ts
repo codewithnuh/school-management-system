@@ -9,7 +9,7 @@ import { acceptStudentApplication } from '@/services/application.service'
 import { ResponseUtil } from '@/utils/response.util'
 import { sendForgotPasswordOTP } from '@/services/forgot-password.service'
 import { OTP } from '@/models/OTP'
-import { rmSync } from 'fs'
+
 interface UserData {
     firstName: string
     middleName?: string
