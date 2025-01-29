@@ -1,8 +1,8 @@
 # Use Node.js 20 as the base image
-FROM node:20-slim
+FROM node:20
 
 # Set working directory
-WORKDIR /app
+WORKDIR /src
 
 # Install pnpm globally
 RUN npm install -g pnpm

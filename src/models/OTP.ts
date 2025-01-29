@@ -88,7 +88,7 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     }
 
     static async findValidOTP(
-        otp: string,
+        otp: number,
         entityId: number,
         entityType: EntityType,
     ): Promise<OTP | null> {

@@ -3,7 +3,7 @@ import { User } from '@/models/User'
 import { sendOtp } from './email.service'
 import { OTP } from '@/models/OTP'
 
-export const forgotPasswordService = async ({
+export const sendForgotPasswordOTP = async ({
     entityType,
     email,
 }: {
@@ -33,10 +33,18 @@ export const forgotPasswordService = async ({
         throw new Error('No entity found')
     }
     const Otp = await OTP.createOTP(entity!.id, entityType)
+
     sendOtp({
         entityEmail: entity!.email,
         entityFirstName: entity!.firstName,
         entityType,
         OTP: Otp.otp,
     })
+    return {
+        OTP: Otp.otp,
+        id: entity.id,
+        entityType,
+        email: entity.email,
+        isUsed: Otp.isUsed,
+    }
 }

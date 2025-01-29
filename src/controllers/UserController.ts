@@ -7,8 +7,9 @@ import { createJWT } from '@/utils/jwt'
 import { Session } from '@/models/Session'
 import { acceptStudentApplication } from '@/services/application.service'
 import { ResponseUtil } from '@/utils/response.util'
-import { forgotPasswordService } from '@/services/forgot-password.service'
-
+import { sendForgotPasswordOTP } from '@/services/forgot-password.service'
+import { OTP } from '@/models/OTP'
+import { rmSync } from 'fs'
 interface UserData {
     firstName: string
     middleName?: string
@@ -308,43 +309,149 @@ class UserController {
         req: Request,
         res: Response,
     ): Promise<void> => {
-        const { email } = req.body
+        const { email, newPassword, otp, step } = req.body
 
-        if (!email) {
-            const response = ResponseUtil.error(
-                'Entity Id missing',
-                400,
-                'Please provide entity id',
-            )
-            res.status(400).json(response)
-            return
-        }
-        const isUserExists = await User.findOne({
-            where: {
-                email,
-            },
-        })
-        if (!isUserExists) {
-            const response = ResponseUtil.error(
-                'User not found',
-                404,
-                'You are not registered',
-            )
-            res.status(404).json(response)
-            return
-        }
         try {
-            await forgotPasswordService({
-                email,
-                entityType: 'STUDENT',
-            })
-            const response = ResponseUtil.success(
-                '',
-                'OTP has been sent to your mail',
-                200,
+            switch (step) {
+                case 'verifyEmail':
+                    if (!email) {
+                        const response = ResponseUtil.error(
+                            'Email missing',
+                            400,
+                            'Please provide an email address',
+                        )
+                        res.status(400).json(response)
+                        return
+                    }
+
+                    const user = await User.findOne({ where: { email } })
+                    if (!user) {
+                        const response = ResponseUtil.error(
+                            'User not found',
+                            404,
+                            'No user registered with this email',
+                        )
+                        res.status(404).json(response)
+                        return
+                    }
+
+                    await sendForgotPasswordOTP({
+                        email,
+                        entityType: 'STUDENT',
+                    })
+                    const response = ResponseUtil.success(
+                        'OTP sent',
+
+                        'An OTP has been sent to your email',
+                        200,
+                    )
+                    res.status(200).json(response)
+                    break
+
+                case 'verifyOtp':
+                    if (!email || !otp) {
+                        const response = ResponseUtil.error(
+                            'Email or OTP missing',
+                            400,
+                            'Please provide both email and OTP',
+                        )
+                        res.status(400).json(response)
+                        return
+                    }
+
+                    const validOtp = await OTP.findValidOTP(
+                        otp,
+                        email,
+                        'STUDENT',
+                    )
+                    if (!validOtp) {
+                        const response = ResponseUtil.error(
+                            'Invalid OTP',
+                            400,
+                            'The provided OTP is invalid or has expired',
+                        )
+                        res.status(400).json(response)
+                        return
+                    }
+
+                    const otpResponse = ResponseUtil.success(
+                        'OTP verified',
+                        'The OTP has been verified successfully',
+                        200,
+                    )
+                    res.status(200).json(otpResponse)
+                    break
+
+                case 'resetPassword':
+                    if (!email || !newPassword || !otp) {
+                        const response = ResponseUtil.error(
+                            'Email, OTP, or new password missing',
+                            400,
+                            'Please provide email, OTP, and new password',
+                        )
+                        res.status(400).json(response)
+                        return
+                    }
+
+                    const isValidOtp = await OTP.findValidOTP(
+                        otp,
+                        email,
+                        'STUDENT',
+                    )
+                    if (!isValidOtp) {
+                        const response = ResponseUtil.error(
+                            'Invalid OTP',
+                            400,
+                            'The provided OTP is invalid or has expired',
+                        )
+                        res.status(400).json(response)
+                        return
+                    }
+
+                    const userToUpdate = await User.findOne({
+                        where: { email },
+                    })
+                    if (!userToUpdate) {
+                        const response = ResponseUtil.error(
+                            'User not found',
+                            404,
+                            'No user registered with this email',
+                        )
+                        res.status(404).json(response)
+                        return
+                    }
+
+                    const newHashedPassword = await bcrypt.hash(newPassword, 10)
+                    await userToUpdate.update({ password: newHashedPassword })
+
+                    // Optionally, destroy the OTP after successful password reset
+                    await OTP.destroy({ where: { otp, entityType: 'STUDENT' } })
+
+                    const resetResponse = ResponseUtil.success(
+                        'Password reset successful',
+                        'Your password has been reset successfully',
+                        200,
+                    )
+                    res.status(200).json(resetResponse)
+                    break
+
+                default:
+                    const defaultResponse = ResponseUtil.error(
+                        'Invalid step',
+                        400,
+                        'The provided step is invalid',
+                    )
+                    res.status(400).json(defaultResponse)
+                    break
+            }
+        } catch (error) {
+            const response = ResponseUtil.error(
+                'Internal Server Error',
+                500,
+                'An error occurred while processing your request',
             )
-            res.status(201).json(response)
-        } catch (error) {}
+            res.status(500).json(response)
+        }
     }
     public logout = async (req: Request, res: Response): Promise<void> => {
         try {
