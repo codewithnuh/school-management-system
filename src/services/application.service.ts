@@ -38,32 +38,57 @@ const getEmailContent = (
     userType: UserType,
     resetLink?: string,
 ): EmailContent => {
-    const contents = {
+    const contents: Record<ApplicationStatus, EmailContent> = {
         Accepted: {
             title: 'Welcome to School Management System',
             content: `
-                <p style="margin-bottom: 15px;">Your ${userType} account has been created successfully. To complete your registration, please set up your password using the secure link below:</p> 
+                <div style="background-color: #f0f8ff; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; font-weight: bold;">Congratulations! Your ${userType} account has been created successfully.</p>
+                </div>
+                <p style="margin-bottom: 15px;">To complete your registration, please set up your password using the secure link below:</p> 
                 <div style="text-align: center; margin: 25px 0;">
                     <a href="${resetLink}" 
-                       style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background-color: 0.3s ease;">
+                       style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background-color 0.3s ease;">
                         Set Password
                     </a>
                 </div>
-                <p style="margin-bottom: 15px;">This link will expire in 1 hour for security reasons.</p>
-                <p style="margin-bottom: 15px;">If you didn't request this account creation, please ignore this email or contact our support team.</p>`,
+                <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px;">
+                    <p style="margin: 0;"><strong>Important:</strong> This link will expire in 1 hour for security reasons.</p>
+                </div>
+                <p style="margin-top: 20px; font-style: italic; color: #666;">If you didn't request this account creation, please ignore this email or contact our support team.</p>`,
         },
         Rejected: {
             title: 'Account Application Status',
             content: `
-                <p style="margin-bottom: 15px;">We regret to inform you that your ${userType} account application has not been approved at this time.</p>
-                <p style="margin-bottom: 15px;">If you believe this decision was made in error or would like more information, please contact our support team.</p>`,
+                <div style="background-color: #fff5f5; border-left: 4px solid #dc3545; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; font-weight: bold;">We regret to inform you that your ${userType} account application has not been approved at this time.</p>
+                </div>
+                <p style="margin-bottom: 15px;">We appreciate your interest in joining our school management system. While we're unable to approve your application at this moment, we encourage you to:</p>
+                <ul style="margin-bottom: 20px; padding-left: 20px;">
+                    <li>Review our application criteria</li>
+                    <li>Consider reapplying after gaining more experience or qualifications</li>
+                    <li>Reach out to our support team for more detailed feedback</li>
+                </ul>
+                <div style="background-color: #e9ecef; border-left: 4px solid #6c757d; padding: 15px;">
+                    <p style="margin: 0;">If you believe this decision was made in error or would like more information, please don't hesitate to contact our support team.</p>
+                </div>`,
         },
         Interview: {
             title: 'Interview Invitation',
             content: `
-                <p style="margin-bottom: 15px;">We are pleased to inform you that your ${userType} application has been shortlisted for an interview.</p>
-                <p style="margin-bottom: 15px;">Our HR team will contact you shortly with the interview details and schedule.</p>
-                <p style="margin-bottom: 15px;">Please ensure your contact information is up to date.</p>`,
+                <div style="background-color: #f0fff0; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; font-weight: bold;">Congratulations! Your ${userType} application has been shortlisted for an interview.</p>
+                </div>
+                <p style="margin-bottom: 15px;">We're excited to move forward with your application. Here's what you need to know:</p>
+                <ul style="margin-bottom: 20px; padding-left: 20px;">
+                    <li>Our HR team will contact you shortly with the interview details and schedule.</li>
+                    <li>The interview may be conducted in person or via video conference.</li>
+                    <li>Please ensure your contact information is up to date in your application profile.</li>
+                </ul>
+                <div style="background-color: #e9ecef; border-left: 4px solid #17a2b8; padding: 15px;">
+                    <p style="margin: 0;"><strong>Tip:</strong> Review your application and prepare any relevant documents or portfolios that showcase your skills and experience.</p>
+                </div>
+                <p style="margin-top: 20px; font-style: italic; color: #666;">We look forward to meeting you and learning more about your qualifications!</p>`,
         },
     }
 
@@ -78,82 +103,102 @@ const createEmailTemplate = (
 ) => {
     const { title, content } = getEmailContent(status, userType, resetLink)
 
-    return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title}</title>
-        <style>
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f6f9fc;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #003366;
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px;
+            background-color: #ffffff;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            font-size: 14px;
+            color: #666666;
+            border-top: 1px solid #e9ecef;
+        }
+        .sub-footer {
+            background-color: #003366;
+            color: #ffffff;
+            padding: 15px 30px;
+            font-size: 12px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        @media only screen and (max-width: 600px) {
             .email-container {
-                max-width: 600px;
-                margin: 20px auto;
-                padding: 20px;
-                background-color: #ffffff;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .header {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            .header h2 {
-                color: #2c3e50;
+                width: 100%;
                 margin: 0;
+                border-radius: 0;
             }
-            .content {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-            }
-            .footer {
-                margin-top: 30px;
-                padding-top: 15px;
-                border-top: 1px solid #eee;
-            }
-            .sub-footer {
-                margin-top: 20px;
-                padding-top: 20px;
-                border-top: 1px solid #eee;
-                font-size: 12px;
-                color: #666;
-            }
-            .button {
-                display: inline-block;
-                padding: 12px 24px;
-                background-color: #007bff;
-                color: white;
-                text-decoration: none;
-                border-radius: 5px;
-                font-weight: bold;
-                transition: background-color 0.3s ease;
-            }
-        </style>
-    </head>
-    <body style="margin: 0; padding: 0; background-color: #f4f4f4;">
-        <div class="email-container">
-            <div class="header">
-                <h2>${title}</h2>
-            </div>
-            <div class="content">
-                <p style="margin-bottom: 15px;">Dear ${userName},</p>
-                ${content}
-            </div>
-            <div class="footer">
-                <p style="margin-bottom: 10px;">Best regards,<br>School Management Team</p>
-            </div>
-            <div class="sub-footer">
-                <p style="margin-bottom: 5px;">This is an automated message, please do not reply to this email.</p>
-                <p style="margin-bottom: 5px;">
-                    To unsubscribe from these notifications, 
-                    <a href="mailto:${process.env.EMAIL_USER}?subject=unsubscribe" style="color: #007bff;">click here</a>
-                </p>
-            </div>
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h2>${title}</h2>
         </div>
-    </body>
-    </html>
-    `
+        <div class="content">
+            <p style="margin-bottom: 15px;">Dear ${userName},</p>
+            ${content}
+        </div>
+        <div class="footer">
+            <p style="margin-bottom: 10px;">Best regards,<br>School Management Team</p>
+        </div>
+        <div class="sub-footer">
+            <p style="margin-bottom: 5px;">This is an automated message, please do not reply to this email.</p>
+            <p style="margin-bottom: 5px;">
+                To unsubscribe from these notifications, 
+                <a href="mailto:${process.env.EMAIL_USER}?subject=unsubscribe" style="color: #ffffff; text-decoration: underline;">click here</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>`
 }
 export async function acceptStudentApplication(userId: number): Promise<void> {
     // Validate environment variables
