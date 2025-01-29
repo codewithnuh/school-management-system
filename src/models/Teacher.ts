@@ -3,15 +3,13 @@ import {
     Column,
     Model,
     DataType,
-    Default,
-    IsUUID,
-    Index,
     CreatedAt,
     UpdatedAt,
     HasMany,
+    Index,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { UUIDV4 } from 'sequelize'
+
 import { teacherSchema } from '@/schema/teacher.schema'
 import { Timetable } from './TimeTable'
 
@@ -21,6 +19,7 @@ export enum Gender {
     Female = 'Female',
     Other = 'Other',
 }
+
 export enum Subject {
     English = 'English',
     Urdu = 'Urdu',
@@ -81,13 +80,13 @@ export class Teacher
     @Column({ type: DataType.STRING })
     nationality?: string
 
+    @Index({ name: 'email', unique: true })
     @Column({
         type: DataType.STRING,
         allowNull: false,
         unique: true,
         validate: { isEmail: true },
     })
-    @Index({ unique: true })
     email!: string
 
     @Column({
@@ -99,18 +98,19 @@ export class Teacher
         },
     })
     phoneNo!: string
+
     @Column({
-        type: DataType.ENUM('Teacher'),
-        defaultValue: 'Teacher',
+        type: DataType.ENUM('TEACHER'),
+        defaultValue: 'TEACHER',
         allowNull: false,
     })
     entityType!: 'TEACHER'
-    // Updated password field to allow null
+
     @Column({
         type: DataType.STRING,
-        allowNull: true, // Changed to true to allow null initially
+        allowNull: true, // Allow null for password initially
     })
-    password?: string // Changed to optional with ?
+    password?: string
 
     @Column({ type: DataType.STRING, allowNull: false })
     address!: string
@@ -172,7 +172,7 @@ export class Teacher
     cvPath?: string
 
     @Column({
-        type: DataType.STRING,
+        type: DataType.ENUM('TEACHER'),
         defaultValue: 'TEACHER',
         allowNull: false,
     })
@@ -183,8 +183,10 @@ export class Teacher
         allowNull: false,
     })
     subject!: Subject
+
     @HasMany(() => Timetable)
     assignedPeriods!: Timetable[]
+
     @CreatedAt
     createdAt!: Date
 

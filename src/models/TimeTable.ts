@@ -8,7 +8,7 @@ import {
     BelongsTo,
 } from 'sequelize-typescript'
 import { Section } from './Section'
-import { TimeSlot } from './Timeslot'
+import { TimeSlot } from './TimeSlot'
 import { Subject } from './Subject'
 import { Teacher } from './Teacher'
 

@@ -74,7 +74,7 @@ const startServer = async () => {
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
         // Start server
-
+        await sequelize.sync({ alter: true })
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
         })

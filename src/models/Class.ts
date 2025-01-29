@@ -1,4 +1,4 @@
-import { Column, DataType, HasMany, Model } from 'sequelize-typescript'
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
 import z from 'zod'
 import { Section } from '@/models/Section'
 export const ClassSchema = z.object({
@@ -9,6 +9,9 @@ export const ClassSchema = z.object({
 })
 
 export type ClassAttributes = z.infer<typeof ClassSchema>
+@Table({
+    tableName: 'classes',
+})
 export class Class extends Model<ClassAttributes> implements ClassAttributes {
     @Column({
         type: DataType.INTEGER,
