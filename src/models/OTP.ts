@@ -1,9 +1,10 @@
 import { Table, Column, Model, DataType } from 'sequelize-typescript'
 import { z } from 'zod'
 import { Op } from 'sequelize'
+import { logger } from '@/middleware/loggin.middleware'
 export const otpSchema = z.object({
     id: z.number().optional(),
-    otp: z.number().max(6),
+    otp: z.string().length(6),
     entityId: z.number(),
     entityType: z.enum(['ADMIN', 'TEACHER', 'STUDENT', 'PARENT']),
     isUsed: z.boolean().default(false),
@@ -18,6 +19,7 @@ export type EntityType = 'ADMIN' | 'TEACHER' | 'STUDENT' | 'PARENT'
 @Table({
     tableName: 'otps',
     timestamps: true,
+    indexes: [{ unique: false }], // Add index
 })
 export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     @Column({
@@ -28,10 +30,10 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     public id!: number
 
     @Column({
-        type: DataType.INTEGER,
+        type: DataType.STRING(6),
         allowNull: false,
     })
-    public otp!: number
+    public otp!: string
 
     @Column({
         type: DataType.INTEGER,
@@ -67,8 +69,10 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     })
     public readonly updatedAt!: Date
 
-    static async generateOTP(): Promise<number> {
+    static async generateOTP(): Promise<string> {
         return Math.floor(100000 + Math.random() * 900000)
+            .toString()
+            .padStart(6, '0')
     }
 
     static async createOTP(
@@ -77,14 +81,17 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     ): Promise<OTP> {
         const otp = await this.generateOTP()
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes expiry
-
-        return await this.create({
+        const createdOtp = await this.create({
             otp,
             entityId,
             entityType,
             isUsed: false,
             expiresAt,
         })
+        logger.info({
+            message: `OTP created with entityId: ${entityId} and entityType: ${entityType}`,
+        })
+        return createdOtp
     }
 
     static async findValidOTP(

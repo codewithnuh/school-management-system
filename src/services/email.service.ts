@@ -46,7 +46,7 @@ const emailHTML = ({
 }: {
     entityType: 'STUDENT' | 'TEACHER' | 'PARENT' | 'ADMIN'
     name: string
-    OTP: number
+    OTP: string
 }) => {
     return `<!DOCTYPE html>
 <html lang="en">
@@ -161,7 +161,7 @@ export const sendOtp = async ({
     entityEmail: string
     entityFirstName: string
     entityType: 'STUDENT' | 'TEACHER' | 'PARENT' | 'ADMIN'
-    OTP: number
+    OTP: string
 }) => {
     const mailOptions = {
         from: {

@@ -71,13 +71,9 @@ export class PasswordResetToken
     static async createToken({
         entityType,
         entityId,
-        userId,
-        teacherId,
     }: {
         entityType: EntityType
         entityId: number
-        userId?: number
-        teacherId?: number
     }) {
         await this.update(
             {
@@ -113,7 +109,6 @@ export class PasswordResetToken
             isUsed: false,
             expiresDate: expiryDate,
             token: token,
-            ...(entityType === 'USER' ? { userId } : { teacherId }),
         })
     }
     static async cleanupExpiredTokens(): Promise<number> {

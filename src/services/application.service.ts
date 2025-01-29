@@ -229,7 +229,6 @@ export async function acceptStudentApplication(userId: number): Promise<void> {
     const passwordReset = await PasswordResetToken.createToken({
         entityId: userId,
         entityType: 'USER',
-        userId: userId,
     })
     const token = passwordReset.token
     // Create setup link
@@ -394,7 +393,6 @@ export async function processTeacherApplication(
         const passwordReset = await PasswordResetToken.createToken({
             entityId: teacherId,
             entityType: 'TEACHER',
-            teacherId: teacherId,
         })
         const token = passwordReset.token
         // Create setup link

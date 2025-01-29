@@ -363,7 +363,7 @@ class UserController {
                     }
 
                     const validOtp = await OTP.findValidOTP(
-                        Number(otp),
+                        otp,
                         user!.id as number,
                         'STUDENT',
                     )
@@ -397,7 +397,7 @@ class UserController {
                     }
 
                     const isValidOtp = await OTP.findValidOTP(
-                        Number(otp),
+                        otp,
                         user!.id as number,
                         'STUDENT',
                     )
