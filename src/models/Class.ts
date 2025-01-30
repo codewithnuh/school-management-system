@@ -6,6 +6,7 @@ export const ClassSchema = z.object({
     name: z.string(),
     description: z.string(),
     maxStudents: z.number(),
+    periodsPerDay: z.number().default(7),
 })
 
 export type ClassAttributes = z.infer<typeof ClassSchema>
@@ -21,6 +22,7 @@ export class Class extends Model<ClassAttributes> implements ClassAttributes {
         primaryKey: true,
     })
     id!: number
+
     @HasMany(() => Section)
     sections?: Section[]
     @Column({
@@ -28,6 +30,12 @@ export class Class extends Model<ClassAttributes> implements ClassAttributes {
         allowNull: false,
     })
     name!: string
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 7, // Default to 7 periods per day
+    })
+    periodsPerDay!: number
 
     @Column({
         type: DataType.STRING,

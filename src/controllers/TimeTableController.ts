@@ -5,6 +5,8 @@ import {
     TimetableGenerationSchema,
 } from '@/services/timetable.service'
 import { z } from 'zod'
+import { ResponseUtil } from '@/utils/response.util'
+import { logger } from '@/middleware/loggin.middleware'
 
 export class TimetableController {
     /**
@@ -14,12 +16,31 @@ export class TimetableController {
         try {
             const input = TimetableGenerationSchema.parse(req.body)
             const timetable = await TimetableService.generateTimetable(input)
-            res.status(201).json({ success: true, data: timetable })
+            const response = ResponseUtil.success(
+                timetable,
+                'Time Table Successfully generated',
+                201,
+            )
+            res.status(201).json(response)
         } catch (error) {
             if (error instanceof z.ZodError) {
-                res.status(400).json({ success: false, error: error.errors })
+                const response = ResponseUtil.error(
+                    'Validation Error',
+                    400,
+                    error.message,
+                )
+
+                res.status(400).json(response)
             } else {
-                res.status(500).json({ success: false, error: error.message })
+                if (error instanceof Error) {
+                    const response = ResponseUtil.error(
+                        'Internal Server Error',
+                        400,
+                        error.message,
+                    )
+
+                    res.status(500).json(response)
+                }
             }
         }
     }
@@ -34,9 +55,22 @@ export class TimetableController {
 
             const timetable =
                 await TimetableService.getSectionTimetable(sectionId)
-            res.status(200).json({ success: true, data: timetable })
+            const response = ResponseUtil.success(
+                timetable,
+                'Successfully Time Table for Section Fetched',
+                200,
+            )
+            res.status(200).json(response)
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message })
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.name,
+                    500,
+                    error.message,
+                )
+                logger.error(response.message)
+                res.status(500).json(response)
+            }
         }
     }
 
@@ -50,9 +84,21 @@ export class TimetableController {
 
             const timetable =
                 await TimetableService.getTeacherTimetable(teacherId)
-            res.status(200).json({ success: true, data: timetable })
+            const response = ResponseUtil.success(
+                timetable,
+                'Time Table Successfully fetched',
+                200,
+            )
+            res.status(200).json(response)
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message })
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.name,
+                    500,
+                    error.message,
+                )
+                res.status(500).json(response)
+            }
         }
     }
 }

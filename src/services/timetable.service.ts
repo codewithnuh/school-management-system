@@ -3,7 +3,7 @@ import { Class } from '@/models/Class'
 import { Section } from '@/models/Section'
 import { Subject } from '@/models/Subject'
 import { Teacher } from '@/models/Teacher'
-import { TimeSlot } from '@/models/Timeslot'
+import { TimeSlot } from '@/models/TimeSlot'
 import { Timetable } from '@/models/TimeTable'
 import { z } from 'zod'
 
@@ -43,7 +43,7 @@ export class TimetableService {
         )
 
         // Generate timetable
-        const timetableEntries = this.createTimetableEntries(
+        const timetableEntries = await this.createTimetableEntries(
             section,
             teachers,
             subjects,
@@ -75,28 +75,76 @@ export class TimetableService {
     /**
      * Create timetable entries based on the provided data
      */
-    private static createTimetableEntries(
+    private static async createTimetableEntries(
         section: Section,
         teachers: Teacher[],
         subjects: Subject[],
         timeSlots: TimeSlot[],
-    ): Partial<Timetable>[] {
+    ): Promise<Partial<Timetable>[]> {
         const timetableEntries: Partial<Timetable>[] = []
+        const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
-        // Example algorithm: Assign subjects to time slots
-        timeSlots.forEach(timeSlot => {
-            const subject =
-                subjects[Math.floor(Math.random() * subjects.length)]
-            const teacher =
-                teachers[Math.floor(Math.random() * teachers.length)]
+        // Fetch the class to get periodsPerDay
+        const classDetails = await Class.findByPk(section.classId)
+        if (!classDetails) throw new Error('Class not found')
 
-            timetableEntries.push({
-                sectionId: section.id,
-                timeSlotId: timeSlot.id,
-                subjectId: subject.id,
-                teacherId: teacher.id,
-                roomNumber: 'Room 101', // Example room assignment
-            })
+        const periodsPerDay = classDetails.periodsPerDay
+
+        // Create a map of teachers by their subject for quick lookup
+        const teacherMap = new Map<string, Teacher[]>()
+        teachers.forEach(teacher => {
+            const subjectName = teacher.subject // e.g., 'Maths'
+            if (!teacherMap.has(subjectName)) {
+                teacherMap.set(subjectName, [])
+            }
+            teacherMap.get(subjectName)?.push(teacher)
+        })
+
+        // Assign subjects to periods
+        days.forEach(day => {
+            const dayTimeSlots = timeSlots.filter(ts => ts.day === day)
+
+            for (let period = 1; period <= periodsPerDay; period++) {
+                const timeSlot = dayTimeSlots[period - 1]
+                if (!timeSlot) continue
+
+                // Find a subject for this period
+                const subject = subjects[period % subjects.length] // Distribute subjects evenly
+
+                // Find available teachers for this subject
+                const subjectName = subject.name // e.g., 'Maths'
+                const availableTeachers = teacherMap.get(subjectName)
+                if (!availableTeachers || availableTeachers.length === 0) {
+                    throw new Error(
+                        `No available teachers for subject: ${subject.name}`,
+                    )
+                }
+
+                // Assign the first available teacher (can be improved further)
+                const teacher = availableTeachers[0]
+
+                // Check for conflicts (teacher already assigned at this time)
+                const isTeacherBusy = timetableEntries.some(
+                    entry =>
+                        entry.teacherId === teacher.id &&
+                        entry.timeSlotId === timeSlot.id,
+                )
+
+                if (isTeacherBusy) {
+                    throw new Error(
+                        `Teacher ${teacher.id} is already assigned at this time.`,
+                    )
+                }
+
+                // Add the timetable entry
+                timetableEntries.push({
+                    sectionId: section.id,
+                    timeSlotId: timeSlot.id,
+                    subjectId: subject.id,
+                    teacherId: teacher.id,
+                    roomNumber: `Room ${101 + (period % 5)}`, // Example room assignment
+                })
+            }
         })
 
         return timetableEntries
