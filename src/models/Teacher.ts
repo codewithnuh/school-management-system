@@ -15,6 +15,7 @@ import { z } from 'zod'
 import { teacherSchema } from '@/schema/teacher.schema'
 import { Timetable } from './TimeTable'
 import { Subject } from './Subject'
+import { SectionTeacher } from './SectionTeacher'
 
 // Define enums for better type safety
 export enum Gender {
@@ -184,7 +185,9 @@ export class Teacher
 
     @HasMany(() => Timetable)
     assignedPeriods!: Timetable[]
-
+    // models/Teacher.ts
+    @HasMany(() => SectionTeacher)
+    sectionTeachers!: SectionTeacher[]
     @CreatedAt
     createdAt!: Date
 

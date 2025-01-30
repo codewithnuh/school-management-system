@@ -1,6 +1,14 @@
 // subject.model.ts
-import { Table, Column, Model, DataType, Unique } from 'sequelize-typescript'
+import {
+    Table,
+    Column,
+    Model,
+    DataType,
+    Unique,
+    HasMany,
+} from 'sequelize-typescript'
 import { z } from 'zod'
+import { SectionTeacher } from './SectionTeacher'
 
 // Zod schema for validation
 export const SubjectSchema = z.object({
@@ -26,14 +34,15 @@ export class Subject extends Model<SubjectAttributes> {
         primaryKey: true,
     })
     id!: number
-
+    // models/Subject.ts
+    @HasMany(() => SectionTeacher)
+    sectionTeachers!: SectionTeacher[]
     @Unique
     @Column({
         type: DataType.STRING(100),
         allowNull: false,
     })
     name!: string
-
     @Column({
         type: DataType.TEXT,
         allowNull: true,
