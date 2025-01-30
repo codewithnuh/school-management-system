@@ -7,27 +7,20 @@ import {
     UpdatedAt,
     HasMany,
     Index,
+    ForeignKey,
+    BelongsTo,
 } from 'sequelize-typescript'
 import { z } from 'zod'
 
 import { teacherSchema } from '@/schema/teacher.schema'
 import { Timetable } from './TimeTable'
+import { Subject } from './Subject'
 
 // Define enums for better type safety
 export enum Gender {
     Male = 'Male',
     Female = 'Female',
     Other = 'Other',
-}
-
-export enum Subject {
-    English = 'English',
-    Urdu = 'Urdu',
-    ComputerScience = 'Computer Science',
-    Physics = 'Physics',
-    Maths = 'Maths',
-    PakistanStudy = 'Pakistan Study',
-    Chemistry = 'Chemistry',
 }
 
 export enum ApplicationStatus {
@@ -41,6 +34,7 @@ export type TeacherAttributes = z.infer<typeof teacherSchema> & {
     id?: number
     isVerified?: boolean
     role: 'TEACHER'
+    subjectId: number
     subject: Subject
 }
 
@@ -178,10 +172,14 @@ export class Teacher
     })
     role!: 'TEACHER'
 
+    @ForeignKey(() => Subject)
     @Column({
-        type: DataType.ENUM(...Object.values(Subject)),
+        type: DataType.INTEGER,
         allowNull: false,
     })
+    subjectId!: number // Replace the enum with a foreign key
+
+    @BelongsTo(() => Subject)
     subject!: Subject
 
     @HasMany(() => Timetable)
