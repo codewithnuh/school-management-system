@@ -1,4 +1,3 @@
-// controllers/ClassController.ts
 import { Request, Response } from 'express'
 import { ClassService, UpdatePeriodsSchema } from '@/services/class.service'
 import { z } from 'zod'
@@ -85,6 +84,7 @@ export class ClassController {
                 'Class created successfully',
                 201,
             )
+            res.json(response)
         } catch (error) {
             if (error instanceof Error) {
                 const response = ResponseUtil.error(
