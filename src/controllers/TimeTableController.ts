@@ -7,6 +7,10 @@ import {
 import { z } from 'zod'
 import { ResponseUtil } from '@/utils/response.util'
 import { logger } from '@/middleware/loggin.middleware'
+import { Timetable } from '@/models/TimeTable'
+import { Subject } from '@/models/Subject'
+import { Teacher } from '@/models/Teacher'
+import { TimeSlot, TimeSlotType } from '@/models/TimeSlot'
 
 export class TimetableController {
     /**
@@ -15,7 +19,9 @@ export class TimetableController {
     static async generateTimetable(req: Request, res: Response) {
         try {
             const input = TimetableGenerationSchema.parse(req.body)
-            const timetable = await TimetableService.generateTimetable(input)
+            const timetable = await TimetableService.generateTimetable(
+                input.sectionId,
+            )
             const response = ResponseUtil.success(
                 timetable,
                 'Time Table Successfully generated',
@@ -49,29 +55,25 @@ export class TimetableController {
      * Get timetable for a section
      */
     static async getSectionTimetable(req: Request, res: Response) {
-        try {
-            const sectionId = parseInt(req.params.sectionId, 10)
-            if (isNaN(sectionId)) throw new Error('Invalid section ID')
+        const timetable = await Timetable.findAll({
+            where: { sectionId: req.params.sectionId },
+            include: [
+                {
+                    model: TimeSlot,
+                    attributes: ['id', 'startTime', 'endTime', 'day', 'type'],
+                },
+                Subject,
+                Teacher,
+            ],
+        })
 
-            const timetable =
-                await TimetableService.getSectionTimetable(sectionId)
-            const response = ResponseUtil.success(
-                timetable,
-                'Successfully Time Table for Section Fetched',
-                200,
-            )
-            res.status(200).json(response)
-        } catch (error) {
-            if (error instanceof Error) {
-                const response = ResponseUtil.error(
-                    error.name,
-                    500,
-                    error.message,
-                )
-                logger.error(response.message)
-                res.status(500).json(response)
-            }
-        }
+        // Format timetable with breaks
+        const formatted = timetable.map(entry => ({
+            ...entry.toJSON(),
+            isBreak: entry.timeSlot.type !== TimeSlotType.PERIOD,
+        }))
+
+        res.json({ success: true, data: formatted })
     }
 
     /**

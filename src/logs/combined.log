@@ -75,3 +75,5 @@
 {"level":"info","message":{"duration":47,"ip":"::1","method":"POST","path":"/generate","statusCode":500,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-31T03:37:20.174Z"}
 {"level":"info","message":{"duration":16,"ip":"::1","method":"POST","path":"/generate","statusCode":500,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-31T03:37:21.638Z"}
 {"level":"info","message":{"duration":158,"ip":"::1","method":"POST","path":"/generate","statusCode":201,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-31T03:37:48.398Z"}
+{"level":"info","message":{"duration":13,"ip":"::1","method":"GET","path":"/api/v1/timetable/section","statusCode":404,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-31T04:24:43.787Z"}
+{"level":"info","message":{"duration":293,"ip":"::1","method":"GET","path":"/section/1","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-01-31T04:26:52.099Z"}

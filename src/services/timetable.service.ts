@@ -1,58 +1,112 @@
 // services/TimetableService.ts
 import { Class } from '@/models/Class'
+import { ClassSubject } from '@/models/ClassSubject'
 import { Section } from '@/models/Section'
 import { Subject } from '@/models/Subject'
 import { Teacher } from '@/models/Teacher'
-import { TimeSlot } from '@/models/TimeSlot'
+import { TimeSlot, TimeSlotAttributes } from '@/models/TimeSlot'
 import { Timetable } from '@/models/TimeTable'
+import { generateTimeSlots } from '@/utils/timeTableUtils'
 import { z } from 'zod'
 
 export const TimetableGenerationSchema = z.object({
     sectionId: z.number().positive(),
-    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    // startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    // endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 })
 
 export type TimetableGenerationInput = z.infer<typeof TimetableGenerationSchema>
 
 export class TimetableService {
+    private static async pickSubject(
+        classId: number,
+        day: string,
+    ): Promise<Subject> {
+        const classSubjects = await ClassSubject.findAll({ where: { classId } })
+        const timetable = await Timetable.findAll({
+            where: { sectionId: classId },
+            include: [TimeSlot],
+        })
+
+        // Count subject occurrences per day
+        const subjectCounts: Record<number, number> = {}
+        timetable.forEach(entry => {
+            if (entry.timeSlot.day === day) {
+                subjectCounts[entry.subjectId] =
+                    (subjectCounts[entry.subjectId] || 0) + 1
+            }
+        })
+
+        // Prioritize subjects with fewer occurrences
+        const sortedSubjects = classSubjects.sort(
+            (a, b) =>
+                (subjectCounts[a.subjectId] || 0) -
+                (subjectCounts[b.subjectId] || 0),
+        )
+
+        return sortedSubjects[0].subject
+    }
+    private static async findAvailableTeacher(
+        subjectId: number,
+        timeSlot: TimeSlot,
+    ): Promise<Teacher> {
+        const teachers = await Teacher.findAll({ where: { subjectId } })
+        const busyTeachers = await Timetable.findAll({
+            where: { timeSlotId: timeSlot.id },
+            attributes: ['teacherId'],
+        })
+
+        const availableTeachers = teachers.filter(
+            t => !busyTeachers.some(bt => bt.teacherId === t.id),
+        )
+
+        if (availableTeachers.length === 0) {
+            throw new Error(
+                `No available teachers for subject ${subjectId} at ${timeSlot.startTime}`,
+            )
+        }
+
+        return availableTeachers[0]
+    }
+
     /**
      * Generate a timetable for a specific section
      */
-    static async generateTimetable(
-        input: TimetableGenerationInput,
-    ): Promise<Timetable[]> {
-        const { sectionId, startDate, endDate } = input
-
-        // Fetch required data
-        const section = await Section.findByPk(sectionId, {
-            include: [Class],
-        })
+    static async generateTimetable(sectionId: number) {
+        const section = await Section.findByPk(sectionId, { include: [Class] })
         if (!section) throw new Error('Section not found')
 
-        const teachers = await Teacher.findAll()
-        const subjects = await Subject.findAll()
-        const timeSlots = await TimeSlot.findAll()
+        // Fetch all time slots for the section's class
+        const timeSlots = await TimeSlot.findAll({
+            where: { day: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] },
+        })
 
-        // Validate constraints
-        this.validateTimetableConstraints(
-            section,
-            teachers,
-            subjects,
-            timeSlots,
-        )
+        // Clear existing timetable entries
+        await Timetable.destroy({ where: { sectionId } })
 
-        // Generate timetable
-        const timetableEntries = await this.createTimetableEntries(
-            section,
-            teachers,
-            subjects,
-            timeSlots,
-        )
+        // Generate new timetable
+        const timetableEntries: Partial<Timetable>[] = []
+        for (const timeSlot of timeSlots) {
+            if (timeSlot.type === 'BREAK') continue // Skip breaks
 
-        // Save to database
-        const savedEntries = await Timetable.bulkCreate(timetableEntries)
-        return savedEntries
+            const subject = await this.pickSubject(
+                section.classId,
+                timeSlot.day,
+            )
+            const teacher = await this.findAvailableTeacher(
+                subject.id,
+                timeSlot,
+            )
+
+            timetableEntries.push({
+                sectionId,
+                timeSlotId: timeSlot.id,
+                subjectId: subject.id,
+                teacherId: teacher.id,
+            })
+        }
+
+        return Timetable.bulkCreate(timetableEntries)
     }
 
     /**
@@ -166,5 +220,34 @@ export class TimetableService {
             where: { teacherId },
             include: [TimeSlot, Subject, Section],
         })
+    }
+    static async generateTimeSlotsForClass(classId: number) {
+        const classDetails = await Class.findByPk(classId)
+        if (!classDetails) throw new Error('Class not found')
+
+        const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+        const slots: TimeSlotAttributes[] = []
+
+        days.forEach(day => {
+            const dailySlots = generateTimeSlots({
+                startTime: '08:00',
+                endTime: '14:00',
+                periodLength: classDetails.periodLength, // Add this field to Class model
+                breakLength: 15,
+            })
+            dailySlots.forEach(
+                slot =>
+                    (slot.day = day as
+                        | 'MON'
+                        | 'TUE'
+                        | 'WED'
+                        | 'THU'
+                        | 'FRI'
+                        | 'SAT'),
+            )
+            slots.push(...dailySlots)
+        })
+
+        return TimeSlot.bulkCreate(slots)
     }
 }
