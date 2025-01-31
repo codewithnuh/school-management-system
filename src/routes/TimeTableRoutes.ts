@@ -9,7 +9,7 @@ router.post('/generate', TimetableController.generateTimetable)
 
 // Get timetable for a section
 router.get('/section/:sectionId', TimetableController.getSectionTimetable)
-
+router.post('/regenerate/:sectionId', TimetableController.regenerateTimetable)
 // Get timetable for a teacher
 router.get('/teacher/:teacherId', TimetableController.getTeacherTimetable)
 

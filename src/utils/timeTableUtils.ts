@@ -1,7 +1,6 @@
 import { TimeSlotAttributes } from '@/models/TimeSlot'
 
-// utils/timetableUtils.ts
-interface GenerateTimeSlotsInput {
+export interface GenerateTimeSlotsInput {
     startTime: string // "08:00"
     endTime: string // "14:00"
     periodLength: number // 45 (minutes)

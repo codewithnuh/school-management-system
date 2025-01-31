@@ -6,11 +6,15 @@ import {
     DataType,
     ForeignKey,
     BelongsTo,
+    AfterDestroy,
+    AfterUpdate,
 } from 'sequelize-typescript'
 import { Section } from './Section'
 import { TimeSlot } from './TimeSlot'
 import { Subject } from './Subject'
 import { Teacher } from './Teacher'
+import { TimetableService } from '@/services/timetable.service'
+import { number } from 'zod'
 
 @Table({ tableName: 'timetables' })
 export class Timetable extends Model {
@@ -59,4 +63,22 @@ export class Timetable extends Model {
         allowNull: true,
     })
     roomNumber?: string
+    @AfterUpdate
+    @AfterDestroy
+    static async regenerateTimetable(timeSlot: TimeSlot) {
+        const sectionIds = (
+            await Timetable.findAll({
+                where: { timeSlotId: timeSlot.id },
+                attributes: ['sectionId'],
+                group: ['sectionId'],
+            })
+        ).map(t => t.sectionId)
+
+        // Regenerate timetable for affected sections
+        await Promise.all(
+            sectionIds.map((id: number) =>
+                TimetableService.generateTimetable(id),
+            ),
+        )
+    }
 }

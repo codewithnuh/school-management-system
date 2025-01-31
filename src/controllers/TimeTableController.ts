@@ -44,7 +44,7 @@ export class TimetableController {
                         400,
                         error.message,
                     )
-
+                    console.error(error.stack)
                     res.status(500).json(response)
                 }
             }
@@ -101,6 +101,16 @@ export class TimetableController {
                 )
                 res.status(500).json(response)
             }
+        }
+    }
+    static async regenerateTimetable(req: Request, res: Response) {
+        try {
+            const timetable = await TimetableService.generateTimetable(
+                Number(req.params.sectionId),
+            )
+            res.status(200).json({ success: true, data: timetable })
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message })
         }
     }
 }
