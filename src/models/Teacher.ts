@@ -36,7 +36,6 @@ export type TeacherAttributes = z.infer<typeof teacherSchema> & {
     isVerified?: boolean
     role: 'TEACHER'
     subjectId: number
-    subject: Subject
 }
 
 @Table({

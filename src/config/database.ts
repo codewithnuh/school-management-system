@@ -10,6 +10,9 @@ import { Timetable } from '@/models/TimeTable'
 import { TimeSlot } from '@/models/TimeSlot'
 import { Class } from '@/models/Class'
 import { Subject } from '@/models/Subject'
+import { Room } from '@/models/Room'
+import { ClassSubject } from '@/models/ClassSubject'
+import { SectionTeacher } from '@/models/SectionTeacher'
 config()
 const sequelize = new Sequelize({
     database: 'mydb',
@@ -29,6 +32,9 @@ const sequelize = new Sequelize({
         Timetable,
         TimeSlot,
         Class,
+        Room,
+        ClassSubject,
+        SectionTeacher,
         Subject,
     ],
 })

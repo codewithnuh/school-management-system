@@ -23,7 +23,7 @@ export class ClassController {
             if (error instanceof z.ZodError) {
                 const response = ResponseUtil.error(
                     error.name,
-                    400,
+                    500,
                     error.message,
                 )
                 res.status(400).json(response)
@@ -34,7 +34,7 @@ export class ClassController {
                         500,
                         error.message,
                     )
-                    res.status(500).json(response)
+                    res.status(400).json(response)
                 }
             }
         }
@@ -50,10 +50,9 @@ export class ClassController {
 
             const classDetails = await ClassService.getClassById(classId)
             if (!classDetails) throw new Error('Class not found')
-
             const response = ResponseUtil.success(
-                'Class details retrieved successfully',
-                'Class details retrieved successfully',
+                classDetails,
+                'Class has been fetched successfully',
                 200,
             )
             res.status(200).json(response)
@@ -80,11 +79,11 @@ export class ClassController {
 
             const newClass = await ClassService.createClass(name, periodsPerDay)
             const response = ResponseUtil.success(
-                'Class created successfully',
-                'Class created successfully',
+                newClass,
+                'Class has been created',
                 201,
             )
-            res.json(response)
+            res.status(201).json(response)
         } catch (error) {
             if (error instanceof Error) {
                 const response = ResponseUtil.error(

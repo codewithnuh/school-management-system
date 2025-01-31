@@ -9,11 +9,13 @@ export const seedClasses = async () => {
                     name: 'Grade 1',
                     description: 'First grade class',
                     maxStudents: 30,
+                    periodsPerDay: 7,
                 },
                 {
                     name: 'Grade 2',
                     description: 'Second grade class',
                     maxStudents: 35,
+                    periodsPerDay: 7,
                 },
             ],
             { ignoreDuplicates: true },

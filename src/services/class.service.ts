@@ -1,4 +1,3 @@
-// services/ClassService.ts
 import { Class } from '../models/Class'
 import { z } from 'zod'
 
@@ -45,7 +44,7 @@ export class ClassService {
             name,
             periodsPerDay,
             description: '',
-            maxStudents: 0,
+            maxStudents: 50,
         })
     }
 }

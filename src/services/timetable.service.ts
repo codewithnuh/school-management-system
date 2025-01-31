@@ -90,14 +90,13 @@ export class TimetableService {
 
         const periodsPerDay = classDetails.periodsPerDay
 
-        // Create a map of teachers by their subject for quick lookup
-        const teacherMap = new Map<string, Teacher[]>()
+        // Create a map of teachers by their subjectId for quick lookup
+        const teacherMap = new Map<number, Teacher[]>()
         teachers.forEach(teacher => {
-            const subjectName = teacher.subject // e.g., 'Maths'
-            if (!teacherMap.has(subjectName)) {
-                teacherMap.set(subjectName, [])
+            if (!teacherMap.has(teacher.subjectId)) {
+                teacherMap.set(teacher.subjectId, [])
             }
-            teacherMap.get(subjectName)?.push(teacher)
+            teacherMap.get(teacher.subjectId)?.push(teacher)
         })
 
         // Assign subjects to periods
@@ -112,8 +111,7 @@ export class TimetableService {
                 const subject = subjects[period % subjects.length] // Distribute subjects evenly
 
                 // Find available teachers for this subject
-                const subjectName = subject.name // e.g., 'Maths'
-                const availableTeachers = teacherMap.get(subjectName)
+                const availableTeachers = teacherMap.get(subject.id)
                 if (!availableTeachers || availableTeachers.length === 0) {
                     throw new Error(
                         `No available teachers for subject: ${subject.name}`,

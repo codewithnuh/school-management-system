@@ -1,4 +1,3 @@
-// routes/class.ts
 import express from 'express'
 import { ClassController } from '../controllers/ClassController'
 

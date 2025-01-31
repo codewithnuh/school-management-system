@@ -16,6 +16,7 @@ import {
 } from './cron/session'
 import TimeTableRoutes from '@/routes/TimeTableRoutes'
 import ClassRoutes from '@/routes/ClassRoutes'
+import seed from './seeders'
 
 // Define User interface
 interface User {
@@ -71,13 +72,12 @@ const startServer = async () => {
         // Database connection
         await sequelize.authenticate()
         console.log('Database connection established successfully')
-
+        await seed()
         // Configure middleware and routes
         configureMiddleware(app)
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
-        // Start server
 
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)

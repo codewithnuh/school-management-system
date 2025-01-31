@@ -1,6 +1,6 @@
 import { AutoIncrement, BelongsTo, HasMany, Model } from 'sequelize-typescript'
 import { Table, Column, DataType, ForeignKey } from 'sequelize-typescript'
-import { z } from 'zod'
+import { number, z } from 'zod'
 import { Class } from '@/models/Class'
 import { Teacher } from '@/models/Teacher'
 import { Timetable } from './TimeTable'
@@ -12,10 +12,11 @@ export const SectionSchema = z.object({
         .length(1, 'Section name must be a single character')
         .regex(/^[A-H]$/, 'Section name must be a letter from A to H'),
     classId: z.number().positive('Class ID must be a positive number'),
-    classTeacherId: z.number(),
 })
 
-export type SectionAttributes = z.infer<typeof SectionSchema>
+export type SectionAttributes = z.infer<typeof SectionSchema> & {
+    classTeacherId: number | null
+}
 
 @Table({
     tableName: 'sections',
