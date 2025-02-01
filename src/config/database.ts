@@ -7,7 +7,7 @@ import { Session } from '@/models/Session'
 import { OTP } from '@/models/OTP'
 import { Section } from '@/models/Section'
 import { Timetable } from '@/models/TimeTable'
-import { TimeSlot } from '@/models/TimeSlot'
+import { TimetableEntry } from '@/models/TimeTableEntry'
 import { Class } from '@/models/Class'
 import { Subject } from '@/models/Subject'
 import { Room } from '@/models/Room'
@@ -30,7 +30,7 @@ const sequelize = new Sequelize({
         OTP,
         Section,
         Timetable,
-        TimeSlot,
+        TimetableEntry,
         Class,
         Room,
         ClassSubject,

@@ -16,6 +16,7 @@ import { teacherSchema } from '@/schema/teacher.schema'
 import { Timetable } from './TimeTable'
 import { Subject } from './Subject'
 import { SectionTeacher } from './SectionTeacher'
+import { TimetableEntry } from './TimeTableEntry'
 
 // Define enums for better type safety
 export enum Gender {
@@ -179,6 +180,8 @@ export class Teacher
     })
     subjectId!: number // Replace the enum with a foreign key
 
+    @HasMany(() => TimetableEntry) // Teacher has many TimetableEntries
+    timetableEntries!: TimetableEntry[]
     @BelongsTo(() => Subject)
     subject!: Subject
 

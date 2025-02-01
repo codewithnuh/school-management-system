@@ -11,6 +11,8 @@ import { Class } from './Class'
 import { Teacher } from './Teacher'
 import { Subject } from './Subject'
 import { z } from 'zod'
+import { TimetableEntry } from './TimeTableEntry'
+import { Timetable } from './TimeTable'
 
 export const CreateSectionSchema = z.object({
     id: z.number().optional(),
@@ -68,7 +70,11 @@ export class Section extends Model<CreateSectionInput> {
 
     @BelongsTo(() => Class)
     class!: Class
-
+    @ForeignKey(() => Class)
+    @HasMany(() => Timetable)
+    timetables!: Timetable[]
+    @HasMany(() => TimetableEntry)
+    timetableEntries!: TimetableEntry[]
     @HasMany(() => Subject)
     subjects!: Subject[]
 }
