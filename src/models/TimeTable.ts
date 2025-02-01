@@ -1,4 +1,3 @@
-// models/Timetable.ts
 import {
     Table,
     Column,
@@ -6,79 +5,74 @@ import {
     DataType,
     ForeignKey,
     BelongsTo,
-    AfterDestroy,
-    AfterUpdate,
+    HasMany,
 } from 'sequelize-typescript'
+
+import { z } from 'zod'
+import { Class } from './Class'
 import { Section } from './Section'
-import { TimeSlot } from './TimeSlot'
-import { Subject } from './Subject'
-import { Teacher } from './Teacher'
-import { TimetableService } from '@/services/timetable.service'
-import { number } from 'zod'
+import { TimetableEntry } from './TimeTableEntry'
+
+export const CreateTimetableSchema = z.object({
+    periodsPerDay: z
+        .number()
+        .int()
+        .positive('Periods per day must be a positive integer'),
+    periodsPerDayOverrides: z
+        .record(
+            z.enum([
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday',
+                'Sunday',
+            ]),
+            z.number().int().positive(),
+        )
+        .optional(),
+    breakStartTime: z
+        .string()
+        .regex(/^\d{2}:\d{2}$/, 'Invalid time format (HH:MM)')
+        .optional(),
+    breakEndTime: z
+        .string()
+        .regex(/^\d{2}:\d{2}$/, 'Invalid time format (HH:MM)')
+        .optional(),
+})
 
 @Table({ tableName: 'timetables' })
-export class Timetable extends Model {
+export class Timetable extends Model<z.infer<typeof CreateTimetableSchema>> {
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
+    id!: number
+
+    @ForeignKey(() => Class)
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    classId!: number
+
+    @BelongsTo(() => Class)
+    class!: Class
+
     @ForeignKey(() => Section)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
+    @Column({ type: DataType.INTEGER, allowNull: false })
     sectionId!: number
 
     @BelongsTo(() => Section)
     section!: Section
 
-    @ForeignKey(() => TimeSlot)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    timeSlotId!: number
+    @HasMany(() => TimetableEntry)
+    timetableEntries!: TimetableEntry[]
 
-    @BelongsTo(() => TimeSlot)
-    timeSlot!: TimeSlot
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    periodsPerDay!: number
 
-    @ForeignKey(() => Subject)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    subjectId!: number
+    @Column({ type: DataType.JSON, allowNull: true })
+    periodsPerDayOverrides!: { [day: string]: number }
 
-    @BelongsTo(() => Subject)
-    subject!: Subject
+    @Column({ type: DataType.STRING, allowNull: true })
+    breakStartTime!: string
 
-    @ForeignKey(() => Teacher)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    teacherId!: number
-
-    @BelongsTo(() => Teacher)
-    teacher!: Teacher
-
-    @Column({
-        type: DataType.STRING(20),
-        allowNull: true,
-    })
-    roomNumber?: string
-    @AfterUpdate
-    @AfterDestroy
-    static async regenerateTimetable(timeSlot: TimeSlot) {
-        const sectionIds = (
-            await Timetable.findAll({
-                where: { timeSlotId: timeSlot.id },
-                attributes: ['sectionId'],
-                group: ['sectionId'],
-            })
-        ).map(t => t.sectionId)
-
-        // Regenerate timetable for affected sections
-        await Promise.all(
-            sectionIds.map((id: number) =>
-                TimetableService.generateTimetable(id),
-            ),
-        )
-    }
+    @Column({ type: DataType.STRING, allowNull: true })
+    breakEndTime!: string
 }
