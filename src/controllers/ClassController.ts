@@ -1,98 +1,85 @@
 import { Request, Response } from 'express'
-import { ClassService, UpdatePeriodsSchema } from '@/services/class.service'
-import { z } from 'zod'
+import { ClassService } from '@/services/class.service'
 import { ResponseUtil } from '@/utils/response.util'
+import { CreateClassSchema } from '@/models/Class'
 
+// Class Controller
 export class ClassController {
-    /**
-     * Update the number of periods per day for a class
-     */
-    static async updatePeriodsPerDay(req: Request, res: Response) {
+    static async createClass(req: Request, res: Response): Promise<void> {
         try {
-            const classId = parseInt(req.params.classId, 10)
-            if (isNaN(classId)) throw new Error('Invalid class ID')
+            const validatedClassData = CreateClassSchema.parse(req.body)
 
-            const input = UpdatePeriodsSchema.parse(req.body)
-            const updatedClass = await ClassService.updatePeriodsPerDay(
-                classId,
-                input,
+            const newClass = await ClassService.createClass(validatedClassData)
+            res.status(201).json(
+                ResponseUtil.success(newClass, 'Class created successfully'),
             )
-
-            res.status(200).json({ success: true, data: updatedClass })
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const response = ResponseUtil.error(
-                    error.name,
-                    500,
-                    error.message,
-                )
-                res.status(400).json(response)
-            } else {
-                if (error instanceof Error) {
-                    const response = ResponseUtil.error(
-                        error.name,
-                        500,
-                        error.message,
-                    )
-                    res.status(400).json(response)
-                }
-            }
+        } catch (error: any) {
+            res.status(error?.statusCode || 500).json(
+                ResponseUtil.error(error?.message || 'Failed to create class'),
+            )
         }
     }
 
-    /**
-     * Get class details by ID
-     */
-    static async getClassById(req: Request, res: Response) {
+    static async getAllClasses(req: Request, res: Response): Promise<void> {
         try {
-            const classId = parseInt(req.params.classId, 10)
-            if (isNaN(classId)) throw new Error('Invalid class ID')
-
-            const classDetails = await ClassService.getClassById(classId)
-            if (!classDetails) throw new Error('Class not found')
-            const response = ResponseUtil.success(
-                classDetails,
-                'Class has been fetched successfully',
-                200,
+            const classes = await ClassService.getAllClasses()
+            res.status(200).json(
+                ResponseUtil.success(classes, 'Classes retrieved successfully'),
             )
-            res.status(200).json(response)
-        } catch (error) {
-            if (error instanceof Error) {
-                const response = ResponseUtil.error(
-                    error.name,
-                    500,
-                    error.message,
-                )
-                res.status(500).json(response)
-            }
+        } catch (error: any) {
+            res.status(500).json(
+                ResponseUtil.error(
+                    error?.message || 'Failed to retrieve classes',
+                ),
+            )
         }
     }
 
-    /**
-     * Create a new class
-     */
-    static async createClass(req: Request, res: Response) {
+    static async getClassById(req: Request, res: Response): Promise<void> {
         try {
-            const { name, periodsPerDay } = req.body
-            if (!name || !periodsPerDay)
-                throw new Error('Name and periodsPerDay are required')
-
-            const newClass = await ClassService.createClass(name, periodsPerDay)
-            const response = ResponseUtil.success(
-                newClass,
-                'Class has been created',
-                201,
-            )
-            res.status(201).json(response)
-        } catch (error) {
-            if (error instanceof Error) {
-                const response = ResponseUtil.error(
-                    error.name,
-                    500,
-                    error.message,
-                )
-                res.status(500).json(response)
+            const id = parseInt(req.params.id, 10) // Parse ID as integer
+            const classData = await ClassService.getClassById(id)
+            if (!classData) {
+                res.status(404).json(ResponseUtil.error('Class not found', 404))
             }
+            res.status(200).json(
+                ResponseUtil.success(classData, 'Class retrieved successfully'),
+            )
+        } catch (error: any) {
+            res.status(500).json(
+                ResponseUtil.error(
+                    error?.message || 'Failed to retrieve class',
+                ),
+            )
+        }
+    }
+
+    static async updateClass(req: Request, res: Response): Promise<void> {
+        try {
+            const id = parseInt(req.params.id, 10)
+            const updatedClass = await ClassService.updateClass(id, req.body)
+            res.status(200).json(
+                ResponseUtil.success(
+                    updatedClass,
+                    'Class updated successfully',
+                ),
+            )
+        } catch (error: any) {
+            res.status(error?.statusCode || 500).json(
+                ResponseUtil.error(error?.message || 'Failed to update class'),
+            )
+        }
+    }
+
+    static async deleteClass(req: Request, res: Response): Promise<void> {
+        try {
+            const id = parseInt(req.params.id, 10)
+            await ClassService.deleteClass(id)
+            res.status(204).send() // 204 No Content for successful delete
+        } catch (error: any) {
+            res.status(500).json(
+                ResponseUtil.error(error?.message || 'Failed to delete class'),
+            )
         }
     }
 }

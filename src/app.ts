@@ -15,7 +15,7 @@ import {
     deleteExpiredSessions,
 } from './cron/session'
 import TimeTableRoutes from '@/routes/TimeTableRoutes'
-import ClassRoutes from '@/routes/ClassRoutes'
+import classRoutes from '@/routes/ClassRoutes'
 import seed from './seeders'
 
 // Define User interface
@@ -51,7 +51,6 @@ const configureMiddleware = (app: express.Application) => {
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
     app.use(cookieParser())
-
     // Logging middleware
     app.use(requestLogger)
 
@@ -63,8 +62,9 @@ const configureMiddleware = (app: express.Application) => {
 const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/users', userRoutes)
     app.use('/api/v1/teachers', teacherRoutes)
+    app.use('/api/v1/classes', classRoutes)
     app.use('/api/v1/timetables', TimeTableRoutes)
-    app.use('/api/v1/timetable/class', ClassRoutes)
+    // app.use('/api/v1/timetable/class', ClassRoutes)
 }
 
 const startServer = async () => {
@@ -78,7 +78,7 @@ const startServer = async () => {
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
-
+        // await sequelize.sync({ force: true })
         await seed()
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)

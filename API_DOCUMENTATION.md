@@ -12,9 +12,9 @@ Most endpoints require authentication using JWT bearer tokens. To authenticate:
 1. Create a user account using `/users` POST endpoint
 2. Login using `/users/auth/login` to get a JWT token
 3. Include the token in subsequent requests using the Authorization header:
-   ```
-   Authorization: Bearer your-jwt-token
-   ```
+    ```
+    Authorization: Bearer your-jwt-token
+    ```
 
 ## Available Resources
 

@@ -7,12 +7,12 @@ import { seedSections } from './section.seeder'
 import { seedTimeSlots } from './timeslot.seeder'
 
 const seed = async () => {
-    await seedClasses()
+    // await seedClasses()
     await seedTeachers()
     await seedUsers()
     await seedSubjects()
-    await seedSections()
-    await seedTimeSlots()
+    // await seedSections()
+    // await seedTimeSlots()
 }
 
 export default seed

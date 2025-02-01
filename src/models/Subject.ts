@@ -6,9 +6,11 @@ import {
     DataType,
     Unique,
     HasMany,
+    ForeignKey,
 } from 'sequelize-typescript'
 import { z } from 'zod'
 import { SectionTeacher } from './SectionTeacher'
+import { Section } from './Section'
 
 // Zod schema for validation
 export const SubjectSchema = z.object({
@@ -48,7 +50,9 @@ export class Subject extends Model<SubjectAttributes> {
         allowNull: true,
     })
     description?: string
-
+    @ForeignKey(() => Section)
+    @Column(DataType.INTEGER)
+    sectionId!: number
     // Validation method using Zod schema
     static validateSubject(data: Partial<SubjectAttributes>) {
         return SubjectSchema.parse(data)

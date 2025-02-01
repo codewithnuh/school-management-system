@@ -34,7 +34,10 @@ class TeacherController {
                     email: validatedData.email,
                     cnic: validatedData.cnic,
                 })
-                const response = ResponseUtil.error('Teacher with this email or CNIC already exists', 409)
+                const response = ResponseUtil.error(
+                    'Teacher with this email or CNIC already exists',
+                    409,
+                )
                 res.status(response.statusCode).json(response)
                 return
             }
@@ -64,7 +67,11 @@ class TeacherController {
                 email: teacher.email,
             })
 
-            const response = ResponseUtil.success(teacherData, 'Teacher registered successfully', 201)
+            const response = ResponseUtil.success(
+                teacherData,
+                'Teacher registered successfully',
+                201,
+            )
             res.status(response.statusCode).json(response)
             return
         } catch (error) {

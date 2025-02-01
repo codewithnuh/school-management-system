@@ -1,4 +1,4 @@
-import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerJSDoc from 'swagger-jsdoc'
 
 const swaggerDefinition = {
     openapi: '3.0.0',
@@ -22,16 +22,18 @@ const swaggerDefinition = {
             },
         },
     },
-    security: [{
-        bearerAuth: [],
-    }],
-};
+    security: [
+        {
+            bearerAuth: [],
+        },
+    ],
+}
 
 const options = {
     swaggerDefinition,
     apis: ['./src/routes/*.ts'], // Path to the API docs
-};
+}
 
-const swaggerSpec = swaggerJSDoc(options);
+const swaggerSpec = swaggerJSDoc(options)
 
-export default swaggerSpec;
+export default swaggerSpec

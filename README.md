@@ -198,8 +198,6 @@ ORM:
 
 Note: This project does not have a dedicated infrastructure stack defined in CloudFormation, CDK, or Terraform. The infrastructure is primarily managed through code and configuration files within the application itself.
 
-
-
 ```import {
     Table,
     Column,
@@ -337,7 +335,7 @@ export class PasswordResetToken
 // Password Reset Service
 export class PasswordResetService {
     static async generateResetToken(
-        email: string, 
+        email: string,
         entityType: EntityType
     ): Promise<string> {
         let entity;
@@ -357,11 +355,11 @@ export class PasswordResetService {
     }
 
     static async resetPassword(
-        token: string, 
+        token: string,
         newPassword: string
     ): Promise<boolean> {
         const resetToken = await PasswordResetToken.findValidToken(token);
-        
+
         if (!resetToken || !resetToken.isValid()) {
             throw new Error('Invalid or expired token');
         }
@@ -404,21 +402,21 @@ export class PasswordController {
             }
 
             const token = await PasswordResetService.generateResetToken(
-                email, 
+                email,
                 entityType as EntityType
             );
-            
+
             // Send email with reset link
             await sendResetEmail(email, token, entityType);
 
-            res.json({ 
-                success: true, 
-                message: 'Password reset instructions sent to email' 
+            res.json({
+                success: true,
+                message: 'Password reset instructions sent to email'
             });
         } catch (error) {
-            res.status(400).json({ 
-                success: false, 
-                message: error.message 
+            res.status(400).json({
+                success: false,
+                message: error.message
             });
         }
     }
@@ -426,17 +424,17 @@ export class PasswordController {
     async resetPassword(req: Request, res: Response) {
         try {
             const { token, newPassword } = req.body;
-            
+
             await PasswordResetService.resetPassword(token, newPassword);
 
-            res.json({ 
-                success: true, 
-                message: 'Password successfully reset' 
+            res.json({
+                success: true,
+                message: 'Password successfully reset'
             });
         } catch (error) {
-            res.status(400).json({ 
-                success: false, 
-                message: error.message 
+            res.status(400).json({
+                success: false,
+                message: error.message
             });
         }
     }
@@ -446,14 +444,14 @@ export class PasswordController {
             const { token } = req.query;
             const isValid = await PasswordResetService.verifyToken(token as string);
 
-            res.json({ 
-                success: true, 
-                isValid 
+            res.json({
+                success: true,
+                isValid
             });
         } catch (error) {
-            res.status(400).json({ 
-                success: false, 
-                message: error.message 
+            res.status(400).json({
+                success: false,
+                message: error.message
             });
         }
     }
@@ -462,11 +460,11 @@ export class PasswordController {
 // Email helper function
 async function sendResetEmail(email: string, token: string, entityType: EntityType) {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-    
+
     // Implement your email sending logic here
     // You might want to use different email templates for users and teachers
-    const template = entityType === 'USER' 
-        ? 'user-reset-password' 
+    const template = entityType === 'USER'
+        ? 'user-reset-password'
         : 'teacher-reset-password';
 
     // Send email using your preferred email service

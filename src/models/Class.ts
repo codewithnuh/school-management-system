@@ -1,21 +1,61 @@
-import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
-import z from 'zod'
-import { Section } from '@/models/Section'
-export const ClassSchema = z.object({
+import {
+    Column,
+    DataType,
+    HasMany,
+    Model,
+    Table,
+    BelongsTo,
+    ForeignKey,
+} from 'sequelize-typescript'
+import { Section } from './Section'
+import { Subject } from './Subject'
+import { Teacher } from './Teacher'
+import { z } from 'zod'
+
+export const CreateClassSchema = z.object({
     id: z.number().optional(),
-    name: z.string(),
-    description: z.string(),
-    maxStudents: z.number(),
-    periodsPerDay: z.number().default(7),
-    periodLength: z.number().default(45),
+    name: z.string().min(1, 'Class name is required'),
+    description: z.string().optional(),
+    maxStudents: z.number().min(1, 'Max students must be at least 1'),
+    periodsPerDay: z.number().min(1).max(10),
+    periodLength: z.number().min(30).max(60),
+    workingDays: z
+        .array(
+            z.enum([
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday',
+                'Sunday',
+            ]),
+        )
+        .min(1, 'At least one working day is required'),
+    subjectIds: z.array(z.number()).min(1, 'At least one subject is required'),
+    sections: z.array(
+        z.object({
+            name: z
+                .string()
+                .length(1, 'Section name must be a single character'),
+            maxStudents: z
+                .number()
+                .min(1, 'Max students per section must be at least 1'),
+            classTeacherId: z
+                .number()
+                .positive('Class teacher ID must be a positive number'),
+            subjectTeachers: z.record(z.string(), z.number()), // { subjectId: teacherId }
+        }),
+    ),
 })
 
-export type ClassAttributes = z.infer<typeof ClassSchema>
+export type CreateClassInput = z.infer<typeof CreateClassSchema>
+
 @Table({
     tableName: 'classes',
     timestamps: true,
 })
-export class Class extends Model<ClassAttributes> implements ClassAttributes {
+export class Class extends Model<CreateClassInput> {
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
@@ -24,40 +64,48 @@ export class Class extends Model<ClassAttributes> implements ClassAttributes {
     })
     id!: number
 
-    @HasMany(() => Section)
-    sections?: Section[]
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
     name!: string
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-        defaultValue: 7, // Default to 7 periods per day
-    })
-    periodsPerDay!: number
-    @Column({
-        type: DataType.INTEGER,
-        defaultValue: 45,
-    })
-    periodLength!: number // Period length in minutes
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-    })
-    description!: string
+
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
     })
     maxStudents!: number
+
     @Column({
-        type: DataType.DATE,
+        type: DataType.INTEGER,
+        allowNull: false,
     })
-    createdAt?: Date
+    periodsPerDay!: number
+
     @Column({
-        type: DataType.DATE,
+        type: DataType.INTEGER,
+        allowNull: false,
     })
-    updatedAt?: Date
+    periodLength!: number
+
+    @Column({
+        type: DataType.JSON,
+        allowNull: false,
+    })
+    workingDays!: string[] // Store working days as JSON array
+
+    @Column({
+        type: DataType.JSON,
+        allowNull: false,
+    })
+    subjectIds!: number[]
+
+    @HasMany(() => Section)
+    sections!: Section[]
+
+    @Column({
+        type: DataType.TEXT,
+        allowNull: true,
+    })
+    description?: string
 }

@@ -1,50 +1,146 @@
-import { Class } from '../models/Class'
-import { z } from 'zod'
+import sequelize from '@/config/database'
+import { Class } from '@/models/Class'
+import { Section } from '@/models/Section'
+import { SectionTeacher } from '@/models/SectionTeacher'
+import { Teacher } from '@/models/Teacher'
+import { Subject } from '@/models/Subject'
+import { CreateClassInput } from '@/models/Class' // Import your types
 
-export const UpdatePeriodsSchema = z.object({
-    periodsPerDay: z.number().min(1).max(10), // Example: Max 10 periods per day
-})
-
-export type UpdatePeriodsInput = z.infer<typeof UpdatePeriodsSchema>
-
+// Class Service
 export class ClassService {
-    /**
-     * Update the number of periods per day for a class
-     */
-    static async updatePeriodsPerDay(
-        classId: number,
-        input: UpdatePeriodsInput,
-    ): Promise<Class> {
-        const { periodsPerDay } = input
+    static async createClass(input: CreateClassInput) {
+        const transaction = await sequelize.transaction()
+        try {
+            // 1. Create the class FIRST
+            const newClass = await Class.create(input, { transaction })
 
-        const classDetails = await Class.findByPk(classId)
-        if (!classDetails) throw new Error('Class not found')
+            // 2. NOW create the sections, using the newClass.id
+            for (const sectionInput of input.sections) {
+                const section = await Section.create(
+                    {
+                        ...sectionInput,
+                        classId: newClass.id,
+                        name: sectionInput!.name!,
+                        maxStudents: sectionInput!.maxStudents!,
+                        classTeacherId: sectionInput!.classTeacherId!,
+                        subjectTeachers: sectionInput!.subjectTeachers!,
+                    }, // Ensure all required fields are provided
+                    { transaction },
+                )
 
-        classDetails.periodsPerDay = periodsPerDay
-        await classDetails.save()
+                // 3. Create SectionTeacher records (if applicable)
+                for (const [subjectId, teacherId] of Object.entries(
+                    sectionInput!.subjectTeachers,
+                )) {
+                    const teacher = await Teacher.findOne({
+                        where: { id: teacherId, subjectId: Number(subjectId) }, // Verify teacher qualification
+                        transaction,
+                    })
 
-        return classDetails
+                    if (!teacher) {
+                        throw new Error(
+                            `Teacher ${teacherId} is not qualified for subject ${subjectId}`,
+                        )
+                    }
+
+                    await SectionTeacher.create(
+                        {
+                            sectionId: section.id,
+                            subjectId: Number(subjectId),
+                            teacherId: teacherId,
+                        },
+                        { transaction },
+                    )
+                }
+            }
+
+            await transaction.commit()
+            return newClass
+        } catch (error) {
+            await transaction.rollback()
+            throw error
+        }
     }
 
-    /**
-     * Get class details by ID
-     */
-    static async getClassById(classId: number): Promise<Class | null> {
-        return await Class.findByPk(classId)
+    static async getAllClasses() {
+        return Class.findAll({ include: [Section] }) // Include sections in the result
     }
 
-    /**
-     * Create a new class
-     */
-    static async createClass(
-        name: string,
-        periodsPerDay: number,
-    ): Promise<Class> {
-        return await Class.create({
-            name,
-            periodsPerDay,
-            description: '',
-            maxStudents: 50,
-        })
+    static async getClassById(id: number) {
+        return Class.findByPk(id, { include: [Section] })
+    }
+
+    static async updateClass(id: number, input: CreateClassInput) {
+        const transaction = await sequelize.transaction()
+        try {
+            const updatedClass = await Class.update(input, {
+                where: { id },
+                transaction,
+            })
+
+            // Update Sections (more complex, requires careful handling)
+            // 1. Delete existing sections for the class
+            await Section.destroy({ where: { classId: id }, transaction })
+
+            // 2. Create new sections based on the input:
+            for (const sectionInput of input.sections) {
+                const section = await Section.create(
+                    {
+                        ...sectionInput,
+                        classId: id,
+                        name: sectionInput!.name!,
+                        maxStudents: sectionInput!.maxStudents!,
+                        classTeacherId: sectionInput!.classTeacherId!,
+                        subjectTeachers: sectionInput!.subjectTeachers!,
+                    },
+                    { transaction },
+                )
+                // Subject Teacher assignment
+                for (const [subjectId, teacherId] of Object.entries(
+                    sectionInput!.subjectTeachers,
+                )) {
+                    const teacher = await Teacher.findOne({
+                        where: { id: teacherId, subjectId: Number(subjectId) }, // Check if teacher is qualified for the subject
+                        transaction,
+                    })
+
+                    if (!teacher) {
+                        throw new Error(
+                            `Teacher ${teacherId} is not qualified for subject ${subjectId}`,
+                        )
+                    }
+                    await SectionTeacher.create(
+                        {
+                            sectionId: section.id,
+                            subjectId: Number(subjectId),
+                            teacherId: teacherId,
+                        },
+                        { transaction },
+                    )
+                }
+            }
+
+            await transaction.commit()
+            return updatedClass
+        } catch (error) {
+            await transaction.rollback()
+            throw error
+        }
+    }
+
+    static async deleteClass(id: number) {
+        const transaction = await sequelize.transaction()
+        try {
+            await Section.destroy({ where: { classId: id }, transaction }) // Delete associated sections first
+            const deletedClass = await Class.destroy({
+                where: { id },
+                transaction,
+            })
+            await transaction.commit()
+            return deletedClass
+        } catch (error) {
+            await transaction.rollback()
+            throw error
+        }
     }
 }

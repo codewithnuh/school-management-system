@@ -2,14 +2,10 @@ import express from 'express'
 import { ClassController } from '../controllers/ClassController'
 
 const router = express.Router()
-
-// Update periods per day for a class
-router.put('/:classId/periods', ClassController.updatePeriodsPerDay)
-
-// Get class details by ID
-router.get('/:classId', ClassController.getClassById)
-
-// Create a new class
 router.post('/', ClassController.createClass)
+router.get('/', ClassController.getAllClasses)
+router.get('/:id', ClassController.getClassById)
+router.put('/:id', ClassController.updateClass)
+router.delete('/:id', ClassController.deleteClass)
 
 export default router
