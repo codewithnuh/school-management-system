@@ -9,6 +9,7 @@ import { SectionTeacher } from '@/models/SectionTeacher'
 import { Section } from '@/models/section'
 import { Timetable } from '@/models/TimeTable'
 import { TimetableEntry } from '@/models/TimeTableEntry'
+import { Sequelize } from 'sequelize-typescript'
 
 export class TimetableService {
     /**
@@ -172,6 +173,7 @@ export class TimetableService {
                         timetableId: timetable.id,
                         sectionId: section.id, // Ensure sectionId is assigned
                         dayOfWeek: day,
+                        classId: classData.id,
                         periodNumber,
                         subjectId: subjectTeacher.subjectId,
                         teacherId: subjectTeacher.teacherId,
@@ -309,5 +311,103 @@ export class TimetableService {
                 },
             ],
         })
+    }
+    static async getTeacherTimetable(teacherId: number) {
+        if (isNaN(teacherId) || teacherId <= 0) {
+            throw new Error('Invalid teacher ID')
+        }
+
+        // Fetch all timetable entries for the teacher
+        const timetableEntries = await TimetableEntry.findAll({
+            where: { teacherId },
+            include: [
+                {
+                    model: Timetable,
+                    include: [Section, Class], // Include section and class details
+                },
+                Subject, // Include subject details
+            ],
+            order: [
+                ['dayOfWeek', 'ASC'], // Sort by day of the week
+                ['periodNumber', 'ASC'], // Sort by period number
+            ],
+        })
+
+        if (timetableEntries.length === 0) {
+            throw new Error('No timetable entries found for this teacher')
+        }
+
+        return timetableEntries
+    }
+    // timetable.service.ts
+    static async getWeeklyTimetable(
+        classId: number,
+        sectionId?: number,
+        teacherId?: number,
+    ) {
+        if (!sectionId && !teacherId) {
+            throw new Error('Specify sectionId or teacherId')
+        }
+
+        // Fetch timetable entries for the section or teacher
+        const whereClause = sectionId
+            ? { classId, sectionId }
+            : { classId, teacherId }
+
+        const timetableEntries = await TimetableEntry.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: Timetable,
+                    include: [Section, Class], // Include section and class details
+                },
+                Subject, // Include subject details
+                Teacher, // Include teacher details
+            ],
+            order: [
+                // Sort by day of the week with a custom order (Monday to Friday)
+                [
+                    Sequelize.literal(
+                        `FIELD(dayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')`,
+                    ),
+                    'ASC',
+                ],
+                ['periodNumber', 'ASC'], // Sort by period number
+            ],
+        })
+
+        if (timetableEntries.length === 0) {
+            throw new Error('No timetable entries found')
+        }
+
+        // Group entries by day of the week
+        const weeklyTimetable = timetableEntries.reduce(
+            (acc, entry) => {
+                const day = entry.dayOfWeek
+                if (!acc[day]) {
+                    acc[day] = []
+                }
+                acc[day].push(entry)
+                return acc
+            },
+            {} as Record<string, TimetableEntry[]>,
+        )
+
+        // Ensure the days are in the correct order (Monday to Friday)
+        const orderedTimetable: Record<string, TimetableEntry[]> = {}
+        const daysOfWeek = [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+        ]
+        daysOfWeek.forEach(day => {
+            if (weeklyTimetable[day]) {
+                orderedTimetable[day] = weeklyTimetable[day]
+            }
+        })
+
+        return orderedTimetable
     }
 }

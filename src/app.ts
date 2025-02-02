@@ -45,7 +45,7 @@ const configureMiddleware = (app: express.Application) => {
     app.use(generalLimiter)
 
     // Swagger Documentation
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+    app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
     // Request parsing middleware
     app.use(express.json())

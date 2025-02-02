@@ -58,5 +58,14 @@ import { TimetableController } from '@/controllers/TimeTableController'
 const router = express.Router()
 
 router.post('/generate/:classid', TimetableController.generateTimetable)
+router.get('/teacher/:teacherId', TimetableController.getTeacherTimetable)
 router.get('/:classId/:sectionId', TimetableController.getTimetable)
+router.get(
+    '/weekly/:classId/:sectionId',
+    TimetableController.getWeeklyTimetable,
+)
+router.get(
+    '/weekly/:classId/teacher/:teacherId',
+    TimetableController.getWeeklyTimetable,
+)
 export default router

@@ -11,11 +11,32 @@ import { Section } from './section'
 import { Subject } from './Subject'
 import { Teacher } from './Teacher'
 
+import { z } from 'zod'
+import { Class } from './Class'
+
+export const TimetableEntrySchema = z.object({
+    id: z.number().optional(),
+    timetableId: z.number(),
+    sectionId: z.number(),
+    subjectId: z.number(),
+    teacherId: z.number(),
+    dayOfWeek: z.string(),
+    periodNumber: z.number(),
+    startTime: z.string(),
+    endTime: z.string(),
+    classId: z.number(),
+})
+
+export type TimetableEntryType = z.infer<typeof TimetableEntrySchema>
+
 @Table({
     tableName: 'timetable_entries',
     timestamps: true,
 })
-export class TimetableEntry extends Model {
+export class TimetableEntry
+    extends Model<TimetableEntryType>
+    implements TimetableEntryType
+{
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
@@ -43,6 +64,15 @@ export class TimetableEntry extends Model {
 
     @BelongsTo(() => Section)
     section!: Section
+    @ForeignKey(() => Class)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
+    classId!: number
+
+    @BelongsTo(() => Class)
+    class!: Class
 
     @ForeignKey(() => Subject)
     @Column({
