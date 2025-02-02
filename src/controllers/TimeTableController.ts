@@ -1,116 +1,58 @@
-// controllers/TimetableController.ts
 import { Request, Response } from 'express'
-import {
-    TimetableService,
-    TimetableGenerationSchema,
-} from '@/services/timetable.service'
-import { z } from 'zod'
+import { TimetableService } from '@/services/timetable.service'
 import { ResponseUtil } from '@/utils/response.util'
-import { logger } from '@/middleware/loggin.middleware'
-import { Timetable } from '@/models/TimeTable'
-import { Subject } from '@/models/Subject'
-import { Teacher } from '@/models/Teacher'
-import { TimeSlot, TimeSlotType } from '@/models/TimeSlot'
+import { InstanceError } from 'sequelize'
 
 export class TimetableController {
-    /**
-     * Generate a timetable for a section
-     */
-    static async generateTimetable(req: Request, res: Response) {
+    static async generateTimetable(req: Request, res: Response): Promise<void> {
         try {
-            const input = TimetableGenerationSchema.parse(req.body)
-            const timetable = await TimetableService.generateTimetable(
-                input.sectionId,
+            const classId = parseInt(req.params.classid, 10)
+            console.log(classId)
+            const timetables = await TimetableService.generateTimetable(classId)
+            res.status(200).json(
+                ResponseUtil.success(
+                    timetables,
+                    'Timetable generated successfully',
+                ),
             )
-            const response = ResponseUtil.success(
-                timetable,
-                'Time Table Successfully generated',
-                201,
+        } catch (error: any) {
+            console.error(error)
+            res.status(error?.statusCode || 500).json(
+                ResponseUtil.error(
+                    error?.message || 'Failed to generate timetable',
+                ),
             )
-            res.status(201).json(response)
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const response = ResponseUtil.error(
-                    'Validation Error',
-                    400,
-                    error.message,
-                )
-
-                res.status(400).json(response)
-            } else {
-                if (error instanceof Error) {
-                    const response = ResponseUtil.error(
-                        'Internal Server Error',
-                        400,
-                        error.message,
-                    )
-                    console.error(error.stack)
-                    res.status(500).json(response)
-                }
-            }
         }
     }
 
-    /**
-     * Get timetable for a section
-     */
-    static async getSectionTimetable(req: Request, res: Response) {
-        const timetable = await Timetable.findAll({
-            where: { sectionId: req.params.sectionId },
-            include: [
-                {
-                    model: TimeSlot,
-                    attributes: ['id', 'startTime', 'endTime', 'day', 'type'],
-                },
-                Subject,
-                Teacher,
-            ],
-        })
-
-        // Format timetable with breaks
-        const formatted = timetable.map(entry => ({
-            ...entry.toJSON(),
-            isBreak: entry.timeSlot.type !== TimeSlotType.PERIOD,
-        }))
-
-        res.json({ success: true, data: formatted })
-    }
-
-    /**
-     * Get timetable for a teacher
-     */
-    static async getTeacherTimetable(req: Request, res: Response) {
+    static async getTimetable(req: Request, res: Response): Promise<void> {
         try {
-            const teacherId = parseInt(req.params.teacherId, 10)
-            if (isNaN(teacherId)) throw new Error('Invalid teacher ID')
-
-            const timetable =
-                await TimetableService.getTeacherTimetable(teacherId)
-            const response = ResponseUtil.success(
-                timetable,
-                'Time Table Successfully fetched',
-                200,
+            const classId = parseInt(req.params.classId, 10)
+            const sectionId = parseInt(req.params.sectionId, 10)
+            const timetable = await TimetableService.getTimetable(
+                classId,
+                sectionId,
             )
-            res.status(200).json(response)
+            if (!timetable) {
+                res.status(404).json(
+                    ResponseUtil.error('Timetable not found', 404),
+                )
+            }
+            res.status(200).json(
+                ResponseUtil.success(
+                    timetable,
+                    'Timetable retrieved successfully',
+                ),
+            )
         } catch (error) {
+            console.error(error)
             if (error instanceof Error) {
-                const response = ResponseUtil.error(
-                    error.name,
-                    500,
-                    error.message,
+                res.status(500).json(
+                    ResponseUtil.error(
+                        error?.message || 'Failed to retrieve timetable',
+                    ),
                 )
-                res.status(500).json(response)
             }
-        }
-    }
-    static async regenerateTimetable(req: Request, res: Response) {
-        try {
-            const timetable = await TimetableService.generateTimetable(
-                Number(req.params.sectionId),
-            )
-            res.status(200).json({ success: true, data: timetable })
-        } catch (error) {
-            res.status(500).json({ success: false, error: error.message })
         }
     }
 }

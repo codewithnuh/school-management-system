@@ -7,7 +7,7 @@ import {
     ForeignKey,
     BelongsTo,
 } from 'sequelize-typescript'
-import { Section } from './Section'
+import { Section } from './section'
 import { Subject } from './Subject'
 import { Teacher } from './Teacher'
 import { z } from 'zod'
@@ -21,7 +21,10 @@ export const SectionTeacherSchema = z.object({
 export type SectionTeacherAttributes = z.infer<typeof SectionTeacherSchema>
 
 @Table({ tableName: 'section_teachers', timestamps: true })
-export class SectionTeacher extends Model {
+export class SectionTeacher
+    extends Model<SectionTeacherAttributes>
+    implements SectionTeacherAttributes
+{
     @ForeignKey(() => Section)
     @Column({
         type: DataType.INTEGER,

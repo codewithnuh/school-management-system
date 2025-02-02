@@ -10,10 +10,14 @@ import {
 
 import { z } from 'zod'
 import { Class } from './Class'
-import { Section } from './Section'
+import { Section } from './section'
 import { TimetableEntry } from './TimeTableEntry'
+import { Teacher } from './Teacher'
 
 export const CreateTimetableSchema = z.object({
+    classId: z.number(),
+    sectionId: z.number(),
+    teacherId: z.number(),
     periodsPerDay: z
         .number()
         .int()
@@ -27,7 +31,6 @@ export const CreateTimetableSchema = z.object({
                 'Thursday',
                 'Friday',
                 'Saturday',
-                'Sunday',
             ]),
             z.number().int().positive(),
         )
@@ -60,7 +63,15 @@ export class Timetable extends Model<z.infer<typeof CreateTimetableSchema>> {
 
     @BelongsTo(() => Section)
     section!: Section
+    @ForeignKey(() => Teacher)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
+    teacherId!: number
 
+    @BelongsTo(() => Teacher)
+    teacher!: Teacher
     @HasMany(() => TimetableEntry)
     timetableEntries!: TimetableEntry[]
 

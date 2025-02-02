@@ -1,4 +1,4 @@
-import { CreateSectionSchema } from '@/models/Section'
+import { CreateSectionSchema } from '@/models/section'
 import { SectionService } from '@/services/section.service'
 import { ResponseUtil } from '@/utils/response.util'
 import { Response, Request } from 'express'

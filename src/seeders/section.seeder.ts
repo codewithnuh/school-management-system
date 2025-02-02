@@ -1,5 +1,5 @@
 // src/seeders/section.seeder.ts
-import { Section } from '@/models/Section'
+import { Section } from '@/models/section'
 import { Class } from '@/models/Class'
 import { Teacher } from '@/models/Teacher'
 

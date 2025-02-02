@@ -10,7 +10,7 @@ import {
 } from 'sequelize-typescript'
 import { z } from 'zod'
 import { SectionTeacher } from './SectionTeacher'
-import { Section } from './Section'
+import { Section } from '@/models/section'
 
 // Zod schema for validation
 export const SubjectSchema = z.object({

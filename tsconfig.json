@@ -16,6 +16,6 @@
         },
         "moduleResolution": "node"
     },
-    "include": ["src/**/*.ts"],
+    "include": ["src/**/*.ts", "src/migrations/2025-1-30-create-section.js"],
     "exclude": ["node_modules"]
 }

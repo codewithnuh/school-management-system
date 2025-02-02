@@ -1,15 +1,6 @@
-import {
-    Column,
-    DataType,
-    HasMany,
-    Model,
-    Table,
-    BelongsTo,
-    ForeignKey,
-} from 'sequelize-typescript'
-import { Section } from './Section'
-import { Subject } from './Subject'
-import { Teacher } from './Teacher'
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
+import { Section } from '@/models/section'
+
 import { z } from 'zod'
 
 export const CreateClassSchema = z.object({

@@ -1,9 +1,8 @@
 import sequelize from '@/config/database'
 import { Class } from '@/models/Class'
-import { Section } from '@/models/Section'
+import { Section } from '@/models/section'
 import { SectionTeacher } from '@/models/SectionTeacher'
 import { Teacher } from '@/models/Teacher'
-import { Subject } from '@/models/Subject'
 import { CreateClassInput } from '@/models/Class' // Import your types
 
 // Class Service
