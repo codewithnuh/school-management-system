@@ -256,7 +256,7 @@ export async function acceptStudentApplication(userId: number): Promise<void> {
             Importance: 'normal',
             'X-Mailer': 'School Management System',
         },
-        priority: 'normal' as 'normal',
+        priority: 'normal' as const,
     }
 
     // Verify connection before sending
@@ -315,7 +315,7 @@ export async function rejectStudentApplication(userId: number): Promise<void> {
             Importance: 'normal',
             'X-Mailer': 'School Management System',
         },
-        priority: 'normal' as 'normal',
+        priority: 'normal' as const,
     }
 
     // Verify connection before sending
@@ -421,7 +421,7 @@ export async function processTeacherApplication(
             Importance: 'normal',
             'X-Mailer': 'School Management System',
         },
-        priority: 'normal' as 'normal',
+        priority: 'normal' as const,
     }
 
     // Verify connection before sending

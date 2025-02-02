@@ -56,11 +56,11 @@ class TeacherController {
                 ...documents,
                 isVerified: false, // New teachers start unverified
                 role: 'TEACHER',
+                subjectId: validatedData.subjectId, // Include subjectId
             })
 
             // Remove sensitive information before sending response
-            const { cvPath, verificationDocument, ...teacherData } =
-                teacher.toJSON()
+            const teacherData = teacher.toJSON()
 
             logger.info('New teacher registered successfully', {
                 teacherId: teacher.id,

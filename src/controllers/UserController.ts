@@ -309,12 +309,11 @@ class UserController {
         req: Request,
         res: Response,
     ): Promise<void> => {
-        const { email, newPassword, otp, step } = req.body
-
-        const user = await User.findOne({ where: { email } })
         try {
+            const { email, newPassword, otp, step } = req.body
+            const user = await User.findOne({ where: { email } })
             switch (step) {
-                case 'verifyEmail':
+                case 'verifyEmail': {
                     if (!email) {
                         const response = ResponseUtil.error(
                             'Email missing',
@@ -341,17 +340,16 @@ class UserController {
                     })
 
                     const response = ResponseUtil.success(
-                        'OTP sent',
-
+                        { status: 'OTP sent' },
                         'An OTP has been sent to your email',
                         200,
                     )
 
                     res.status(200).json(response)
-
                     break
+                }
 
-                case 'verifyOtp':
+                case 'verifyOtp': {
                     if (!email || !otp) {
                         const response = ResponseUtil.error(
                             'Email or OTP missing',
@@ -384,8 +382,9 @@ class UserController {
                     )
                     res.status(200).json(otpResponse)
                     break
+                }
 
-                case 'resetPassword':
+                case 'resetPassword': {
                     if (!email || !newPassword || !otp) {
                         const response = ResponseUtil.error(
                             'Email, OTP, or new password missing',
@@ -437,8 +436,9 @@ class UserController {
                     )
                     res.status(200).json(resetResponse)
                     break
+                }
 
-                default:
+                default: {
                     const defaultResponse = ResponseUtil.error(
                         'Invalid step',
                         400,
@@ -446,14 +446,17 @@ class UserController {
                     )
                     res.status(400).json(defaultResponse)
                     break
+                }
             }
         } catch (error) {
-            const response = ResponseUtil.error(
+            const errorResponse = ResponseUtil.error(
                 'Internal Server Error',
                 500,
-                'Internal Server Error',
+                error instanceof Error
+                    ? error.message
+                    : 'Unknown error occurred',
             )
-            res.status(500).json(response)
+            res.status(500).json(errorResponse)
             return
         }
     }

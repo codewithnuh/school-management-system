@@ -7,6 +7,7 @@ export const teacherSchema = z.object({
     lastName: z.string().trim().min(1, 'Last name is required'),
     password: z.string().optional(),
     dateOfBirth: z.coerce.date(),
+    subjectId: z.number(),
     gender: z.enum(['Male', 'Female', 'Other']),
     nationality: z.string().trim().optional(),
     email: z.string().email('Invalid email format'),

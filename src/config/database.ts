@@ -14,14 +14,15 @@ import { Room } from '@/models/Room'
 import { ClassSubject } from '@/models/ClassSubject'
 import { SectionTeacher } from '@/models/SectionTeacher'
 config()
-const sequelize = new Sequelize({
-    database: process.env.MYSQL_DATABASE,
-    username: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    host: process.env.MYSQL_HOST,
+const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
     logging: false,
-    port: 3306,
-    dialect: 'mysql',
+
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false, // You can adjust this based on your SSL requirements
+        },
+    },
     models: [
         User,
         Teacher,

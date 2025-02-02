@@ -14,12 +14,14 @@ export class SectionController {
                     'Section created successfully',
                 ),
             )
-        } catch (error: any) {
-            res.status(error?.statusCode || 500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to create section',
-                ),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to create section',
+                    ),
+                )
+            }
         }
     }
 
@@ -33,12 +35,14 @@ export class SectionController {
                     'Sections retrieved successfully',
                 ),
             )
-        } catch (error: any) {
-            res.status(500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to retrieve sections',
-                ),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to retrieve sections',
+                    ),
+                )
+            }
         }
     }
 
@@ -54,12 +58,14 @@ export class SectionController {
             res.status(200).json(
                 ResponseUtil.success(section, 'Section retrieved successfully'),
             )
-        } catch (error: any) {
-            res.status(500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to retrieve section',
-                ),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to retrieve section',
+                    ),
+                )
+            }
         }
     }
 
@@ -76,12 +82,14 @@ export class SectionController {
                     'Section updated successfully',
                 ),
             )
-        } catch (error: any) {
-            res.status(error?.statusCode || 500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to update section',
-                ),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to update section',
+                    ),
+                )
+            }
         }
     }
 
@@ -90,12 +98,14 @@ export class SectionController {
             const id = parseInt(req.params.id, 10)
             await SectionService.deleteSection(id)
             res.status(204).send()
-        } catch (error: any) {
-            res.status(500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to delete section',
-                ),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to delete section',
+                    ),
+                )
+            }
         }
     }
 }

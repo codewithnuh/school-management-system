@@ -13,13 +13,15 @@ export class TimetableController {
                     'Timetable generated successfully',
                 ),
             )
-        } catch (error: any) {
+        } catch (error) {
             console.error(error)
-            res.status(error?.statusCode || 500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to generate timetable',
-                ),
-            )
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to generate timetable',
+                    ),
+                )
+            }
         }
     }
 
@@ -45,9 +47,9 @@ export class TimetableController {
         } catch (error) {
             console.error(error)
             if (error instanceof Error) {
-                res.status(500).json(
+                res.status(400).json(
                     ResponseUtil.error(
-                        error?.message || 'Failed to retrieve timetable',
+                        error.message || 'Failed to retrieve timetable',
                     ),
                 )
             }
@@ -68,13 +70,15 @@ export class TimetableController {
                     'Teacher timetable retrieved successfully',
                 ),
             )
-        } catch (error: any) {
+        } catch (error) {
             console.error(error)
-            res.status(error?.statusCode || 500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to retrieve teacher timetable',
-                ),
-            )
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to retrieve teacher timetable',
+                    ),
+                )
+            }
         }
     }
     // timetable.controller.ts
@@ -104,13 +108,15 @@ export class TimetableController {
                     'Weekly timetable retrieved successfully',
                 ),
             )
-        } catch (error: any) {
+        } catch (error) {
             console.error(error)
-            res.status(error?.statusCode || 500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to retrieve weekly timetable',
-                ),
-            )
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to retrieve weekly timetable',
+                    ),
+                )
+            }
         }
     }
 }

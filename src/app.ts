@@ -4,7 +4,7 @@ import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './config/swagger'
 import userRoutes from '@/routes/UserRoutes'
 import teacherRoutes from '@/routes/TeacherRoutes'
-import cors from 'cors'
+// import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
@@ -26,11 +26,10 @@ interface User {
 }
 
 // Declare type augmentation
-declare global {
-    namespace Express {
-        interface Request {
-            user?: User
-        }
+// Extend Express Request interface
+declare module 'express' {
+    interface Request {
+        user?: User
     }
 }
 
@@ -78,7 +77,7 @@ const startServer = async () => {
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
-        await sequelize.sync({ alter: true })
+        // await sequelize.sync({ force: true })
         await seed()
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)

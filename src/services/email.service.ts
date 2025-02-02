@@ -179,7 +179,7 @@ export const sendOtp = async ({
             Importance: 'normal',
             'X-Mailer': 'School Management System',
         },
-        priority: 'normal' as 'normal',
+        priority: 'normal' as const,
     }
 
     // Verify connection before sending

@@ -13,10 +13,14 @@ export class ClassController {
             res.status(201).json(
                 ResponseUtil.success(newClass, 'Class created successfully'),
             )
-        } catch (error: any) {
-            res.status(error?.statusCode || 500).json(
-                ResponseUtil.error(error?.message || 'Failed to create class'),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error?.message || 'Failed to create class',
+                    ),
+                )
+            }
         }
     }
 
@@ -26,12 +30,14 @@ export class ClassController {
             res.status(200).json(
                 ResponseUtil.success(classes, 'Classes retrieved successfully'),
             )
-        } catch (error: any) {
-            res.status(500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to retrieve classes',
-                ),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(500).json(
+                    ResponseUtil.error(
+                        error?.message || 'Failed to retrieve classes',
+                    ),
+                )
+            }
         }
     }
 
@@ -45,12 +51,14 @@ export class ClassController {
             res.status(200).json(
                 ResponseUtil.success(classData, 'Class retrieved successfully'),
             )
-        } catch (error: any) {
-            res.status(500).json(
-                ResponseUtil.error(
-                    error?.message || 'Failed to retrieve class',
-                ),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(500).json(
+                    ResponseUtil.error(
+                        error?.message || 'Failed to retrieve class',
+                    ),
+                )
+            }
         }
     }
 
@@ -64,10 +72,14 @@ export class ClassController {
                     'Class updated successfully',
                 ),
             )
-        } catch (error: any) {
-            res.status(error?.statusCode || 500).json(
-                ResponseUtil.error(error?.message || 'Failed to update class'),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error?.message || 'Failed to update class',
+                    ),
+                )
+            }
         }
     }
 
@@ -76,10 +88,14 @@ export class ClassController {
             const id = parseInt(req.params.id, 10)
             await ClassService.deleteClass(id)
             res.status(204).send() // 204 No Content for successful delete
-        } catch (error: any) {
-            res.status(500).json(
-                ResponseUtil.error(error?.message || 'Failed to delete class'),
-            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(500).json(
+                    ResponseUtil.error(
+                        error?.message || 'Failed to delete class',
+                    ),
+                )
+            }
         }
     }
 }
