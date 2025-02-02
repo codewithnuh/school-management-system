@@ -2,7 +2,7 @@
 FROM node:20
 
 # Set working directory
-WORKDIR /src
+WORKDIR /app
 
 # Install pnpm globally
 RUN npm install -g pnpm
@@ -10,16 +10,15 @@ RUN npm install -g pnpm
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install
-
-# Copy source code
+# ✅ Ensure both dependencies 
+RUN pnpm install 
+# Copy all files
 COPY . .
 
-# Build TypeScript code
-RUN pnpm exec tsc
+# ✅ Ensure TypeScript is installed before running tsc
+RUN pnpm list typescript && pnpm exec tsc
 
-# Expose port 3000 (assuming this is the port your app uses)
+# Expose port 3000
 EXPOSE 3000
 
 # Start the application

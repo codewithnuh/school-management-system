@@ -15,8 +15,8 @@ import { ClassSubject } from '@/models/ClassSubject'
 import { SectionTeacher } from '@/models/SectionTeacher'
 config()
 const sequelize = new Sequelize({
-    database: 'mydb',
-    username: 'root',
+    database: process.env.MYSQL_DATABASE,
+    username: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASSWORD,
     host: 'localhost',
     logging: false,
