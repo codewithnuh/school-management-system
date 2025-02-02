@@ -40,7 +40,6 @@ export const transporter = nodemailer.createTransport({
 })
 
 const emailHTML = ({
-    entityType,
     name,
     OTP,
 }: {
@@ -186,6 +185,5 @@ export const sendOtp = async ({
     await transporter.verify()
 
     // Send email
-    const info: nodemailer.SentMessageInfo =
-        await transporter.sendMail(mailOptions)
+    await transporter.sendMail(mailOptions)
 }

@@ -41,9 +41,11 @@ export const authenticate = async (
         req.userId = session.userId
         next()
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Authentication error',
-        })
+        if (error instanceof Error) {
+            res.status(500).json({
+                success: false,
+                message: error.message,
+            })
+        }
     }
 }

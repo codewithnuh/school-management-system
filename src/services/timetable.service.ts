@@ -10,7 +10,7 @@ import { Section } from '@/models/section'
 import { Timetable } from '@/models/TimeTable'
 import { TimetableEntry } from '@/models/TimeTableEntry'
 import { Sequelize } from 'sequelize-typescript'
-
+import { Transaction } from 'sequelize'
 export class TimetableService {
     /**
      * Generates a timetable for all sections of a given class.
@@ -81,7 +81,7 @@ export class TimetableService {
             breakStartTime?: string
             breakEndTime?: string
         },
-        transaction: any, // Add proper transaction type
+        transaction: Transaction,
     ) {
         if (!classData.periodsPerDay || classData.periodsPerDay <= 0) {
             throw new Error('Invalid periods per day')

@@ -25,6 +25,7 @@ export const sendForgotPasswordOTP = async ({
                     email,
                 },
             })
+            break
         case 'PARENT':
         default:
             break

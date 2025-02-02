@@ -20,24 +20,16 @@ export async function createSubject(data: Omit<SubjectAttributes, 'id'>) {
 }
 
 export async function getSubjectById(id: number) {
-    try {
-        const subject = await Subject.findByPk(id)
-        if (!subject) {
-            throw new Error('Subject not found')
-        }
-        return subject
-    } catch (error) {
-        throw error
+    const subject = await Subject.findByPk(id)
+    if (!subject) {
+        throw new Error('Subject not found')
     }
+    return subject
 }
 
 export async function getAllSubjects() {
-    try {
-        const subjects = await Subject.findAll()
-        return subjects
-    } catch (error) {
-        throw error
-    }
+    const subjects = await Subject.findAll()
+    return subjects
 }
 export async function updateSubject(
     id: number,
@@ -63,14 +55,10 @@ export async function updateSubject(
 }
 
 export async function deleteSubject(id: number) {
-    try {
-        const subject = await Subject.findByPk(id)
-        if (!subject) {
-            throw new Error('Subject not found')
-        }
-        await subject.destroy()
-        return subject
-    } catch (error) {
-        throw error
+    const subject = await Subject.findByPk(id)
+    if (!subject) {
+        throw new Error('Subject not found')
     }
+    await subject.destroy()
+    return subject
 }
