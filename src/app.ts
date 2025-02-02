@@ -78,7 +78,7 @@ const startServer = async () => {
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
-        // await sequelize.sync({ force: true })
+        await sequelize.sync({ alter: true })
         await seed()
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
