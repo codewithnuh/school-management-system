@@ -396,3 +396,6 @@
 {"level":"info","message":{"duration":27,"ip":"::1","method":"GET","path":"/weekly/8/teacher/1","statusCode":500,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-02T08:53:58.271Z"}
 {"level":"info","message":{"duration":56,"ip":"::1","method":"GET","path":"/weekly/8/teacher/10","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-02T08:54:13.804Z"}
 {"level":"info","message":{"duration":63,"ip":"::1","method":"GET","path":"/weekly/8/teacher/10","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-02T09:08:37.016Z"}
+{"level":"info","message":{"duration":11,"ip":"::1","method":"GET","path":"/api/v1/timetables/weekly/8//10","statusCode":404,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-02T09:24:35.924Z"}
+{"level":"info","message":{"duration":85,"ip":"::1","method":"GET","path":"/weekly/8/10","statusCode":500,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-02T09:24:41.437Z"}
+{"level":"info","message":{"duration":151,"ip":"::1","method":"GET","path":"/weekly/8/8","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-02T09:24:56.058Z"}

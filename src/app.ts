@@ -41,7 +41,7 @@ const port = process.env.PORT || 3000
 const configureMiddleware = (app: express.Application) => {
     // Security middleware
     app.use(helmet())
-    app.use(cors())
+    // app.use(cors())
     app.use(generalLimiter)
 
     // Swagger Documentation
