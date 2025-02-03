@@ -1,8 +1,10 @@
-import { User } from '@/models/User'
-import { EntityType, PasswordResetToken } from '@/models/PasswordResetToken'
+import { User } from '@/models/User.js'
+import { EntityType, PasswordResetToken } from '@/models/PasswordResetToken.js'
 import nodemailer from 'nodemailer'
-import { generateUniqueId } from '@/utils/uniqueIdGenerator'
-import { Teacher } from '@/models/Teacher'
+import { generateUniqueId } from '@/utils/uniqueIdGenerator.js'
+import { Teacher } from '@/models/Teacher.js'
+
+import process from 'process'
 
 // Email configuration
 export const transporter = nodemailer.createTransport({

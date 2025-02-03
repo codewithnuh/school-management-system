@@ -137,7 +137,7 @@
  */
 
 import express from 'express'
-import { TimetableController } from '@/controllers/TimeTableController'
+import { TimetableController } from '@/controllers/TimeTableController.js'
 
 const router = express.Router()
 

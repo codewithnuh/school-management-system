@@ -1,7 +1,9 @@
-import { Teacher } from '@/models/Teacher'
-import { User } from '@/models/User'
-import { sendOtp } from './email.service'
-import { OTP } from '@/models/OTP'
+import { Teacher } from '@/models/Teacher.js'
+import { User } from '@/models/User.js'
+import { sendOtp } from './email.service.js'
+import { OTP } from '@/models/OTP.js'
+
+import process from 'process'
 
 export const sendForgotPasswordOTP = async ({
     entityType,

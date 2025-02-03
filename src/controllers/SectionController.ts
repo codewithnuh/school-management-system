@@ -1,6 +1,6 @@
-import { CreateSectionSchema } from '@/models/section'
-import { SectionService } from '@/services/section.service'
-import { ResponseUtil } from '@/utils/response.util'
+import { CreateSectionSchema } from '@/models/section.js'
+import { SectionService } from '@/services/section.service.js'
+import { ResponseUtil } from '@/utils/response.util.js'
 import { Response, Request } from 'express'
 export class SectionController {
     static async createSection(req: Request, res: Response): Promise<void> {

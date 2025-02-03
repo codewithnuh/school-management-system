@@ -1,4 +1,4 @@
-import { Subject, SubjectAttributes } from '@/models/Subject'
+import { Subject, SubjectAttributes } from '@/models/Subject.js'
 import { z } from 'zod'
 
 export async function createSubject(data: Omit<SubjectAttributes, 'id'>) {

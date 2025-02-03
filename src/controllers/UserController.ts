@@ -1,14 +1,14 @@
 import { Request, Response } from 'express'
-import { User } from '@/models/User'
-import { userSchema } from '@/schema/user.schema'
-import { PasswordResetToken } from '@/models/PasswordResetToken'
+import { User } from '@/models/User.js'
+import { userSchema } from '@/schema/user.schema.js'
+import { PasswordResetToken } from '@/models/PasswordResetToken.js'
 import bcrypt from 'bcrypt'
-import { createJWT } from '@/utils/jwt'
-import { Session } from '@/models/Session'
-import { acceptStudentApplication } from '@/services/application.service'
-import { ResponseUtil } from '@/utils/response.util'
-import { sendForgotPasswordOTP } from '@/services/forgot-password.service'
-import { OTP } from '@/models/OTP'
+import { createJWT } from '@/utils/jwt.js'
+import { Session } from '@/models/Session.js'
+import { acceptStudentApplication } from '@/services/application.service.js'
+import { ResponseUtil } from '@/utils/response.util.js'
+import { sendForgotPasswordOTP } from '@/services/forgot-password.service.js'
+import { OTP } from '@/models/OTP.js'
 
 interface UserData {
     firstName: string

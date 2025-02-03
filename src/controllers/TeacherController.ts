@@ -1,11 +1,11 @@
 // controllers/teacher.controller.ts
-import { ResponseUtil } from '@/utils/response.util'
+import { ResponseUtil } from '@/utils/response.util.js'
 import { Request, Response } from 'express'
-import { Teacher } from '../models/Teacher'
-import { teacherSchema } from '@/schema/teacher.schema'
-import { logger } from '@/middleware/loggin.middleware'
+import { Teacher } from '@/models/Teacher.js'
+import { teacherSchema } from '@/schema/teacher.schema.js'
+import { logger } from '@/middleware/loggin.middleware.js'
 import { Op } from 'sequelize'
-import { processTeacherApplication } from '@/services/application.service'
+import { processTeacherApplication } from '@/services/application.service.js'
 
 class TeacherController {
     /**

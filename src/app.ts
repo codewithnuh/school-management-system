@@ -1,15 +1,16 @@
 import express from 'express'
-import sequelize from './config/database'
+import sequelize from '@/config/database.js'
 import swaggerUi from 'swagger-ui-express'
-import swaggerSpec from './config/swagger'
-import userRoutes from '@/routes/UserRoutes'
-import teacherRoutes from '@/routes/TeacherRoutes'
+import swaggerSpec from '@/config/swagger.js'
+import userRoutes from '@/routes/UserRoutes.js'
+import teacherRoutes from '@/routes/TeacherRoutes.js'
 // import cors from 'cors'
+import process from 'process'
 import helmet from 'helmet'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
-import { generalLimiter } from './middleware/rateLimit.middleware'
-import { requestLogger } from './middleware/loggin.middleware'
+import { generalLimiter } from './middleware/rateLimit.middleware.js'
+import { requestLogger } from './middleware/loggin.middleware.js'
 import {
     deleteExpiredPasswordResetTokens,
     deleteExpiredSessions,

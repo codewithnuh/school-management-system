@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import { TimetableService } from '@/services/timetable.service'
-import { ResponseUtil } from '@/utils/response.util'
+import { TimetableService } from '@/services/timetable.service.js'
+import { ResponseUtil } from '@/utils/response.util.js'
 export class TimetableController {
     static async generateTimetable(req: Request, res: Response): Promise<void> {
         try {

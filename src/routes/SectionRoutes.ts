@@ -5,7 +5,7 @@
  *   description: Section management endpoints
  */
 
-import { SectionController } from '@/controllers/SectionController'
+import { SectionController } from '@/controllers/SectionController.js'
 import express from 'express'
 const sectionRoutes = express.Router()
 

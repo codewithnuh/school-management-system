@@ -1,5 +1,5 @@
 import express from 'express'
-import TeacherController from '@/controllers/TeacherController'
+import TeacherController from '@/controllers/TeacherController.js'
 
 const router = express.Router()
 

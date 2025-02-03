@@ -1,5 +1,7 @@
 import nodemailer from 'nodemailer'
 
+import process from 'process'
+
 // Function to check for missing environment variables
 const checkEnvVariables = () => {
     const requiredEnvVars = [

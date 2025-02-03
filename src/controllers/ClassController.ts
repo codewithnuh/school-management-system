@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
-import { ClassService } from '@/services/class.service'
-import { ResponseUtil } from '@/utils/response.util'
-import { CreateClassSchema } from '@/models/Class'
+import { ClassService } from '@/services/class.service.js'
+import { ResponseUtil } from '@/utils/response.util.js'
+import { CreateClassSchema } from '@/models/Class.js'
 
 // Class Controller
 export class ClassController {

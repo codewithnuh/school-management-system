@@ -1,9 +1,9 @@
-import sequelize from '@/config/database'
-import { Class } from '@/models/Class'
-import { Section } from '@/models/section'
-import { SectionTeacher } from '@/models/SectionTeacher'
-import { Teacher } from '@/models/Teacher'
-import { CreateClassInput } from '@/models/Class' // Import your types
+import sequelize from '@/config/database.js'
+import { Class } from '@/models/Class.js'
+import { Section } from '@/models/section.js'
+import { SectionTeacher } from '@/models/SectionTeacher.js'
+import { Teacher } from '@/models/Teacher.js'
+import { CreateClassInput } from '@/models/Class.js' // Import your types
 
 // Class Service
 export class ClassService {

@@ -1,8 +1,8 @@
-import sequelize from '@/config/database'
-import { Section } from '@/models/section'
-import { SectionTeacher } from '@/models/SectionTeacher'
-import { Teacher } from '@/models/Teacher'
-import { CreateSectionInput } from '@/models/section'
+import sequelize from '@/config/database.js'
+import { Section } from '@/models/section.js'
+import { SectionTeacher } from '@/models/SectionTeacher.js'
+import { Teacher } from '@/models/Teacher.js'
+import { CreateSectionInput } from '@/models/section.js'
 export class SectionService {
     static async createSection(input: CreateSectionInput) {
         const transaction = await sequelize.transaction()

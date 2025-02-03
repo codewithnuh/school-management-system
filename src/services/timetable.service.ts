@@ -1,14 +1,14 @@
-import sequelize from '@/config/database'
-import { Class } from '@/models/Class'
+import sequelize from '@/config/database.js'
+import { Class } from '@/models/Class.js'
 // Fix capitalization to Section
-import { Subject } from '@/models/Subject'
-import { Teacher } from '@/models/Teacher'
+import { Subject } from '@/models/Subject.js'
+import { Teacher } from '@/models/Teacher.js'
 // Fix capitalization to Timetable
 // Fix capitalization to TimetableEntry
-import { SectionTeacher } from '@/models/SectionTeacher'
-import { Section } from '@/models/section'
-import { Timetable } from '@/models/TimeTable'
-import { TimetableEntry } from '@/models/TimeTableEntry'
+import { SectionTeacher } from '@/models/SectionTeacher.js'
+import { Section } from '@/models/section.js'
+import { Timetable } from '@/models/TimeTable.js'
+import { TimetableEntry } from '@/models/TimeTableEntry.js'
 import { Sequelize } from 'sequelize-typescript'
 import { Transaction } from 'sequelize'
 export class TimetableService {
