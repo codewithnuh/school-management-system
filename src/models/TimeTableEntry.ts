@@ -6,14 +6,8 @@ import {
     ForeignKey,
     BelongsTo,
 } from 'sequelize-typescript'
-import { Timetable } from './TimeTable'
-import { Section } from './section'
-import { Subject } from './Subject'
-import { Teacher } from './Teacher'
-
 import { z } from 'zod'
-import { Class } from './Class'
-
+import { Class, Teacher, Subject, Section, Timetable } from '@/models/index.js'
 export const TimetableEntrySchema = z.object({
     id: z.number().optional(),
     timetableId: z.number(),

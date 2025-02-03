@@ -9,9 +9,7 @@ import {
     ForeignKey,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { SectionTeacher } from './SectionTeacher'
-import { Section } from '@/models/section'
-
+import { Section, SectionTeacher } from '@/models/index.js'
 // Zod schema for validation
 export const SubjectSchema = z.object({
     id: z.number().optional(), // Optional for creation, auto-generated

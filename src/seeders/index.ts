@@ -1,8 +1,8 @@
 // src/seeders/index.ts
-import { seedUsers } from './user.seeder'
-import { seedTeachers } from './teacher.seeder'
+import { seedUsers } from './user.seeder.js'
+import { seedTeachers } from './teacher.seeder.js'
 // import { seedClasses } from './class.seeder'
-import { seedSubjects } from './subject.seeder'
+import { seedSubjects } from './subject.seeder.js'
 // import { seedSections } from './section.seeder'
 
 const seed = async () => {

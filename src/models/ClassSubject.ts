@@ -6,8 +6,7 @@ import {
     Model,
     Table,
 } from 'sequelize-typescript'
-import { Class } from './Class'
-import { Subject } from './Subject'
+import { Class, Subject } from '@/models/index.js'
 
 // models/ClassSubject.ts
 @Table({ tableName: 'class_subjects' })

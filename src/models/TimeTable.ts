@@ -9,11 +9,7 @@ import {
 } from 'sequelize-typescript'
 
 import { z } from 'zod'
-import { Class } from './Class'
-import { Section } from './section'
-import { TimetableEntry } from './TimeTableEntry'
-import { Teacher } from './Teacher'
-
+import { Teacher, TimetableEntry, Section, Class } from '@/models/index.js'
 export const CreateTimetableSchema = z.object({
     classId: z.number(),
     sectionId: z.number(),

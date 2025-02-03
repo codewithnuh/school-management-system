@@ -1,4 +1,4 @@
-import { userSchema } from '@/schema/user.schema'
+import { userSchema } from '@/schema/user.schema.js'
 import { DataTypes, UUIDV4 } from 'sequelize'
 import { Table, Column, Model, DataType, Default } from 'sequelize-typescript'
 import { z } from 'zod'

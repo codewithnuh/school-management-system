@@ -1,5 +1,5 @@
 // src/seeders/teacher.seeder.ts
-import { Teacher } from '@/models/Teacher'
+import { Teacher } from '@/models/Teacher.js'
 // import { Subject } from '@/models/Subject'
 
 export const seedTeachers = async () => {

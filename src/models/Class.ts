@@ -1,5 +1,5 @@
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
-import { Section } from '@/models/section'
+import { Section } from '@/models/index.js'
 
 import { z } from 'zod'
 

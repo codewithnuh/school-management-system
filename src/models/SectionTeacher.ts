@@ -7,9 +7,7 @@ import {
     ForeignKey,
     BelongsTo,
 } from 'sequelize-typescript'
-import { Section } from './section'
-import { Subject } from './Subject'
-import { Teacher } from './Teacher'
+import { Section, Subject, Teacher } from '@/models/index.js'
 import { z } from 'zod'
 
 export const SectionTeacherSchema = z.object({

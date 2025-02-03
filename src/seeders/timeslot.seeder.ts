@@ -1,5 +1,5 @@
 // src/seeders/timeSlot.seeder.ts
-import { TimeSlot } from '@/models/TimeSlot'
+import { TimeSlot } from '@/models/TimeSlot.js'
 
 export const seedTimeSlots = async () => {
     try {

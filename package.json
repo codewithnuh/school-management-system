@@ -5,9 +5,10 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "pnpm dlx tsx --watch  src/app.ts",
+        "start": "node  dist/app.js",
         "format:check": "prettier --check .",
         "format:write": "prettier --write .",
+        "build": "pnpm exec tsc  && tsc-alias",
         "lint:check": "eslint .",
         "lint:fix": "eslint --fix .",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
@@ -71,6 +72,7 @@
         "prettier": "^3.4.2",
         "supertest": "^7.0.0",
         "ts-jest": "^29.1.2",
+        "tsc-alias": "^1.8.10",
         "typescript-eslint": "^8.21.0"
     }
 }

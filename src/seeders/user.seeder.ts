@@ -1,5 +1,5 @@
 // src/seeders/user.seeder.ts
-import { User } from '@/models/User'
+import { User } from '@/models/User.js'
 
 export const seedUsers = async () => {
     try {

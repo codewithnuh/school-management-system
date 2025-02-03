@@ -1,7 +1,7 @@
 import { Table, Column, Model, DataType } from 'sequelize-typescript'
 import { z } from 'zod'
 import { Op } from 'sequelize'
-import { logger } from '@/middleware/loggin.middleware'
+import { logger } from '@/middleware/loggin.middleware.js'
 
 export const otpSchema = z.object({
     id: z.number().optional(),

@@ -1,6 +1,6 @@
-import { logger } from '@/middleware/loggin.middleware'
-import { PasswordResetToken } from '@/models/PasswordResetToken'
-import { Session } from '@/models/Session'
+import { logger } from '@/middleware/loggin.middleware.js'
+import { PasswordResetToken } from '@/models/PasswordResetToken.js'
+import { Session } from '@/models/Session.js'
 import cron from 'node-cron'
 import { Op } from 'sequelize'
 // Run every day at midnight

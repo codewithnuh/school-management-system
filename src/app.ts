@@ -14,10 +14,10 @@ import { requestLogger } from './middleware/loggin.middleware.js'
 import {
     deleteExpiredPasswordResetTokens,
     deleteExpiredSessions,
-} from './cron/session'
-import TimeTableRoutes from '@/routes/TimeTableRoutes'
-import classRoutes from '@/routes/ClassRoutes'
-import seed from './seeders'
+} from './cron/session.js'
+import TimeTableRoutes from '@/routes/TimeTableRoutes.js'
+import classRoutes from '@/routes/ClassRoutes.js'
+import seed from '@/seeders/index.js'
 
 // Define User interface
 interface User {

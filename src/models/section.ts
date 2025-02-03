@@ -7,13 +7,15 @@ import {
     BelongsTo,
     HasMany,
 } from 'sequelize-typescript'
-import { Class } from './Class'
-import { Teacher } from './Teacher'
-import { Subject } from './Subject'
+import {
+    Class,
+    Teacher,
+    Subject,
+    TimetableEntry,
+    Timetable,
+    SectionTeacher,
+} from '@/models/index.js'
 import { z } from 'zod'
-import { TimetableEntry } from './TimeTableEntry'
-import { Timetable } from './TimeTable'
-import { SectionTeacher } from './SectionTeacher'
 
 export const CreateSectionSchema = z.object({
     id: z.number().optional(),

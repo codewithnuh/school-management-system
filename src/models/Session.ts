@@ -5,7 +5,7 @@ import {
     DataType,
     ForeignKey,
 } from 'sequelize-typescript'
-import { User } from '@/models/User'
+import { User } from '@/models/index.js'
 
 type SessionAttributes = {
     userId: number

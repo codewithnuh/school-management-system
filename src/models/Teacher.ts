@@ -12,11 +12,14 @@ import {
 } from 'sequelize-typescript'
 import { z } from 'zod'
 
-import { teacherSchema } from '@/schema/teacher.schema'
-import { Timetable } from './TimeTable'
-import { Subject } from './Subject'
-import { SectionTeacher } from './SectionTeacher'
-import { TimetableEntry } from './TimeTableEntry'
+import { teacherSchema } from '@/schema/teacher.schema.js'
+
+import {
+    Timetable,
+    TimetableEntry,
+    SectionTeacher,
+    Subject,
+} from '@/models/index.js'
 
 // Define enums for better type safety
 export enum Gender {
