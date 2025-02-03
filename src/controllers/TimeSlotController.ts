@@ -18,7 +18,8 @@ export class TimeSlotController {
             )
             res.status(201).json({ success: true, data: slots })
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message })
+            if (error instanceof Error)
+                res.status(500).json({ success: false, error: error.message })
         }
     }
 
@@ -31,7 +32,8 @@ export class TimeSlotController {
             )
             res.status(200).json({ success: true, data: timeSlot })
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message })
+            if (error instanceof Error)
+                res.status(500).json({ success: false, error: error.message })
         }
     }
 
@@ -41,7 +43,8 @@ export class TimeSlotController {
             await TimeSlotService.deleteTimeSlot(req.params.id)
             res.status(204).send()
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message })
+            if (error instanceof Error)
+                res.status(500).json({ success: false, error: error.message })
         }
     }
 }

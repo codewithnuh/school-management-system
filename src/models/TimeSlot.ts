@@ -1,15 +1,15 @@
 // models/TimeSlot.ts
-import { TimetableService } from '@/services/timetable.service'
+// import { TimetableService } from '@/services/timetable.service'
 import {
     Table,
     Column,
     Model,
     DataType,
-    AfterDestroy,
-    AfterUpdate,
+    // AfterDestroy,
+    // AfterUpdate,
 } from 'sequelize-typescript'
 import z from 'zod'
-import { Timetable } from './TimeTable'
+// import { Timetable } from './TimeTable'
 
 export const TimeSlotSchema = z.object({
     startTime: z.string().regex(/^\d{2}:\d{2}$/),
@@ -63,21 +63,21 @@ export class TimeSlot extends Model<TimeSlotAttributes> {
         },
     })
     duration!: number
-    @AfterUpdate
-    @AfterDestroy
-    static async regenerateTimetable(timeSlot: TimeSlot) {
-        const sectionIds = await (
-            await Timetable.findAll({
-                where: { timeSlotId: timeSlot.id },
-                attributes: ['sectionId'],
-                group: ['sectionId'],
-            })
-        ).map(t => t.sectionId)
+    // @AfterUpdate
+    // @AfterDestroy
+    // static async regenerateTimetable(timeSlot: TimeSlot) {
+    //     const sectionIds = await (
+    //         await Timetable.findAll({
+    //             where: { timeSlotId: timeSlot.id },
+    //             attributes: ['sectionId'],
+    //             group: ['sectionId'],
+    //         })
+    //     ).map(t => t.sectionId)
 
-        // Regenerate timetable for affected sections
+    //     // Regenerate timetable for affected sections
 
-        await Promise.all(
-            sectionIds.map(id => TimetableService.generateTimetable(id)),
-        )
-    }
+    //     await Promise.all(
+    //         sectionIds.map(id => TimetableService.generateTimetable(id)),
+    //     )
+    // }
 }

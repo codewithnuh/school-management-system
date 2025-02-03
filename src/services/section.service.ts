@@ -1,9 +1,8 @@
 import sequelize from '@/config/database'
-import { Section } from '@/models/Section'
+import { Section } from '@/models/section'
 import { SectionTeacher } from '@/models/SectionTeacher'
 import { Teacher } from '@/models/Teacher'
-import { CreateSectionInput } from '@/models/Section'
-
+import { CreateSectionInput } from '@/models/section'
 export class SectionService {
     static async createSection(input: CreateSectionInput) {
         const transaction = await sequelize.transaction()
