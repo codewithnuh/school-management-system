@@ -17,7 +17,11 @@ import {
 } from './cron/session.js'
 import TimeTableRoutes from '@/routes/TimeTableRoutes.js'
 import classRoutes from '@/routes/ClassRoutes.js'
-import seed from '@/seeders/index.js'
+import examRoutes from '@/routes/ExamRoutes.js'
+import examSubjectRoutes from '@/routes/ExamSubjectRoutes.js'
+import resultRoutes from '@/routes/ResultRoutes.js'
+import gradeRoutes from '@/routes/GradeRoutes.js'
+// import seed from '@/seeders/index.js'
 
 // Define User interface
 interface User {
@@ -64,6 +68,17 @@ const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/teachers', teacherRoutes)
     app.use('/api/v1/classes', classRoutes)
     app.use('/api/v1/timetables', TimeTableRoutes)
+    // Exam Routes
+    app.use('/exams', examRoutes)
+
+    // ExamSubject Routes
+    app.use('/exam-subjects', examSubjectRoutes)
+
+    // Result Routes
+    app.use('/results', resultRoutes)
+
+    // Grade Routes
+    app.use('/grades', gradeRoutes)
     // app.use('/api/v1/timetable/class', ClassRoutes)
 }
 
@@ -78,8 +93,8 @@ const startServer = async () => {
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
-        // await sequelize.sync({ force: true })
-        await seed()
+        await sequelize.sync({ alter: true })
+        // await seed()
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
         })
