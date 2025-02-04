@@ -12,13 +12,13 @@ COPY package.json pnpm-lock.yaml ./
 
 # ✅ Ensure both dependencies 
 RUN pnpm install 
-RUN pnpm add -D typescript
+RUN pnpm add -D typescript tsc-alias
 
 # Copy all files
 COPY . .
 
 # ✅ Ensure TypeScript is installed before running tsc
-RUN pnpm exec tsc
+RUN pnpm exec tsc && node_modules/.bin/tsc-alias
 
 # Expose port 3000
 EXPOSE 3000
