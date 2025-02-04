@@ -50,7 +50,11 @@ const configureMiddleware = (app: express.Application) => {
 
     // Swagger Documentation
     app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
-
+    // Route to access the raw openapi.json file
+    app.get('/api/v1/openapi.json', (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        res.send(swaggerSpec)
+    })
     // Request parsing middleware
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
