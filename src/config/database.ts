@@ -14,6 +14,10 @@ import {
     Session,
     TimeSlot,
     User,
+    Result,
+    Grade,
+    Exam,
+    ExamSubject,
 } from '@/models/index.js'
 config()
 const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
@@ -39,6 +43,12 @@ const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
         PasswordResetToken,
         Session,
         TimeSlot,
+        Result,
+        Grade,
+        Exam,
+        Grade,
+        Exam,
+        ExamSubject,
     ],
 })
 Section.belongsTo(Teacher, { foreignKey: 'classTeacherId' })
