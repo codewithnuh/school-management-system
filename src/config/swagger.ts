@@ -6,11 +6,23 @@ const swaggerDefinition = {
         title: 'School Management System API',
         version: '1.0.0',
         description: 'API documentation for School Management System',
+        contact: {
+            name: 'API Support',
+            email: 'support@example.com',
+        },
+        license: {
+            name: 'MIT',
+            url: 'https://opensource.org/licenses/MIT',
+        },
     },
     servers: [
         {
             url: 'http://localhost:3000',
             description: 'Development server',
+        },
+        {
+            url: 'https://api.production.com',
+            description: 'Production server',
         },
     ],
     components: {
@@ -19,6 +31,19 @@ const swaggerDefinition = {
                 type: 'http',
                 scheme: 'bearer',
                 bearerFormat: 'JWT',
+            },
+        },
+        schemas: {
+            Error: {
+                type: 'object',
+                properties: {
+                    message: {
+                        type: 'string',
+                    },
+                    internal_code: {
+                        type: 'string',
+                    },
+                },
             },
         },
     },
