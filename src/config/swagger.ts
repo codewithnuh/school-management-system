@@ -45,6 +45,89 @@ const swaggerDefinition = {
                     },
                 },
             },
+            // Added Class schema to resolve the missing token issue
+            Class: {
+                type: 'object',
+                properties: {
+                    id: {
+                        type: 'number',
+                    },
+                    name: {
+                        type: 'string',
+                    },
+                    description: {
+                        type: 'string',
+                    },
+                    maxStudents: {
+                        type: 'number',
+                    },
+                    periodsPerDay: {
+                        type: 'number',
+                    },
+                    periodLength: {
+                        type: 'number',
+                    },
+                    workingDays: {
+                        type: 'array',
+                        items: {
+                            type: 'string',
+                            enum: [
+                                'Monday',
+                                'Tuesday',
+                                'Wednesday',
+                                'Thursday',
+                                'Friday',
+                                'Saturday',
+                                'Sunday',
+                            ],
+                        },
+                    },
+                    subjectIds: {
+                        type: 'array',
+                        items: {
+                            type: 'number',
+                        },
+                    },
+                    sections: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                name: {
+                                    type: 'string',
+                                },
+                                maxStudents: {
+                                    type: 'number',
+                                },
+                                classTeacherId: {
+                                    type: 'number',
+                                },
+                                subjectTeachers: {
+                                    type: 'object',
+                                    additionalProperties: {
+                                        type: 'number',
+                                    },
+                                },
+                            },
+                            required: [
+                                'name',
+                                'maxStudents',
+                                'classTeacherId',
+                                'subjectTeachers',
+                            ],
+                        },
+                    },
+                },
+                required: [
+                    'name',
+                    'maxStudents',
+                    'periodsPerDay',
+                    'periodLength',
+                    'workingDays',
+                    'subjectIds',
+                    'sections',
+                ],
+            },
         },
     },
     security: [
