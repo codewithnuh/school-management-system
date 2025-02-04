@@ -25,6 +25,21 @@ const swaggerDefinition = {
             description: 'Production server',
         },
     ],
+    tags: [
+        {
+            name: 'Timetable',
+            description: 'Endpoints for managing timetables',
+        },
+        {
+            name: 'Exam Subjects',
+            description: 'Endpoints for assigning and managing exam subjects',
+        },
+        {
+            name: 'Users',
+            description: 'Endpoints for user management and authentication',
+        },
+        // Add other tags as needed for additional route groups
+    ],
     components: {
         securitySchemes: {
             bearerAuth: {
@@ -45,7 +60,19 @@ const swaggerDefinition = {
                     },
                 },
             },
-            // Added Class schema to resolve the missing token issue
+            ErrorResponse: {
+                type: 'object',
+                properties: {
+                    success: {
+                        type: 'boolean',
+                        default: false,
+                    },
+                    message: {
+                        type: 'string',
+                    },
+                },
+                required: ['success', 'message'],
+            },
             Class: {
                 type: 'object',
                 properties: {
@@ -128,6 +155,28 @@ const swaggerDefinition = {
                     'sections',
                 ],
             },
+            ExamSubject: {
+                type: 'object',
+                properties: {
+                    id: {
+                        type: 'number',
+                        example: 1,
+                    },
+                    subjectName: {
+                        type: 'string',
+                        example: 'Mathematics',
+                    },
+                    maxMarks: {
+                        type: 'number',
+                        example: 100,
+                    },
+                    passMarks: {
+                        type: 'number',
+                        example: 40,
+                    },
+                },
+                required: ['id', 'subjectName', 'maxMarks', 'passMarks'],
+            },
         },
     },
     security: [
@@ -139,7 +188,7 @@ const swaggerDefinition = {
 
 const options = {
     swaggerDefinition,
-    apis: ['./src/routes/*.ts'], // Path to the API docs
+    apis: ['./src/routes/*.ts'], // Scans all route files for OpenAPI annotations
 }
 
 const swaggerSpec = swaggerJSDoc(options)

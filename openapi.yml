@@ -14,6 +14,27 @@ servers:
     description: Development server
   - url: https://api.production.com
     description: Production server
+tags:
+  - name: Timetable
+    description: Endpoints for managing timetables
+  - name: Exam Subjects
+    description: Endpoints for assigning and managing exam subjects
+  - name: Users
+    description: Endpoints for user management and authentication
+  - name: Classes
+    description: API endpoints for managing classes.
+  - name: Exams
+    description: API endpoints for managing exams.
+  - name: Grades
+    description: API endpoints for managing grade criteria.
+  - name: Results
+    description: API endpoints for managing exam results.
+  - name: Sections
+    description: Section management endpoints
+  - name: Teachers
+    description: Teacher management endpoints
+  - name: Authentication
+    description: API endpoints for authentication.
 components:
   securitySchemes:
     bearerAuth:
@@ -28,6 +49,19 @@ components:
           type: string
         internal_code:
           type: string
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+          example: false
+        message:
+          type: string
+          example: An error occurred
+      required:
+        - success
+        - message
     Class:
       type: object
       properties:
@@ -87,6 +121,26 @@ components:
         - workingDays
         - subjectIds
         - sections
+    ExamSubject:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        subjectName:
+          type: string
+          example: Mathematics
+        maxMarks:
+          type: number
+          example: 100
+        passMarks:
+          type: number
+          example: 40
+      required:
+        - id
+        - subjectName
+        - maxMarks
+        - passMarks
     Exam:
       type: object
       properties:
@@ -111,16 +165,6 @@ components:
           $ref: '#/components/schemas/Exam'
         message:
           type: string
-    ErrorResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: false
-          example: false
-        message:
-          type: string
-          example: An error occurred
     Grade:
       type: object
       properties:
@@ -2152,22 +2196,3 @@ paths:
                   message:
                     type: string
                     example: Invalid email
-tags:
-  - name: Classes
-    description: API endpoints for managing classes.
-  - name: Exams
-    description: API endpoints for managing exams.
-  - name: Exam Subjects
-    description: Endpoints for assigning and managing subjects for exams.
-  - name: Grades
-    description: API endpoints for managing grade criteria.
-  - name: Results
-    description: API endpoints for managing exam results.
-  - name: Sections
-    description: Section management endpoints
-  - name: Teachers
-    description: Teacher management endpoints
-  - name: Users
-    description: API endpoints for user management.
-  - name: Authentication
-    description: API endpoints for authentication.
