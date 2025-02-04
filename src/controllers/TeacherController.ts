@@ -142,7 +142,10 @@ class TeacherController {
     /**
      * Get teacher by ID
      */
-    public getTeacherById = async (req: Request, res: Response) => {
+    public getTeacherById = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
         try {
             const { id } = req.params
 
@@ -153,13 +156,13 @@ class TeacherController {
             })
 
             if (!teacher) {
-                return res.status(404).json({
+                res.status(404).json({
                     status: 'error',
                     message: 'Teacher not found',
                 })
             }
 
-            return res.status(200).json({
+            res.status(200).json({
                 success: true,
                 data: teacher,
             })
@@ -169,7 +172,7 @@ class TeacherController {
                 teacherId: req.params.id,
             })
 
-            return res.status(500).json({
+            res.status(500).json({
                 success: false,
                 message: 'Internal server error',
             })

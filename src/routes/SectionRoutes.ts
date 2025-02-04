@@ -1,21 +1,23 @@
+import express from 'express'
+import { SectionController } from '@/controllers/SectionController.js'
+
+const sectionRoutes = express.Router()
+
 /**
  * @openapi
  * tags:
- *   name: Sections
- *   description: Section management endpoints
+ *   - name: Sections
+ *     description: Section management endpoints
  */
-
-import { SectionController } from '@/controllers/SectionController.js'
-import express from 'express'
-const sectionRoutes = express.Router()
 
 /**
  * @openapi
  * /sections:
  *   post:
- *     tags: [Sections]
  *     summary: Create a new section
+ *     tags: [Sections]
  *     requestBody:
+ *       description: Payload to create a new section.
  *       required: true
  *       content:
  *         application/json:
@@ -24,13 +26,35 @@ const sectionRoutes = express.Router()
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Section A"
  *               classId:
  *                 type: string
+ *                 example: "101"
+ *             required:
+ *               - name
+ *               - classId
  *     responses:
  *       201:
  *         description: Section created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Section'
+ *                 message:
+ *                   type: string
+ *                   example: "Section created successfully"
  *       400:
  *         description: Invalid request body
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 sectionRoutes.post('/', SectionController.createSection)
 
@@ -38,39 +62,79 @@ sectionRoutes.post('/', SectionController.createSection)
  * @openapi
  * /sections/class/{classId}:
  *   get:
- *     tags: [Sections]
  *     summary: Get all sections for a class
+ *     tags: [Sections]
  *     parameters:
  *       - in: path
  *         name: classId
  *         required: true
+ *         description: Unique identifier for the class.
  *         schema:
  *           type: string
+ *         example: "101"
  *     responses:
  *       200:
  *         description: List of sections
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Section'
+ *                 message:
+ *                   type: string
+ *                   example: "Sections retrieved successfully"
  *       404:
  *         description: Class not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-sectionRoutes.get('/class/:classId', SectionController.getAllSections) // Get sections by classId
+sectionRoutes.get('/class/:classId', SectionController.getAllSections)
 
 /**
  * @openapi
  * /sections/{id}:
  *   get:
- *     tags: [Sections]
  *     summary: Get section by ID
+ *     tags: [Sections]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier for the section.
  *         schema:
  *           type: string
+ *         example: "1"
  *     responses:
  *       200:
  *         description: Section details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Section'
+ *                 message:
+ *                   type: string
+ *                   example: "Section retrieved successfully"
  *       404:
  *         description: Section not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 sectionRoutes.get('/:id', SectionController.getSectionById)
 
@@ -78,15 +142,18 @@ sectionRoutes.get('/:id', SectionController.getSectionById)
  * @openapi
  * /sections/{id}:
  *   put:
- *     tags: [Sections]
  *     summary: Update a section
+ *     tags: [Sections]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier for the section to update.
  *         schema:
  *           type: string
+ *         example: "1"
  *     requestBody:
+ *       description: Updated section data.
  *       required: true
  *       content:
  *         application/json:
@@ -95,13 +162,35 @@ sectionRoutes.get('/:id', SectionController.getSectionById)
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Section A Updated"
  *               classId:
  *                 type: string
+ *                 example: "101"
+ *             required:
+ *               - name
+ *               - classId
  *     responses:
  *       200:
  *         description: Section updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Section'
+ *                 message:
+ *                   type: string
+ *                   example: "Section updated successfully"
  *       404:
  *         description: Section not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 sectionRoutes.put('/:id', SectionController.updateSection)
 
@@ -109,18 +198,37 @@ sectionRoutes.put('/:id', SectionController.updateSection)
  * @openapi
  * /sections/{id}:
  *   delete:
- *     tags: [Sections]
  *     summary: Delete a section
+ *     tags: [Sections]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier for the section to delete.
  *         schema:
  *           type: string
+ *         example: "1"
  *     responses:
  *       200:
  *         description: Section deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Section deleted successfully"
  *       404:
  *         description: Section not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 sectionRoutes.delete('/:id', SectionController.deleteSection)
+
+export default sectionRoutes
