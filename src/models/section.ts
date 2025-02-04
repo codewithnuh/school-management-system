@@ -1,3 +1,4 @@
+// section.model.ts
 import {
     Table,
     Column,
@@ -7,33 +8,27 @@ import {
     BelongsTo,
     HasMany,
 } from 'sequelize-typescript'
-import {
-    Class,
-    Teacher,
-    Subject,
-    TimetableEntry,
-    Timetable,
-    SectionTeacher,
-} from '@/models/index.js'
 import { z } from 'zod'
+import { Class, Timetable, TimetableEntry, Subject } from '@/models/index.js'
 
-export const CreateSectionSchema = z.object({
-    id: z.number().optional(),
-    name: z.string().length(1, 'Section name must be a single character'),
-    maxStudents: z
-        .number()
-        .min(1, 'Max students per section must be at least 1'),
-    classTeacherId: z
-        .number()
-        .positive('Class teacher ID must be a positive number'),
-    classId: z.number(),
-    subjectTeachers: z.record(z.number(), z.number()), // { subjectId: teacherId }
+export const createSectionSchema = z.object({
+    name: z.string({
+        required_error: 'Name is required',
+    }),
+    classTeacherId: z.number({
+        required_error: 'Class teacher ID is required',
+    }),
+    subjectTeachers: z.record(z.number(), z.number(), {
+        required_error: 'Subject teachers mapping is required',
+    }),
+    classId: z.number({
+        required_error: 'Class ID is required',
+    }),
 })
 
-export type CreateSectionInput = z.infer<typeof CreateSectionSchema>
-
+export type CreateSectionInput = z.infer<typeof createSectionSchema>
 @Table({ tableName: 'sections' })
-export class Section extends Model<CreateSectionInput> {
+export class Section extends Model {
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
@@ -48,6 +43,7 @@ export class Section extends Model<CreateSectionInput> {
     })
     name!: string
 
+    // Class Teacher Relationship
     @ForeignKey(() => Teacher)
     @Column({
         type: DataType.INTEGER,
@@ -55,12 +51,14 @@ export class Section extends Model<CreateSectionInput> {
     })
     classTeacherId!: number
 
-    @BelongsTo(() => Teacher)
-    classTeacher!: Teacher
+    // Subject Teachers Mapping
+    @Column({
+        type: DataType.JSON,
+        allowNull: false,
+    })
+    subjectTeachers!: Record<number, number>
 
-    @HasMany(() => SectionTeacher)
-    sectionTeachers!: SectionTeacher[]
-
+    // Class Relationship
     @ForeignKey(() => Class)
     @Column({
         type: DataType.INTEGER,
@@ -70,11 +68,18 @@ export class Section extends Model<CreateSectionInput> {
 
     @BelongsTo(() => Class)
     class!: Class
-    @ForeignKey(() => Class)
+
+    // Timetable Relationships
     @HasMany(() => Timetable)
     timetables!: Timetable[]
+
     @HasMany(() => TimetableEntry)
     timetableEntries!: TimetableEntry[]
+
+    // Subjects Relationship
     @HasMany(() => Subject)
     subjects!: Subject[]
 }
+
+// Import Teacher AFTER the class definition
+import { Teacher } from '@/models/index.js'

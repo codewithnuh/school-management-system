@@ -7,7 +7,6 @@ import {
     BelongsTo,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Class, Teacher, Subject, Section, Timetable } from '@/models/index.js'
 export const TimetableEntrySchema = z.object({
     id: z.number().optional(),
     timetableId: z.number(),
@@ -112,3 +111,5 @@ export class TimetableEntry
     })
     endTime!: string
 }
+
+import { Class, Teacher, Subject, Section, Timetable } from '@/models/index.js'

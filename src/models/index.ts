@@ -1,27 +1,13 @@
-import { Class } from '@/models/Class.js'
-import { Section } from '@/models/section.js'
-import { OTP } from '@/models/OTP.js'
-import { PasswordResetToken } from '@/models/PasswordResetToken.js'
-import { SectionTeacher } from '@/models/SectionTeacher.js'
-import { Session } from '@/models/Session.js'
-import { Subject } from '@/models/Subject.js'
-import { Teacher } from '@/models/Teacher.js'
-import { TimeSlot } from '@/models/TimeSlot.js'
-import { Timetable } from '@/models/TimeTable.js'
-import { TimetableEntry } from '@/models/TimeTableEntry.js'
-import { User } from '@/models/User.js'
+export * from '@/models/Class.js'
+export * from '@/models/section.js'
+export { EntityType as OTPEntityType, OTP } from './OTP.js'
 
-export {
-    Class,
-    Section,
-    OTP,
-    PasswordResetToken,
-    SectionTeacher,
-    Session,
-    Subject,
-    Teacher,
-    TimeSlot,
-    Timetable,
-    TimetableEntry,
-    User,
-}
+export * from '@/models/PasswordResetToken.js'
+export * from '@/models/SectionTeacher.js'
+export * from '@/models/Session.js'
+export * from '@/models/Subject.js'
+export * from '@/models/Teacher.js'
+export * from '@/models/TimeSlot.js'
+export * from '@/models/TimeTable.js'
+export * from '@/models/TimeTableEntry.js'
+export * from '@/models/User.js'

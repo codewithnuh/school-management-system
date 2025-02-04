@@ -1,11 +1,11 @@
-import { CreateSectionSchema } from '@/models/section.js'
+import { createSectionSchema } from '@/models/section.js'
 import { SectionService } from '@/services/section.service.js'
 import { ResponseUtil } from '@/utils/response.util.js'
 import { Response, Request } from 'express'
 export class SectionController {
     static async createSection(req: Request, res: Response): Promise<void> {
         try {
-            const validatedSectionData = CreateSectionSchema.parse(req.body)
+            const validatedSectionData = createSectionSchema.parse(req.body)
             const newSection =
                 await SectionService.createSection(validatedSectionData)
             res.status(201).json(

@@ -7,7 +7,6 @@ import {
     ForeignKey,
     BelongsTo,
 } from 'sequelize-typescript'
-import { Section, Subject, Teacher } from '@/models/index.js'
 import { z } from 'zod'
 
 export const SectionTeacherSchema = z.object({
@@ -40,8 +39,8 @@ export class SectionTeacher
     })
     subjectId!: number
 
-    @BelongsTo(() => Subject)
-    subject!: Subject
+    // @BelongsTo(() => Subject)
+    // subject!: Subject
 
     @ForeignKey(() => Teacher)
     @Column({
@@ -50,8 +49,8 @@ export class SectionTeacher
     })
     teacherId!: number
 
-    @BelongsTo(() => Teacher)
-    teacher!: Teacher
+    // @BelongsTo(() => Teacher)
+    // teacher!: Teacher
     static async validateAssignment(input: SectionTeacherAttributes) {
         // 1. Check if the teacher is qualified for the subject
         const teacher = await Teacher.findOne({
@@ -76,3 +75,5 @@ export class SectionTeacher
         }
     }
 }
+
+import { Section, Subject, Teacher } from '@/models/index.js'

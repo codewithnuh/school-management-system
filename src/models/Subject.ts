@@ -5,11 +5,10 @@ import {
     Model,
     DataType,
     Unique,
-    HasMany,
     ForeignKey,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Section, SectionTeacher } from '@/models/index.js'
+import { Section } from '@/models/index.js'
 // Zod schema for validation
 export const SubjectSchema = z.object({
     id: z.number().optional(), // Optional for creation, auto-generated
@@ -35,8 +34,8 @@ export class Subject extends Model<SubjectAttributes> {
     })
     id!: number
     // models/Subject.ts
-    @HasMany(() => SectionTeacher)
-    sectionTeachers!: SectionTeacher[]
+    // @HasMany(() => SectionTeacher)
+    // sectionTeachers!: SectionTeacher[]
     @Unique
     @Column({
         type: DataType.STRING(100),

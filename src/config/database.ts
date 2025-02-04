@@ -1,19 +1,20 @@
 import { Sequelize } from 'sequelize-typescript'
-import { User } from '@/models/User.js'
 import { config } from 'dotenv'
 import process from 'process'
-import { Teacher } from '@/models/Teacher.js'
-import { PasswordResetToken } from '@/models/PasswordResetToken.js'
-import { Session } from '@/models/Session.js'
-import { OTP } from '@/models/OTP.js'
-import { Section } from '@/models/section.js'
-import { Timetable } from '@/models/TimeTable.js'
-import { TimetableEntry } from '@/models/TimeTableEntry.js'
-import { Class } from '@/models/Class.js'
-import { Subject } from '@/models/Subject.js'
-import { Room } from '@/models/Room.js'
-import { ClassSubject } from '@/models/ClassSubject.js'
-import { SectionTeacher } from '@/models/SectionTeacher.js'
+import {
+    Class,
+    Section,
+    Subject,
+    Teacher,
+    Timetable,
+    TimetableEntry,
+    SectionTeacher,
+    OTP,
+    PasswordResetToken,
+    Session,
+    TimeSlot,
+    User,
+} from '@/models/index.js'
 config()
 const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
     logging: false,
@@ -24,21 +25,25 @@ const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
             rejectUnauthorized: false, // You can adjust this based on your SSL requirements
         },
     },
+
     models: [
-        User,
-        Teacher,
-        PasswordResetToken,
-        Session,
-        OTP,
+        Class,
         Section,
+        Subject,
+        Teacher,
         Timetable,
         TimetableEntry,
-        Class,
-        Room,
-        ClassSubject,
         SectionTeacher,
-        Subject,
+        OTP,
+        User,
+        PasswordResetToken,
+        Session,
+        TimeSlot,
     ],
 })
-
+Section.belongsTo(Teacher, { foreignKey: 'classTeacherId' })
+Teacher.hasMany(Section, { foreignKey: 'classTeacherId' })
+SectionTeacher.belongsTo(Subject, { foreignKey: 'subjectId' })
+SectionTeacher.belongsTo(Teacher, { foreignKey: 'teacherId' })
+Subject.hasMany(SectionTeacher, { foreignKey: 'sectionId' })
 export default sequelize
