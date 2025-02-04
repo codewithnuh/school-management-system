@@ -56,4 +56,8 @@ Teacher.hasMany(Section, { foreignKey: 'classTeacherId' })
 SectionTeacher.belongsTo(Subject, { foreignKey: 'subjectId' })
 SectionTeacher.belongsTo(Teacher, { foreignKey: 'teacherId' })
 Subject.hasMany(SectionTeacher, { foreignKey: 'sectionId' })
+Class.belongsTo(Exam, { foreignKey: 'examId' })
+Exam.hasMany(Class, { foreignKey: 'classId' })
+Exam.hasMany(Section, { foreignKey: 'sectionId' })
+Section.belongsTo(Exam, { foreignKey: 'examId' })
 export default sequelize

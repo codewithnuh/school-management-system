@@ -69,16 +69,16 @@ const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/classes', classRoutes)
     app.use('/api/v1/timetables', TimeTableRoutes)
     // Exam Routes
-    app.use('/exams', examRoutes)
+    app.use('/api/v1/exams', examRoutes)
 
     // ExamSubject Routes
-    app.use('/exam-subjects', examSubjectRoutes)
+    app.use('/api/v1/exam-subjects', examSubjectRoutes)
 
     // Result Routes
-    app.use('/results', resultRoutes)
+    app.use('/api/v1/results', resultRoutes)
 
     // Grade Routes
-    app.use('/grades', gradeRoutes)
+    app.use('/api/v1/grades', gradeRoutes)
     // app.use('/api/v1/timetable/class', ClassRoutes)
 }
 

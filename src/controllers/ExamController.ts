@@ -33,6 +33,7 @@ export class ExamController {
      * @param res - The response object.
      */
     public static async getAllExams(req: Request, res: Response) {
+        console.log('Exams Route')
         try {
             const exams = await ExamService.getAllExams()
             const response = ResponseUtil.success(
@@ -42,6 +43,7 @@ export class ExamController {
             res.status(response.statusCode).json(response)
         } catch (error) {
             if (error instanceof Error) {
+                console.log(error)
                 const response = ResponseUtil.error(error.message, 500)
                 res.status(response.statusCode).json(response)
             }
