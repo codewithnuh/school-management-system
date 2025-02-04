@@ -7,7 +7,7 @@ import {
 } from 'sequelize-typescript'
 import * as crypto from 'crypto'
 import { Op } from 'sequelize'
-export type EntityType = 'USER' | 'TEACHER'
+type EntityType = 'USER' | 'TEACHER'
 interface PasswordResetTokenAttributes {
     id?: number
     token: string
