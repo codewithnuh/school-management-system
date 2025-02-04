@@ -21,9 +21,8 @@
     "dependencies": {
         "@auth/express": "^0.8.4",
         "@auth/sequelize-adapter": "^2.7.4",
-        "@types/bcrypt": "^5.0.2",
         "@types/nodemailer": "^6.4.17",
-        "bcrypt": "^5.1.1",
+        "bcryptjs": "^2.4.3",
         "body-parser": "^1.20.3",
         "compression": "^1.7.5",
         "cookie-parser": "^1.4.7",
@@ -50,6 +49,7 @@
     "devDependencies": {
         "@eslint/eslintrc": "^3.2.0",
         "@eslint/js": "^9.19.0",
+        "@types/bcryptjs": "^2.4.6",
         "@types/body-parser": "^1.19.5",
         "@types/compression": "^1.7.5",
         "@types/cookie-parser": "^1.4.8",

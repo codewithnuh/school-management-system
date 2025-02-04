@@ -3,8 +3,6 @@ import { User } from '@/models/User.js'
 import { sendOtp } from './email.service.js'
 import { OTP } from '@/models/OTP.js'
 
-import process from 'process'
-
 export const sendForgotPasswordOTP = async ({
     entityType,
     email,

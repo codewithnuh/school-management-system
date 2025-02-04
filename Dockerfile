@@ -4,20 +4,16 @@ FROM node:20
 # Set working directory
 WORKDIR /app
 
-# Install build essentials
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Install pnpm globally
 RUN npm install -g pnpm
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Ensure both dependencies are installed
-RUN pnpm install
+# Install dependencies (ensure TypeScript is installed)
+RUN pnpm install --unsafe-perm
+RUN pnpm add -D typescript tsc-alias
+
 
 # Copy all files
 COPY . .
@@ -25,8 +21,11 @@ COPY . .
 # Remove .env file if it exists
 RUN rm -f .env
 
-# Ensure TypeScript is installed before running tsc
-RUN pnpm exec tsc && node_modules/.bin/tsc-alias
+# Ensure TypeScript is available
+RUN pnpm exec tsc --version
+
+# Compile TypeScript and fix paths
+RUN pnpm exec tsc && pnpm exec tsc-alias
 
 # Expose port 3000
 EXPOSE 3000
