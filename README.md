@@ -61,11 +61,14 @@ Steps:
 1. Clone the repository
 2. Navigate to the project directory
 3. Install dependencies:
+
     ```
     pnpm install
     ```
+
 4. Set up environment variables:
    Create a `.env` file in the root directory and add the following:
+
     ```
     MYSQL_PASSWORD=your_mysql_password
     PORT=3000
@@ -74,9 +77,11 @@ Steps:
 ### Getting Started
 
 1. Start the development server:
+
     ```
     pnpm start
     ```
+
 2. The server will start running on `http://localhost:3000`
 
 ### Configuration Options
@@ -114,6 +119,7 @@ Database configuration can be modified in `src/config/database.ts`. Adjust the f
     ```
 
 2. Retrieving all users:
+
     ```
     GET /users
     ```
@@ -133,9 +139,11 @@ To ensure the quality of the codebase, consider implementing unit tests for cont
         2. Verify database credentials in `.env` file
         3. Ensure the database exists and is accessible
     - Debug command:
+
         ```
         DEBUG=sequelize* pnpm start
         ```
+
     - Expected outcome: Detailed Sequelize logs should appear in the console
 
 2. Server Start-up Failure:
@@ -145,9 +153,11 @@ To ensure the quality of the codebase, consider implementing unit tests for cont
         1. Check if another process is using port 3000
         2. Change the port in the `.env` file if needed
     - Debug command:
+
         ```
         lsof -i :3000
         ```
+
     - Expected outcome: List of processes using port 3000, if any
 
 ### Performance Optimization

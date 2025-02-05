@@ -35,7 +35,7 @@ class TeacherController {
                     cnic: validatedData.cnic,
                 })
                 const response = ResponseUtil.error(
-                    'Teacher with this email or CNIC already exists',
+                    'Teacher already exists',
                     409,
                 )
                 res.status(response.statusCode).json(response)
@@ -85,13 +85,13 @@ class TeacherController {
                     res.status(400).json({
                         success: false,
                         message: 'Validation failed',
-                        errors: error.message, // Send message instead of stack trace
+                        errors: 'Invalid data', // Send message instead of stack trace
                     })
                 }
 
                 res.status(400).json({
                     success: false,
-                    message: error.message,
+                    message: 'Failed to register teacher',
                 })
                 return
             }

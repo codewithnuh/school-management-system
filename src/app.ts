@@ -4,7 +4,8 @@ import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from '@/config/swagger.js'
 import userRoutes from '@/routes/UserRoutes.js'
 import teacherRoutes from '@/routes/TeacherRoutes.js'
-// import cors from 'cors'
+import bodyParser from 'body-parser'
+import cors from 'cors'
 import process from 'process'
 import helmet from 'helmet'
 import compression from 'compression'
@@ -21,7 +22,8 @@ import examRoutes from '@/routes/ExamRoutes.js'
 import examSubjectRoutes from '@/routes/ExamSubjectRoutes.js'
 import resultRoutes from '@/routes/ResultRoutes.js'
 import gradeRoutes from '@/routes/GradeRoutes.js'
-// import seed from '@/seeders/index.js'
+
+import seed from '@/seeders/index.js'
 
 // Define User interface
 interface User {
@@ -44,17 +46,15 @@ const port = process.env.PORT || 3000
 // Combine all middleware in a single function for better organization
 const configureMiddleware = (app: express.Application) => {
     // Security middleware
+
+    // app.use(csrf({ cookie: true }))
     app.use(helmet())
-    // app.use(cors())
+    app.use(cors())
     app.use(generalLimiter)
+    app.use(bodyParser.json())
 
     // Swagger Documentation
     app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
-    // Route to access the raw openapi.json file
-    app.get('/api/v1/openapi.json', (req, res) => {
-        res.setHeader('Content-Type', 'application/json')
-        res.send(swaggerSpec)
-    })
     // Request parsing middleware
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
@@ -84,6 +84,11 @@ const configureRoutes = (app: express.Application) => {
     // Grade Routes
     app.use('/api/v1/grades', gradeRoutes)
     // app.use('/api/v1/timetable/class', ClassRoutes)
+    // Route to access the raw openapi.json file
+    app.get('/api/v1/openapi.json', (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        res.send(swaggerSpec)
+    })
 }
 
 const startServer = async () => {
@@ -97,8 +102,10 @@ const startServer = async () => {
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
-        await sequelize.sync({ alter: true })
-        // await seed()
+        // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
+        // await sequelize.sync({ force: true })
+        // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1')
+        await seed()
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
         })

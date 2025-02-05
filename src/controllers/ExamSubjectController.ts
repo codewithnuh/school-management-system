@@ -10,7 +10,6 @@ export class ExamSubjectController {
      * @param res - The response object.
      */
     public static async assignSubjectsToExam(req: Request, res: Response) {
-        console.log('exam-subjects route')
         try {
             const { examId } = req.params
             const examIdNumber = parseInt(examId, 10)

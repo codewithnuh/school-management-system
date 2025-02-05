@@ -53,6 +53,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
 })
 Section.belongsTo(Teacher, { foreignKey: 'classTeacherId' })
 Teacher.hasMany(Section, { foreignKey: 'classTeacherId' })
+Teacher.belongsTo(Subject, { foreignKey: 'subjectId' })
 SectionTeacher.belongsTo(Subject, { foreignKey: 'subjectId' })
 SectionTeacher.belongsTo(Teacher, { foreignKey: 'teacherId' })
 Subject.hasMany(SectionTeacher, { foreignKey: 'sectionId' })

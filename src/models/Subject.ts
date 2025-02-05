@@ -1,14 +1,13 @@
-// subject.model.ts
 import {
     Table,
     Column,
     Model,
     DataType,
-    Unique,
     ForeignKey,
 } from 'sequelize-typescript'
 import { z } from 'zod'
 import { Section } from '@/models/index.js'
+
 // Zod schema for validation
 export const SubjectSchema = z.object({
     id: z.number().optional(), // Optional for creation, auto-generated
@@ -25,6 +24,14 @@ export type SubjectAttributes = z.infer<typeof SubjectSchema>
 @Table({
     tableName: 'subjects',
     timestamps: true, // Adds createdAt and updatedAt columns
+    // Define a table-level unique index on 'name' to avoid duplicate keys issues and give explicit control over indexing
+    indexes: [
+        {
+            unique: true,
+            fields: ['name'],
+            name: 'unique_subject_name',
+        },
+    ],
 })
 export class Subject extends Model<SubjectAttributes> {
     @Column({
@@ -33,23 +40,27 @@ export class Subject extends Model<SubjectAttributes> {
         primaryKey: true,
     })
     id!: number
-    // models/Subject.ts
-    // @HasMany(() => SectionTeacher)
-    // sectionTeachers!: SectionTeacher[]
-    @Unique
+
+    // Removed column-level @Unique decorator to prevent auto-creation
     @Column({
         type: DataType.STRING(100),
         allowNull: false,
     })
     name!: string
+
     @Column({
         type: DataType.TEXT,
         allowNull: true,
     })
     description?: string
+
     @ForeignKey(() => Section)
-    @Column(DataType.INTEGER)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
     sectionId!: number
+
     // Validation method using Zod schema
     static validateSubject(data: Partial<SubjectAttributes>) {
         return SubjectSchema.parse(data)
