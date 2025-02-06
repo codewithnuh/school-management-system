@@ -22,8 +22,13 @@ import examRoutes from '@/routes/ExamRoutes.js'
 import examSubjectRoutes from '@/routes/ExamSubjectRoutes.js'
 import resultRoutes from '@/routes/ResultRoutes.js'
 import gradeRoutes from '@/routes/GradeRoutes.js'
-
+import subjectRoutes from '@/routes/SubjectRoutes.js'
 import seed from '@/seeders/index.js'
+import {
+    handleInvalidJSON,
+    handleValidationErrors,
+    errorHandler,
+} from './middleware/error.middleware.js'
 
 // Define User interface
 interface User {
@@ -64,6 +69,10 @@ const configureMiddleware = (app: express.Application) => {
 
     // Performance middleware
     app.use(compression())
+
+    app.use(handleInvalidJSON as express.ErrorRequestHandler)
+    app.use(handleValidationErrors as express.ErrorRequestHandler)
+    app.use(errorHandler)
 }
 
 // Configure routes
@@ -80,6 +89,7 @@ const configureRoutes = (app: express.Application) => {
 
     // Result Routes
     app.use('/api/v1/results', resultRoutes)
+    app.use('/api/v1/subjects', subjectRoutes)
 
     // Grade Routes
     app.use('/api/v1/grades', gradeRoutes)
@@ -99,6 +109,7 @@ const startServer = async () => {
 
         // Configure middleware and routes
         configureMiddleware(app)
+
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()

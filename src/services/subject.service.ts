@@ -16,6 +16,7 @@ export class SubjectService {
             const subject = await Subject.create(validatedData)
             return subject
         } catch (error) {
+            console.error(error)
             if (error instanceof z.ZodError) {
                 throw new Error(
                     `Validation error: ${error.errors.map(e => e.message).join(', ')}`,

@@ -18,7 +18,9 @@ import {
     Grade,
     Exam,
     ExamSubject,
+    ClassSubject,
 } from '@/models/index.js'
+
 config()
 const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
     logging: false,
@@ -33,6 +35,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
     models: [
         Class,
         Section,
+        ClassSubject,
         Subject,
         Teacher,
         Timetable,

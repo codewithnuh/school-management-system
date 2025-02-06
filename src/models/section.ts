@@ -9,7 +9,7 @@ import {
     HasMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Class, Timetable, TimetableEntry, Subject } from '@/models/index.js'
+import { Class, Timetable, TimetableEntry } from '@/models/index.js'
 
 export const createSectionSchema = z.object({
     name: z.string({
@@ -75,10 +75,6 @@ export class Section extends Model {
 
     @HasMany(() => TimetableEntry)
     timetableEntries!: TimetableEntry[]
-
-    // Subjects Relationship
-    @HasMany(() => Subject)
-    subjects!: Subject[]
 }
 
 // Import Teacher AFTER the class definition

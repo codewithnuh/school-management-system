@@ -3,10 +3,11 @@ import {
     Column,
     Model,
     DataType,
-    ForeignKey,
+    BelongsToMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Section } from '@/models/index.js'
+import { Class } from '@/models/index.js'
+import { ClassSubject } from './ClassSubject' // Junction table
 
 // Zod schema for validation
 export const SubjectSchema = z.object({
@@ -23,8 +24,7 @@ export type SubjectAttributes = z.infer<typeof SubjectSchema>
 
 @Table({
     tableName: 'subjects',
-    timestamps: true, // Adds createdAt and updatedAt columns
-    // Define a table-level unique index on 'name' to avoid duplicate keys issues and give explicit control over indexing
+    timestamps: true,
     indexes: [
         {
             unique: true,
@@ -41,7 +41,6 @@ export class Subject extends Model<SubjectAttributes> {
     })
     id!: number
 
-    // Removed column-level @Unique decorator to prevent auto-creation
     @Column({
         type: DataType.STRING(100),
         allowNull: false,
@@ -54,12 +53,9 @@ export class Subject extends Model<SubjectAttributes> {
     })
     description?: string
 
-    @ForeignKey(() => Section)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    sectionId!: number
+    // Many-to-Many relationship with Class
+    @BelongsToMany(() => Class, () => ClassSubject)
+    classes!: Class[]
 
     // Validation method using Zod schema
     static validateSubject(data: Partial<SubjectAttributes>) {

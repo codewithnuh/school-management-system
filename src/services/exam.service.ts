@@ -23,6 +23,7 @@ export class ExamService {
                 if (!sectionExists) throw new Error('Section not found')
             }
             const validatedExamData = ExamSchema.parse(data)
+
             // Create the exam
             const exam = await Exam.create(validatedExamData, { transaction })
             await transaction.commit()

@@ -8,8 +8,7 @@ export class SubjectController {
      */
     public static async create(req: Request, res: Response) {
         try {
-            const subjectData = req.body
-            const subject = await SubjectService.createSubject(subjectData)
+            const subject = await SubjectService.createSubject(req.body)
             const response = ResponseUtil.success(
                 subject,
                 'Subject created successfully',
