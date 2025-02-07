@@ -211,7 +211,7 @@ router.post('/accept-user', UserController.acceptUserApplication)
  *       404:
  *         description: User not found
  */
-router.delete('/', UserController.deleteUser)
+router.delete('/:userId', UserController.deleteUser)
 
 /**
  * @swagger

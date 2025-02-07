@@ -269,7 +269,7 @@ export async function acceptStudentApplication(userId: number): Promise<void> {
     const info: nodemailer.SentMessageInfo =
         await transporter.sendMail(mailOptions)
     console.log('Message sent: %s', info.messageId)
-
+    // WIP - check before updating that weather this is being done by administration
     // Update user status
     const id = generateUniqueId()
     await user.update({ isRegistered: true, studentId: String(id) })

@@ -53,6 +53,7 @@ class UserController {
     public createUser = async (req: Request, res: Response): Promise<void> => {
         try {
             const userData: UserData = req.body
+            userData.isRegistered = false
             const validatedUserData = userSchema.parse(userData)
 
             // Create user in a transaction
@@ -99,6 +100,7 @@ class UserController {
     public deleteUser = async (req: Request, res: Response): Promise<void> => {
         try {
             const { userId } = req.params
+            console.log(userId)
 
             if (!userId) {
                 res.status(400).json({
@@ -107,7 +109,7 @@ class UserController {
                 })
                 return
             }
-
+            // WIP - check weather who is performing this action is authorized
             const deletedUser = await User.destroy({
                 where: { id: userId },
             })
