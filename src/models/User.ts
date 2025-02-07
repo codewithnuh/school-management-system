@@ -1,22 +1,19 @@
 import { userSchema } from '@/schema/user.schema.js'
 import { DataTypes, UUIDV4 } from 'sequelize'
-import { Table, Column, Model, DataType, Default } from 'sequelize-typescript'
+import {
+    Table,
+    Column,
+    Model,
+    DataType,
+    Default,
+    ForeignKey,
+    HasMany,
+} from 'sequelize-typescript'
 import { z } from 'zod'
+import { Class, StudentExam } from '@/models/index.js'
 
 type UserAttributes = z.infer<typeof userSchema>
-type Grade =
-    | '1'
-    | '2'
-    | '3'
-    | '4'
-    | '5'
-    | '6'
-    | '7'
-    | '8'
-    | '9'
-    | '10'
-    | '11'
-    | '12'
+
 @Table({
     tableName: 'users',
     timestamps: true,
@@ -132,9 +129,9 @@ export class User extends Model<UserAttributes> implements UserAttributes {
         validate: { isNumeric: true, len: [13, 13] },
     })
     CNIC!: string
-
+    @ForeignKey(() => Class)
     @Column({ type: DataType.STRING, allowNull: false })
-    class!: Grade
+    classId!: number
 
     @Default(UUIDV4)
     @Column({ type: DataType.UUID, allowNull: true })
@@ -167,4 +164,6 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     createdAt?: Date
     @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
     updatedAt?: Date
+    @HasMany(() => StudentExam)
+    studentExams!: StudentExam[]
 }

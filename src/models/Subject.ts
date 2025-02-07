@@ -4,9 +4,10 @@ import {
     Model,
     DataType,
     BelongsToMany,
+    HasMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Class } from '@/models/index.js'
+import { Class, StudentExam } from '@/models/index.js'
 import { ClassSubject } from './ClassSubject' // Junction table
 
 // Zod schema for validation
@@ -56,7 +57,8 @@ export class Subject extends Model<SubjectAttributes> {
     // Many-to-Many relationship with Class
     @BelongsToMany(() => Class, () => ClassSubject)
     classes!: Class[]
-
+    @HasMany(() => StudentExam)
+    studentExams!: StudentExam[]
     // Validation method using Zod schema
     static validateSubject(data: Partial<SubjectAttributes>) {
         return SubjectSchema.parse(data)

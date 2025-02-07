@@ -6,6 +6,7 @@ import {
     DataType,
     ForeignKey,
     BelongsTo,
+    HasMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
 
@@ -49,8 +50,8 @@ export class SectionTeacher
     })
     teacherId!: number
 
-    // @BelongsTo(() => Teacher)
-    // teacher!: Teacher
+    @HasMany(() => StudentExam)
+    studentExams!: StudentExam[]
     static async validateAssignment(input: SectionTeacherAttributes) {
         // 1. Check if the teacher is qualified for the subject
         const teacher = await Teacher.findOne({
@@ -76,4 +77,4 @@ export class SectionTeacher
     }
 }
 
-import { Section, Subject, Teacher } from '@/models/index.js'
+import { Section, StudentExam, Subject, Teacher } from '@/models/index.js'

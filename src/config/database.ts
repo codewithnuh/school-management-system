@@ -17,8 +17,8 @@ import {
     Result,
     Grade,
     Exam,
-    ExamSubject,
     ClassSubject,
+    StudentExam,
 } from '@/models/index.js'
 
 config()
@@ -51,7 +51,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
         Exam,
         Grade,
         Exam,
-        ExamSubject,
+        StudentExam,
     ],
 })
 Section.belongsTo(Teacher, { foreignKey: 'classTeacherId' })
@@ -64,4 +64,5 @@ Class.belongsTo(Exam, { foreignKey: 'examId' })
 Exam.hasMany(Class, { foreignKey: 'classId' })
 Exam.hasMany(Section, { foreignKey: 'sectionId' })
 Section.belongsTo(Exam, { foreignKey: 'examId' })
+Class.hasMany(User, { foreignKey: 'studentId' })
 export default sequelize

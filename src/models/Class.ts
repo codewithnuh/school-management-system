@@ -1,5 +1,5 @@
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
-import { Section } from '@/models/index.js'
+import { Exam, Section } from '@/models/index.js'
 
 import { z } from 'zod'
 
@@ -99,4 +99,6 @@ export class Class extends Model<CreateClassInput> {
         allowNull: true,
     })
     description?: string
+    @HasMany(() => Exam) // Association with Exam model
+    exams!: Exam[]
 }
