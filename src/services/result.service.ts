@@ -1,86 +1,159 @@
-import { Result, ExamSubject, User, Grade } from '@/models/index.js'
 import sequelize from '@/config/database.js'
-import { Op } from 'sequelize'
-import { ResultAttributes, ResultSchema } from '../schema/result.schema.js'
+import {
+    Result,
+    Exam,
+    StudentExam,
+    Grade,
+    User,
+    Class,
+    Section,
+    Subject,
+} from '@/models/index.js'
+import { ResultAttributes, resultSchema } from '@/models/Result.js'
 
 export class ResultService {
-    /**
-     * Records marks for a student in an exam subject.
-     * @param data - Result data (studentId, examSubjectId, marksObtained).
-     * @returns The recorded result.
-     */
-    static async recordMarks(data: ResultAttributes) {
+    // Service to generate results for a specific exam
+    static async generateExamResults(
+        examId: number,
+    ): Promise<{ message: string }> {
         const transaction = await sequelize.transaction()
         try {
-            const { studentId, examSubjectId, marksObtained } = data
-
-            // Validate student, exam subject, and marks
-            const student = await User.findByPk(studentId, { transaction })
-            if (!student) throw new Error('Student not found')
-
-            const examSubject = await ExamSubject.findByPk(examSubjectId, {
-                transaction,
+            // Fetch the exam including associated Class and Section data.
+            const exam = await Exam.findByPk(examId, {
+                include: [
+                    { model: Class, include: [{ model: Subject }] }, // Include subjects associated with the class
+                    { model: Section }, // Include sections for result breakdown if available.
+                ],
             })
-            if (!examSubject) throw new Error('Exam subject not found')
-
-            if (marksObtained > examSubject.maxMarks) {
-                throw new Error('Marks obtained exceed maximum marks')
+            if (!exam) {
+                throw new Error(`Exam with ID ${examId} not found`)
             }
-            const validatedData = ResultSchema.parse(data)
-            if (!validatedData) throw new Error('Invalid Data')
-            // Record the result
-            const result = await Result.create(validatedData, { transaction })
+            // Fetch grades ordered by lowerPercentage descending.
+            const grades = await Grade.findAll({
+                order: [['lowerPercentage', 'DESC']],
+            })
+            // Get sections from exam or query all sections for the class.
+            let sections: Section[] = []
+            if (exam.sections) {
+                sections = Array.isArray(exam.sections)
+                    ? exam.sections
+                    : [exam.sections]
+            } else {
+                sections = await Section.findAll({
+                    where: { classId: exam.classId },
+                })
+            }
+            // Loop through each section.
+            for (const section of sections) {
+                // Query for all students in the section with entityType 'STUDENT'.
+                const students = await User.findAll({
+                    where: {
+                        sectionId: section.id,
+                        classId: exam.classId,
+                        entityType: 'STUDENT',
+                    },
+                    transaction,
+                })
+                // Process each student.
+                for (const student of students) {
+                    let totalMarksObtained = 0
+                    // Ensure exam has associated class data with subjectIds.
+                    if (
+                        !exam.class ||
+                        !exam.class ||
+                        !Array.isArray(exam.class.subjectIds)
+                    ) {
+                        throw new Error(
+                            'Exam is missing associated class subjects',
+                        )
+                    }
+                    // Sum marks for each subject.
+
+                    for (const subject of exam.class.subjectIds) {
+                        const studentExamRecord = await StudentExam.findOne({
+                            where: {
+                                examId: examId,
+                                studentId: student.id,
+                                subjectId: subject,
+                            },
+                            transaction,
+                        })
+
+                        if (
+                            studentExamRecord &&
+                            studentExamRecord.marksObtained !== null
+                        ) {
+                            totalMarksObtained += Number(
+                                studentExamRecord.marksObtained,
+                            )
+                        }
+                    }
+                    // Default result status is Fail if not meeting passing criteria.
+                    let overallGrade: string | null = null
+                    let resultStatus: 'Pass' | 'Fail' | 'Pending' = 'Fail'
+                    // Check if student has passed based on exam passing marks.
+                    if (
+                        exam.passingMarks != null &&
+                        totalMarksObtained >= Number(exam.passingMarks)
+                    ) {
+                        resultStatus = 'Pass'
+                    }
+                    // Determine the grade based on percentage.
+                    const percentage =
+                        exam.totalMarks > 0
+                            ? (totalMarksObtained / Number(exam.totalMarks)) *
+                              100
+                            : 0
+                    for (const grade of grades) {
+                        if (
+                            exam.totalMarks > 0 &&
+                            percentage >= Number(grade.lowerPercentage) &&
+                            percentage <= Number(grade.upperPercentage)
+                        ) {
+                            overallGrade = grade.gradeName
+                            break
+                        }
+                    }
+                    const resultInput: ResultAttributes = {
+                        examId: examId,
+                        studentId: student.id,
+                        classId: exam.classId,
+                        totalMarksObtained: totalMarksObtained,
+                        percentage: percentage,
+                        overallGrade: overallGrade,
+                        resultStatus: resultStatus,
+                    }
+                    // Validate result input using Zod schema
+                    resultSchema.parse(resultInput)
+                    // Instead of using upsert with a where clause (which is not supported),
+                    // find an existing result and update it, or create a new one.
+                    const existingResult = await Result.findOne({
+                        where: { examId: examId, studentId: student.id },
+                        transaction,
+                    })
+                    if (existingResult) {
+                        await existingResult.update(resultInput, {
+                            transaction,
+                        })
+                    } else {
+                        await Result.create(resultInput, { transaction })
+                    }
+                }
+            }
             await transaction.commit()
-            return result
+            return {
+                message: `Results generated successfully for exam ${exam.examName}`,
+            }
         } catch (error) {
             await transaction.rollback()
-            throw error
+            throw error // Propagate error after rollback for proper error handling.
         }
     }
-
-    /**
-     * Fetches results for a specific student.
-     * @param studentId - The ID of the student.
-     * @returns A list of results.
-     */
-    static async getResultsForStudent(studentId: number) {
-        return Result.findAll({
-            where: { studentId },
-            include: [ExamSubject],
-        })
+    static async getAllResults() {
+        return Result.findAll({ include: [Exam, User, Class] })
     }
-
-    /**
-     * Fetches results for a specific exam.
-     * @param examId - The ID of the exam.
-     * @returns A list of results.
-     */
-    static async getResultsForExam(examId: number) {
-        return Result.findAll({
-            include: [
-                {
-                    model: ExamSubject,
-                    where: { examId },
-                    include: [User],
-                },
-            ],
-        })
+    static async getResultById(id: number) {
+        return Result.findByPk(id, { include: [Exam, User, Class] })
     }
-
-    /**
-     * Calculates grades for a result based on marks obtained.
-     * @param marksObtained - Marks obtained by the student.
-     * @returns The grade.
-     */
-    static async calculateGrade(marksObtained: number) {
-        const grade = await Grade.findOne({
-            where: {
-                minMarks: { [Op.lte]: marksObtained },
-                maxMarks: { [Op.gte]: marksObtained },
-            },
-        })
-        if (!grade)
-            throw new Error('No grade criteria found for the given marks')
-        return grade.grade
-    }
+    // Additional methods (e.g., updateResult, deleteResult) can be implemented with input functionalities.
 }

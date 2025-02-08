@@ -10,7 +10,7 @@ import {
     HasMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Class, StudentExam } from '@/models/index.js'
+import { Class, Section, StudentExam } from '@/models/index.js'
 
 type UserAttributes = z.infer<typeof userSchema>
 
@@ -132,6 +132,9 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     @ForeignKey(() => Class)
     @Column({ type: DataType.STRING, allowNull: false })
     classId!: number
+    @ForeignKey(() => Section)
+    @Column({ type: DataType.STRING, allowNull: false })
+    sectionId!: number
 
     @Default(UUIDV4)
     @Column({ type: DataType.UUID, allowNull: true })

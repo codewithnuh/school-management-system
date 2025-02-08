@@ -1,4 +1,3 @@
-// exam.model.ts
 import {
     Table,
     Column,
@@ -26,13 +25,15 @@ export const examSchema = z.object({
         .number()
         .positive({ message: 'Total marks must be positive' }),
     passingMarks: z.number().positive().optional().nullable(),
+    academicYear: z.string().min(1, { message: 'Academic year is required' }),
+
     examType: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     isPublished: z.boolean().default(false),
 })
 
 export type ExamAttributes = z.infer<typeof examSchema> & {
-    examId: number // Auto-incrementing primary key
+    examId?: number // Auto-incrementing primary key
     createdAt?: Date
     updatedAt?: Date
 }
@@ -54,6 +55,11 @@ export class Exam extends Model<ExamAttributes> implements ExamAttributes {
         allowNull: false,
     })
     examName!: string
+    @Column({
+        type: DataType.STRING,
+        allowNull: false,
+    })
+    academicYear!: string
 
     @ForeignKey(() => Class)
     @Column({
@@ -116,7 +122,7 @@ export class Exam extends Model<ExamAttributes> implements ExamAttributes {
     class!: Class
 
     @BelongsTo(() => Section)
-    section!: Section
+    sections!: Section
 
     @HasMany(() => StudentExam)
     studentExams!: StudentExam[]

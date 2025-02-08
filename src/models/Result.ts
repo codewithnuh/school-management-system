@@ -24,7 +24,7 @@ export const resultSchema = z.object({
 })
 
 export type ResultAttributes = z.infer<typeof resultSchema> & {
-    resultId: number // Auto-incrementing primary key
+    resultId?: number // Auto-incrementing primary key
     createdAt?: Date
     updatedAt?: Date
 }
