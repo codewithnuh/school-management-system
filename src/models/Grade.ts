@@ -18,7 +18,7 @@ export const gradeSchema = z.object({
 })
 
 export type GradeAttributes = z.infer<typeof gradeSchema> & {
-    gradeId: number // Auto-incrementing primary key
+    gradeId?: number // Auto-incrementing primary key
     createdAt?: Date
     updatedAt?: Date
 }

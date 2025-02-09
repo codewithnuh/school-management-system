@@ -19,7 +19,6 @@ import {
 import TimeTableRoutes from '@/routes/TimeTableRoutes.js'
 import classRoutes from '@/routes/ClassRoutes.js'
 import examRoutes from '@/routes/ExamRoutes.js'
-import examSubjectRoutes from '@/routes/ExamSubjectRoutes.js'
 import resultRoutes from '@/routes/ResultRoutes.js'
 import gradeRoutes from '@/routes/GradeRoutes.js'
 import subjectRoutes from '@/routes/SubjectRoutes.js'
@@ -84,9 +83,6 @@ const configureRoutes = (app: express.Application) => {
     // Exam Routes
     app.use('/api/v1/exams', examRoutes)
 
-    // ExamSubject Routes
-    app.use('/api/v1/exam-subjects', examSubjectRoutes)
-
     // Result Routes
     app.use('/api/v1/results', resultRoutes)
     app.use('/api/v1/subjects', subjectRoutes)
@@ -113,10 +109,10 @@ const startServer = async () => {
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
-        await sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
-        await sequelize.sync({ force: true })
-        await sequelize.query('SET FOREIGN_KEY_CHECKS = 1')
-        await seed()
+        // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
+        // await sequelize.sync({ force: true })
+        // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1')
+        // await seed()
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
         })

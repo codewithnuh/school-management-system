@@ -1,166 +1,52 @@
 // src/seeders/teacher.seeder.ts
-import { Teacher } from '@/models/Teacher.js'
-// import { Subject } from '@/models/Subject'
-
+import { Teacher, Gender, ApplicationStatus } from '@/models/Teacher.js'
+import { Subject } from '@/models/Subject.js'
+import { faker } from '@faker-js/faker' // You'll need to install faker: npm install @faker-js/faker
+import { v4 as uuid } from 'uuid'
+enum EntityType {
+    TEACHER = 'TEACHER',
+}
 export const seedTeachers = async () => {
     try {
-        await Teacher.bulkCreate(
-            [
-                {
-                    firstName: 'Test',
-                    lastName: 'Teacher',
-                    email: 'teacher@example.com',
-                    password: 'password',
-                    dateOfBirth: new Date('2000-01-01'),
-                    gender: 'Male',
-                    phoneNo: '1234567890',
-                    address: 'Test Address',
-                    cnic: '1234567891234',
-                    highestQualification: 'Masters',
-                    joiningDate: new Date('2025-01-30'),
-                    emergencyContactName: 'Test Contact',
-                    emergencyContactNumber: '0987654321',
-                    subjectId: 1, // Assuming 1 is the ID for Maths
-                    isVerified: true,
-                    entityType: 'TEACHER',
-                    role: 'TEACHER',
-                },
-                {
-                    firstName: 'Jane',
-                    lastName: 'Doe',
-                    email: 'jane.doe@example.com',
-                    password: 'password',
-                    dateOfBirth: new Date('2000-01-01'),
-                    gender: 'Female',
-                    phoneNo: '1234567891',
-                    address: 'Test Address 2',
-                    cnic: '1234567891235',
-                    highestQualification: 'Bachelors',
-                    joiningDate: new Date('2025-01-30'),
-                    emergencyContactName: 'Jane Contact',
-                    emergencyContactNumber: '0987654322',
-                    subjectId: 2, // Assuming 2 is the ID for English
-                    isVerified: true,
-                    entityType: 'TEACHER',
-                    role: 'TEACHER',
-                },
-                {
-                    firstName: 'Jane',
-                    lastName: 'Doe',
-                    email: 'jane.doe@gmail.com',
-                    password: 'password',
-                    dateOfBirth: new Date('2000-01-01'),
-                    gender: 'Female',
-                    phoneNo: '1234567891',
-                    address: 'Test Address 2',
-                    cnic: '1234567891235',
-                    highestQualification: 'Bachelors',
-                    joiningDate: new Date('2025-01-30'),
-                    emergencyContactName: 'Jane Contact',
-                    emergencyContactNumber: '0987654322',
-                    subjectId: 3, // Assuming 2 is the ID for English
-                    isVerified: true,
-                    entityType: 'TEACHER',
-                    role: 'TEACHER',
-                },
-                {
-                    firstName: 'M',
-                    lastName: 'Yasseen',
-                    email: 'yasseen@gmail.com',
-                    password: 'password',
-                    dateOfBirth: new Date('2000-01-01'),
-                    gender: 'Female',
-                    phoneNo: '1234567891',
-                    address: 'Test Address 2',
-                    cnic: '1234567891235',
-                    highestQualification: 'Bachelors',
-                    joiningDate: new Date('2025-01-30'),
-                    emergencyContactName: 'Jane Contact',
-                    emergencyContactNumber: '0987654322',
-                    subjectId: 4, // Assuming 2 is the ID for English
-                    isVerified: true,
-                    entityType: 'TEACHER',
-                    role: 'TEACHER',
-                },
-                {
-                    firstName: 'Abdul',
-                    lastName: 'Rehman',
-                    email: 'abdulRehman@gmail.com',
-                    password: 'password',
-                    dateOfBirth: new Date('2000-01-01'),
-                    gender: 'Female',
-                    phoneNo: '1234567891',
-                    address: 'Test Address 2',
-                    cnic: '1234567891235',
-                    highestQualification: 'Bachelors',
-                    joiningDate: new Date('2025-01-30'),
-                    emergencyContactName: 'Jane Contact',
-                    emergencyContactNumber: '0987654322',
-                    subjectId: 5, // Assuming 2 is the ID for English
-                    isVerified: true,
-                    entityType: 'TEACHER',
-                    role: 'TEACHER',
-                },
-                {
-                    firstName: 'Anjum',
-                    lastName: 'Yasseen',
-                    email: 'yasseenanjum@gmail.com',
-                    password: 'password',
-                    dateOfBirth: new Date('2000-01-01'),
-                    gender: 'Female',
-                    phoneNo: '1234567891',
-                    address: 'Test Address 2',
-                    cnic: '1234567891235',
-                    highestQualification: 'Bachelors',
-                    joiningDate: new Date('2025-01-30'),
-                    emergencyContactName: 'Jane Contact',
-                    emergencyContactNumber: '0987654322',
-                    subjectId: 6, // Assuming 2 is the ID for English
-                    isVerified: true,
-                    entityType: 'TEACHER',
-                    role: 'TEACHER',
-                },
-                {
-                    firstName: 'Abdul',
-                    lastName: 'Rehman',
-                    email: 'abdulRehman@gmail.com',
-                    password: 'password',
-                    dateOfBirth: new Date('2000-01-01'),
-                    gender: 'Female',
-                    phoneNo: '1234567891',
-                    address: 'Test Address 2',
-                    cnic: '1234567891235',
-                    highestQualification: 'Bachelors',
-                    joiningDate: new Date('2025-01-30'),
-                    emergencyContactName: 'Jane Contact',
-                    emergencyContactNumber: '0987654322',
-                    subjectId: 5, // Assuming 2 is the ID for English
-                    isVerified: true,
-                    entityType: 'TEACHER',
-                    role: 'TEACHER',
-                },
-                {
-                    firstName: 'Abdul',
-                    lastName: 'Rehman',
-                    email: 'abdul@gmail.com',
-                    password: 'password',
-                    dateOfBirth: new Date('2000-01-01'),
-                    gender: 'Female',
-                    phoneNo: '1234567891',
-                    address: 'Test Address 2',
-                    cnic: '1234567891235',
-                    highestQualification: 'Bachelors',
-                    joiningDate: new Date('2025-01-30'),
-                    emergencyContactName: 'Jane Contact',
-                    emergencyContactNumber: '0987654322',
-                    subjectId: 7, // Assuming 2 is the ID for English
-                    isVerified: true,
-                    entityType: 'TEACHER',
-                    role: 'TEACHER',
-                },
-            ],
-            { ignoreDuplicates: true },
-        ) // Ignore duplicates on subsequent seeding
+        // Fetch all subjects
+        const subjects = await Subject.findAll()
+
+        if (!subjects || subjects.length === 0) {
+            console.error('No subjects found. Seed subjects first.')
+            return
+        }
+
+        // Create teachers dynamically
+        const teachers = subjects.map(subject => ({
+            firstName: faker.name.firstName(),
+            lastName: faker.name.lastName(),
+            dateOfBirth: faker.date.past(),
+            role: EntityType.TEACHER,
+            gender: faker.helpers.arrayElement([
+                Gender.Male,
+                Gender.Female,
+                Gender.Other,
+            ]),
+            email: faker.internet.email(),
+            phoneNo: faker.phone.number(),
+            entityType: EntityType.TEACHER,
+            password: faker.internet.password(), //Insecure - use bcrypt or similar for production
+            address: faker.address.streetAddress(),
+            cnic: uuid(), //Insecure - use a proper CNIC generation method if possible
+            highestQualification: faker.helpers.arrayElement([
+                'Bachelors',
+                'Masters',
+                'PhD',
+            ]),
+            joiningDate: faker.date.past(),
+            emergencyContactName: faker.person.fullName(),
+            emergencyContactNumber: faker.phone.number(),
+            isVerified: true,
+            applicationStatus: ApplicationStatus.Pending,
+            subjectId: subject.id, // Assign each teacher to a subject
+        }))
+
+        await Teacher.bulkCreate(teachers, { ignoreDuplicates: true })
         console.log('Teachers seeded successfully')
     } catch (error) {
         console.error('Error seeding teachers:', error)

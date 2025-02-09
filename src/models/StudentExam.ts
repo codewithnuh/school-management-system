@@ -10,7 +10,14 @@ import {
     UpdatedAt,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Exam, Section, User, Teacher, Subject } from '@/models/index.js' // Import your existing models
+import {
+    Exam,
+    Section,
+    User,
+    Teacher,
+    Subject,
+    SectionTeacher,
+} from '@/models/index.js' // Import your existing models
 
 export const studentExamSchema = z.object({
     studentId: z.number().int().positive(),
@@ -43,7 +50,9 @@ export class StudentExam
         autoIncrement: true,
     })
     studentExamId!: number
-
+    @ForeignKey(() => Exam)
+    @Column({ type: DataType.INTEGER })
+    examId!: number
     @ForeignKey(() => User)
     @Column({
         type: DataType.INTEGER,
@@ -51,20 +60,15 @@ export class StudentExam
     })
     studentId!: number
 
-    @ForeignKey(() => Exam)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    examId!: number
-
     @ForeignKey(() => Section)
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
     })
     sectionId!: number
-
+    @ForeignKey(() => SectionTeacher) // Add this line
+    @Column({ type: DataType.INTEGER })
+    sectionTeacherId!: number
     @ForeignKey(() => Subject)
     @Column({
         type: DataType.INTEGER,
@@ -119,7 +123,8 @@ export class StudentExam
 
     @BelongsTo(() => Section)
     section!: Section
-
+    @BelongsTo(() => SectionTeacher)
+    sectionTeacher!: SectionTeacher
     @BelongsTo(() => Subject)
     subject!: Subject
 

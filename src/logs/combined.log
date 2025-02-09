@@ -55,3 +55,10 @@
 {"level":"info","message":{"duration":2,"ip":"::1","method":"DELETE","path":"/api/v1/users","statusCode":404,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-07T02:57:13.883Z"}
 {"level":"info","message":{"duration":58,"ip":"::1","method":"DELETE","path":"/69","statusCode":404,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-07T02:57:21.907Z"}
 {"level":"info","message":{"duration":36,"ip":"::1","method":"DELETE","path":"/70","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-07T02:57:31.092Z"}
+{"level":"info","message":{"duration":11,"ip":"::1","method":"POST","path":"/api/v1/class","statusCode":404,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:16:37.556Z"}
+{"level":"info","message":{"duration":153,"ip":"::1","method":"POST","path":"/","statusCode":400,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:17:08.777Z"}
+{"level":"info","message":{"duration":143,"ip":"::1","method":"POST","path":"/","statusCode":400,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:20:31.553Z"}
+{"level":"info","message":{"duration":345,"ip":"::1","method":"POST","path":"/","statusCode":201,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:39:18.672Z"}
+{"level":"info","message":{"duration":67,"ip":"::1","method":"POST","path":"/","statusCode":400,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:40:23.601Z"}
+{"level":"info","message":{"duration":170,"ip":"::1","method":"POST","path":"/","statusCode":400,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:41:25.182Z"}
+{"level":"info","message":{"duration":125,"ip":"::1","method":"POST","path":"/","statusCode":201,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:42:37.822Z"}

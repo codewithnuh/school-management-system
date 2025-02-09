@@ -49,8 +49,6 @@ const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
         Result,
         Grade,
         Exam,
-        Grade,
-        Exam,
         StudentExam,
     ],
 })

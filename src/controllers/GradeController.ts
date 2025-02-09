@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
 import { GradeService } from '@/services/grade.service.js'
-import { GradeSchema } from '@/schema/grade.schema.js'
+
 import { ResponseUtil } from '@/utils/response.util.js'
-import { GradeAttributes } from '@/models/Grade' // Import GradeAttributes
-import { z } from 'zod' // Import zod
+import { GradeAttributes, gradeSchema as GradeSchema } from '@/models/Grade.js'
+import { z } from 'zod'
 
 export class GradeController {
     public static async addGrade(req: Request, res: Response): Promise<void> {
@@ -14,16 +14,25 @@ export class GradeController {
                 grade,
                 'Grade added successfully',
             )
-            res.status(201).json(response) // 201 Created for successful POST
+            res.status(201).json(response)
         } catch (error) {
             if (error instanceof z.ZodError) {
-                // Handle Zod validation errors
-                const formattedErrors = error.flatten().fieldErrors
-                const response = ResponseUtil.error(formattedErrors, 400)
-                res.status(400).json(response) // 400 Bad Request
+                const formattedErrors = this.formatZodErrors(error) //Helper function (see below)
+                const response = ResponseUtil.error(
+                    JSON.stringify(formattedErrors),
+                    400,
+                )
+                res.status(400).json(response)
             } else if (error instanceof Error) {
-                // Handle other errors
-                const response = ResponseUtil.error(error.message, 500) // Or another appropriate status code.
+                console.error('Error adding grade:', error) //Log the error
+                const response = ResponseUtil.error(error.message, 500)
+                res.status(500).json(response)
+            } else {
+                console.error('Unknown error adding grade:', error)
+                const response = ResponseUtil.error(
+                    'An unknown error occurred',
+                    500,
+                )
                 res.status(500).json(response)
             }
         }
@@ -41,14 +50,12 @@ export class GradeController {
             )
             res.status(200).json(response)
         } catch (error) {
-            if (error instanceof Error) {
-                console.error('Error retrieving grades:', error) // Log for debugging
-                const response = ResponseUtil.error(
-                    'Failed to retrieve grades',
-                    500,
-                )
-                res.status(500).json(response)
-            }
+            console.error('Error retrieving grades:', error)
+            const response = ResponseUtil.error(
+                'Failed to retrieve grades',
+                500,
+            )
+            res.status(500).json(response)
         }
     }
 
@@ -63,26 +70,36 @@ export class GradeController {
                 throw new Error('Invalid grade ID')
             }
             const validatedData: GradeAttributes = GradeSchema.parse(req.body)
-            const updateResponse = await GradeService.updateGrade(
-                gradeId,
-                validatedData,
-            ) // Expecting the service to return something
+            await GradeService.updateGrade(gradeId, validatedData) // Assumes updateGrade returns void
             const response = ResponseUtil.success(
-                updateResponse,
+                null,
                 'Grade updated successfully',
-            )
-            res.status(200).json(response)
+                204,
+            ) //204 for no content
+            res.status(204).json(response)
         } catch (error) {
             if (error instanceof z.ZodError) {
-                // Handle Zod errors
+                const formattedErrors = this.formatZodErrors(error)
                 const response = ResponseUtil.error(
-                    error.flatten().fieldErrors,
+                    JSON.stringify(formattedErrors),
                     400,
                 )
                 res.status(400).json(response)
             } else if (error instanceof Error) {
-                const response = ResponseUtil.error(error.message, 400) // Or 404 if "not found" is likely
-                res.status(400).json(response) // Or 404 for "not found".
+                if (error.message.includes('not found')) {
+                    const response = ResponseUtil.error(error.message, 404)
+                    res.status(404).json(response)
+                } else {
+                    const response = ResponseUtil.error(error.message, 500)
+                    res.status(500).json(response)
+                }
+            } else {
+                console.error('Unknown error updating grade:', error)
+                const response = ResponseUtil.error(
+                    'An unknown error occurred',
+                    500,
+                )
+                res.status(500).json(response)
             }
         }
     }
@@ -97,20 +114,38 @@ export class GradeController {
             if (isNaN(gradeId)) {
                 throw new Error('Invalid grade ID')
             }
-
-            const deleteResponse = await GradeService.deleteGrade(gradeId) // Get the delete response
-            const response = ResponseUtil.success(
-                deleteResponse,
-                'Grade deleted successfully',
-                204,
-            ) // Status 204 No Content
-
-            res.status(response.statusCode).json(response) // Or just res.status(204).send();
+            await GradeService.deleteGrade(gradeId)
+            res.status(204).send() // 204 No Content
         } catch (error) {
             if (error instanceof Error) {
-                const response = ResponseUtil.error(error.message, 400) // Or 404 if "not found" is likely
-                res.status(response.statusCode).json(response)
+                if (error.message.includes('not found')) {
+                    const response = ResponseUtil.error(error.message, 404)
+                    res.status(404).json(response)
+                } else {
+                    const response = ResponseUtil.error(error.message, 500)
+                    res.status(500).json(response)
+                }
+            } else {
+                console.error('Unknown error deleting grade:', error)
+                const response = ResponseUtil.error(
+                    'An unknown error occurred',
+                    500,
+                )
+                res.status(500).json(response)
             }
         }
+    }
+
+    // Helper function to format Zod errors
+    private static formatZodErrors(error: z.ZodError): {
+        [key: string]: string
+    } {
+        return Object.entries(error.flatten().fieldErrors).reduce(
+            (acc, [field, errors]) => {
+                acc[field] = errors!.join(', ')
+                return acc
+            },
+            {} as { [key: string]: string },
+        )
     }
 }
