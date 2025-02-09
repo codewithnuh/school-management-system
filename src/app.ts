@@ -22,7 +22,7 @@ import examRoutes from '@/routes/ExamRoutes.js'
 import resultRoutes from '@/routes/ResultRoutes.js'
 import gradeRoutes from '@/routes/GradeRoutes.js'
 import subjectRoutes from '@/routes/SubjectRoutes.js'
-import seed from '@/seeders/index.js'
+// import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
     handleValidationErrors,

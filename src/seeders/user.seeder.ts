@@ -6,6 +6,7 @@ export const seedUsers = async () => {
         await User.bulkCreate(
             [
                 {
+                    sectionId: 1,
                     firstName: 'John',
                     lastName: 'Doe',
                     email: 'john.doe@example.com',
@@ -26,6 +27,7 @@ export const seedUsers = async () => {
                     entityType: 'STUDENT',
                 },
                 {
+                    sectionId: 2,
                     firstName: 'Alice',
                     lastName: 'Smith',
                     email: 'alice.smith@example.com',

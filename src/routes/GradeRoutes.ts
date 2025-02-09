@@ -4,54 +4,14 @@ import { GradeController } from '@/controllers/GradeController.js'
 const router = express.Router()
 
 /**
- * @route   POST /grades
- * @desc    Add a new grade criterion
- * @access  Private (Admin)
- */
-router.post('/', GradeController.addGrade)
-
-/**
- * @route   GET /grades
- * @desc    Fetch all grade criteria
- * @access  Public/Private (Admin/Teacher)
- */
-router.get('/', GradeController.getAllGrades)
-
-/**
- * @route   PUT /grades/:id
- * @desc    Update a grade criterion
- * @access  Private (Admin)
- */
-router.put('/:id', GradeController.updateGrade)
-
-/**
- * @route   DELETE /grades/:id
- * @desc    Delete a grade criterion
- * @access  Private (Admin)
- */
-router.delete('/:id', GradeController.deleteGrade)
-
-export default router
-
-/* --------------------------------------------------------------------------
-   Swagger/OpenAPI Documentation
-
-   The documentation below provides complete details for each grade route.
-   Use this section as a guide for adding new endpoints. Endpoints include
-   detailed descriptions, parameters, request bodies, example payloads,
-   responses, and error responses adhering to OpenAPI 3.0 standards.
----------------------------------------------------------------------------
-*/
-
-/**
- * @swagger
+ * @openapi
  * tags:
  *   - name: Grades
  *     description: API endpoints for managing grade criteria.
  */
 
 /**
- * @swagger
+ * @openapi
  * components:
  *   securitySchemes:
  *     bearerAuth:
@@ -62,38 +22,44 @@ export default router
  *     Grade:
  *       type: object
  *       properties:
- *         id:
+ *         gradeId:
  *           type: number
  *           example: 1
- *         grade:
+ *         gradeName:
  *           type: string
  *           example: "A+"
- *         minMarks:
+ *         lowerPercentage:
  *           type: number
  *           example: 90
- *         maxMarks:
+ *         upperPercentage:
  *           type: number
  *           example: 100
+ *         description:
+ *           type: string
+ *           example: "Excellent"
  *       required:
- *         - grade
- *         - minMarks
- *         - maxMarks
+ *         - gradeName
+ *         - lowerPercentage
+ *         - upperPercentage
  *     GradeInput:
  *       type: object
  *       properties:
- *         grade:
+ *         gradeName:
  *           type: string
  *           example: "A"
- *         minMarks:
+ *         lowerPercentage:
  *           type: number
  *           example: 80
- *         maxMarks:
+ *         upperPercentage:
  *           type: number
  *           example: 89
+ *         description:
+ *           type: string
+ *           example: "Very Good"
  *       required:
- *         - grade
- *         - minMarks
- *         - maxMarks
+ *         - gradeName
+ *         - lowerPercentage
+ *         - upperPercentage
  *     GradeResponse:
  *       type: object
  *       properties:
@@ -130,7 +96,7 @@ export default router
  */
 
 /**
- * @swagger
+ * @openapi
  * /grades:
  *   post:
  *     summary: Add a new grade criterion
@@ -149,9 +115,10 @@ export default router
  *             newGrade:
  *               summary: New grade criterion example
  *               value:
- *                 grade: "A"
- *                 minMarks: 80
- *                 maxMarks: 89
+ *                 gradeName: "A"
+ *                 lowerPercentage: 80
+ *                 upperPercentage: 89
+ *                 description: "Very Good"
  *     responses:
  *       201:
  *         description: Grade added successfully.
@@ -166,14 +133,17 @@ export default router
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+router.post('/', GradeController.addGrade)
 
 /**
- * @swagger
+ * @openapi
  * /grades:
  *   get:
  *     summary: Fetch all grade criteria
  *     tags:
  *       - Grades
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Grades retrieved successfully.
@@ -188,10 +158,11 @@ export default router
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+router.get('/', GradeController.getAllGrades)
 
 /**
- * @swagger
- * /grades/{id}:
+ * @openapi
+ * /grades/{gradeId}:
  *   put:
  *     summary: Update a grade criterion
  *     tags:
@@ -200,7 +171,7 @@ export default router
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: gradeId
  *         description: Numeric ID of the grade to update
  *         required: true
  *         schema:
@@ -216,16 +187,17 @@ export default router
  *             updateGrade:
  *               summary: Update grade criterion example
  *               value:
- *                 grade: "A+"
- *                 minMarks: 90
- *                 maxMarks: 100
+ *                 gradeName: "A+"
+ *                 lowerPercentage: 90
+ *                 upperPercentage: 100
+ *                 description: "Excellent"
  *     responses:
  *       200:
  *         description: Grade updated successfully.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Grade'
+ *               $ref: '#/components/schemas/GradeResponse'
  *       400:
  *         description: Invalid grade ID or input data.
  *         content:
@@ -239,10 +211,11 @@ export default router
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+router.put('/:id', GradeController.updateGrade)
 
 /**
- * @swagger
- * /grades/{id}:
+ * @openapi
+ * /grades/{gradeId}:
  *   delete:
  *     summary: Delete a grade criterion
  *     tags:
@@ -251,7 +224,7 @@ export default router
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: gradeId
  *         description: Numeric ID of the grade to delete
  *         required: true
  *         schema:
@@ -272,3 +245,6 @@ export default router
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+router.delete('/:id', GradeController.deleteGrade)
+
+export default router

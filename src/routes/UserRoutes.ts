@@ -1,9 +1,11 @@
 import express from 'express'
 import UserController from '@/controllers/UserController.js'
+import { authenticate } from '@/middleware/auth.js' // Updated import for authenticate middleware
+
 const router = express.Router()
 
 /**
- * @swagger
+ * @openapi
  * tags:
  *   - name: Users
  *     description: API endpoints for user management.
@@ -12,7 +14,100 @@ const router = express.Router()
  */
 
 /**
- * @swagger
+ * @openapi
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           readOnly: true
+ *         email:
+ *           type: string
+ *           format: email
+ *         firstName:
+ *           type: string
+ *         lastName:
+ *           type: string
+ *         role:
+ *           type: string
+ *           enum: [student, teacher, admin]
+ *       required:
+ *         - email
+ *         - firstName
+ *         - lastName
+ *         - role
+ *     UserResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *         data:
+ *           $ref: '#/components/schemas/User'
+ *         message:
+ *           type: string
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           default: false
+ *         message:
+ *           type: string
+ *     LoginRequest:
+ *       type: object
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *         password:
+ *           type: string
+ *           format: password
+ *       required:
+ *         - email
+ *         - password
+ *     LoginResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *         token:
+ *           type: string
+ *         message:
+ *           type: string
+ *     ForgotPasswordRequest:
+ *       type: object
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *       required:
+ *         - email
+ *     ResetPasswordRequest:
+ *       type: object
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *         token:
+ *           type: string
+ *         newPassword:
+ *           type: string
+ *           format: password
+ *       required:
+ *         - email
+ *         - token
+ *         - newPassword
+ */
+
+/**
+ * @openapi
  * /users:
  *   post:
  *     summary: Create a new user
@@ -23,68 +118,33 @@ const router = express.Router()
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *               - role
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "user@example.com"
- *               password:
- *                 type: string
- *                 format: password
- *                 example: "Password123"
- *               role:
- *                 type: string
- *                 enum: [student, teacher, admin]
- *                 example: "student"
+ *             $ref: '#/components/schemas/User'
+ *           examples:
+ *             user:
+ *               summary: User creation payload
+ *               value:
+ *                 email: "user@example.com"
+ *                 firstName: "John"
+ *                 lastName: "Doe"
+ *                 role: "student"
  *     responses:
  *       201:
  *         description: User created successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       example: "123"
- *                     email:
- *                       type: string
- *                       example: "user@example.com"
- *                     role:
- *                       type: string
- *                       example: "student"
- *                 message:
- *                   type: string
- *                   example: "User created successfully"
+ *               $ref: '#/components/schemas/UserResponse'
  *       400:
  *         description: Invalid input
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Invalid input data"
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/', UserController.createUser)
 
 /**
- * @swagger
+ * @openapi
  * /users:
  *   get:
  *     summary: Get all users
@@ -97,46 +157,20 @@ router.post('/', UserController.createUser)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: string
- *                         example: "123"
- *                       email:
- *                         type: string
- *                         example: "user@example.com"
- *                       role:
- *                         type: string
- *                         example: "teacher"
- *                 message:
- *                   type: string
- *                   example: "Users retrieved successfully"
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', UserController.getAllUsers)
+router.get('/', authenticate, UserController.getAllUsers) // Added authentication middleware
 
 /**
- * @swagger
+ * @openapi
  * /users/accept-user:
  *   post:
  *     summary: Accept a user application
@@ -154,43 +188,44 @@ router.get('/', UserController.getAllUsers)
  *               - userId
  *             properties:
  *               userId:
- *                 type: string
- *                 example: "123"
+ *                 type: integer
+ *                 example: 123
  *     responses:
  *       200:
  *         description: User application accepted successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "User application accepted successfully"
+ *               $ref: '#/components/schemas/UserResponse'
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/accept-user', UserController.acceptUserApplication)
+router.post('/accept-user', authenticate, UserController.acceptUserApplication) // Added authentication middleware
 
 /**
- * @swagger
- * /users:
+ * @openapi
+ * /users/{userId}:
  *   delete:
  *     summary: Delete a user
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: userId
  *         required: true
  *         schema:
- *           type: string
+ *           type: integer
  *         description: ID of the user to delete
  *     responses:
  *       200:
@@ -208,13 +243,21 @@ router.post('/accept-user', UserController.acceptUserApplication)
  *                   example: "User deleted successfully"
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:userId', UserController.deleteUser)
+router.delete('/:userId', authenticate, UserController.deleteUser) // Added authentication middleware
 
 /**
- * @swagger
+ * @openapi
  * /users/auth/reset-token:
  *   patch:
  *     summary: Reset user password
@@ -225,23 +268,14 @@ router.delete('/:userId', UserController.deleteUser)
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *               - token
- *               - newPassword
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "user@example.com"
- *               token:
- *                 type: string
- *                 example: "reset-token-123"
- *               newPassword:
- *                 type: string
- *                 format: password
- *                 example: "NewPassword123"
+ *             $ref: '#/components/schemas/ResetPasswordRequest'
+ *           examples:
+ *             resetPassword:
+ *               summary: Reset password payload
+ *               value:
+ *                 email: "user@example.com"
+ *                 token: "reset-token-123"
+ *                 newPassword: "NewPassword123"
  *     responses:
  *       200:
  *         description: Password reset successful
@@ -261,21 +295,18 @@ router.delete('/:userId', UserController.deleteUser)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Invalid token or request"
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch('/auth/reset-token', UserController.resetUserPassword)
 
 /**
- * @swagger
+ * @openapi
  * /users/auth/login:
  *   post:
  *     summary: Login user
@@ -286,54 +317,31 @@ router.patch('/auth/reset-token', UserController.resetUserPassword)
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "user@example.com"
- *               password:
- *                 type: string
- *                 format: password
- *                 example: "Password123"
+ *             $ref: '#/components/schemas/LoginRequest'
+ *           examples:
+ *             login:
+ *               summary: Login payload
+ *               value:
+ *                 email: "user@example.com"
+ *                 password: "Password123"
  *     responses:
  *       200:
  *         description: Login successful
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 token:
- *                   type: string
- *                   example: "jwt-token-abc123"
- *                 message:
- *                   type: string
- *                   example: "Login successful"
+ *               $ref: '#/components/schemas/LoginResponse'
  *       401:
  *         description: Invalid credentials
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Invalid email or password"
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/auth/login', UserController.login)
 
 /**
- * @swagger
+ * @openapi
  * /users/auth/logout:
  *   post:
  *     summary: Logout user
@@ -356,11 +364,15 @@ router.post('/auth/login', UserController.login)
  *                   example: "Logout successful"
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/auth/logout', UserController.logout)
+router.post('/auth/logout', authenticate, UserController.logout) // Added authentication middleware
 
 /**
- * @swagger
+ * @openapi
  * /users/auth/forgot-password:
  *   post:
  *     summary: Initiate forgot password process
@@ -371,14 +383,12 @@ router.post('/auth/logout', UserController.logout)
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "user@example.com"
+ *             $ref: '#/components/schemas/ForgotPasswordRequest'
+ *           examples:
+ *             forgotPassword:
+ *               summary: Forgot password payload
+ *               value:
+ *                 email: "user@example.com"
  *     responses:
  *       200:
  *         description: Forgot password email sent successfully
@@ -398,14 +408,7 @@ router.post('/auth/logout', UserController.logout)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Invalid email"
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/auth/forgot-password', UserController.forgotPassword)
 

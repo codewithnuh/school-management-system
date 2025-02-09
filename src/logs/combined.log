@@ -62,3 +62,7 @@
 {"level":"info","message":{"duration":67,"ip":"::1","method":"POST","path":"/","statusCode":400,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:40:23.601Z"}
 {"level":"info","message":{"duration":170,"ip":"::1","method":"POST","path":"/","statusCode":400,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:41:25.182Z"}
 {"level":"info","message":{"duration":125,"ip":"::1","method":"POST","path":"/","statusCode":201,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T04:42:37.822Z"}
+{"level":"info","message":{"duration":44,"ip":"::1","method":"GET","path":"/","statusCode":200,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T11:33:10.175Z"}
+{"level":"info","message":{"duration":2,"ip":"::1","method":"GET","path":"/api/v1/results","statusCode":404,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T11:33:33.703Z"}
+{"level":"info","message":{"duration":1,"ip":"::1","method":"GET","path":"/api/v1/results","statusCode":404,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T11:33:46.096Z"}
+{"level":"info","message":{"duration":4,"ip":"::1","method":"GET","path":"/exams/1","statusCode":400,"userAgent":"bruno-runtime/1.38.1"},"timestamp":"2025-02-09T11:34:02.286Z"}

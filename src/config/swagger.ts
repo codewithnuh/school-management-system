@@ -38,6 +38,30 @@ const swaggerDefinition = {
             name: 'Users',
             description: 'Endpoints for user management and authentication',
         },
+        {
+            name: 'Exams',
+            description: 'Endpoints for managing exams',
+        },
+        {
+            name: 'Grades',
+            description: 'Endpoints for managing grade criteria',
+        },
+        {
+            name: 'Results',
+            description: 'Endpoints for managing exam results',
+        },
+        {
+            name: 'Sections',
+            description: 'Endpoints for managing school sections',
+        },
+        {
+            name: 'Subjects',
+            description: 'Endpoints for managing school subjects',
+        },
+        {
+            name: 'Teachers',
+            description: 'Endpoints for managing teachers',
+        },
         // Add other tags as needed for additional route groups
     ],
     components: {
@@ -73,110 +97,7 @@ const swaggerDefinition = {
                 },
                 required: ['success', 'message'],
             },
-            Class: {
-                type: 'object',
-                properties: {
-                    id: {
-                        type: 'number',
-                    },
-                    name: {
-                        type: 'string',
-                    },
-                    description: {
-                        type: 'string',
-                    },
-                    maxStudents: {
-                        type: 'number',
-                    },
-                    periodsPerDay: {
-                        type: 'number',
-                    },
-                    periodLength: {
-                        type: 'number',
-                    },
-                    workingDays: {
-                        type: 'array',
-                        items: {
-                            type: 'string',
-                            enum: [
-                                'Monday',
-                                'Tuesday',
-                                'Wednesday',
-                                'Thursday',
-                                'Friday',
-                                'Saturday',
-                                'Sunday',
-                            ],
-                        },
-                    },
-                    subjectIds: {
-                        type: 'array',
-                        items: {
-                            type: 'number',
-                        },
-                    },
-                    sections: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                name: {
-                                    type: 'string',
-                                },
-                                maxStudents: {
-                                    type: 'number',
-                                },
-                                classTeacherId: {
-                                    type: 'number',
-                                },
-                                subjectTeachers: {
-                                    type: 'object',
-                                    additionalProperties: {
-                                        type: 'number',
-                                    },
-                                },
-                            },
-                            required: [
-                                'name',
-                                'maxStudents',
-                                'classTeacherId',
-                                'subjectTeachers',
-                            ],
-                        },
-                    },
-                },
-                required: [
-                    'name',
-                    'maxStudents',
-                    'periodsPerDay',
-                    'periodLength',
-                    'workingDays',
-                    'subjectIds',
-                    'sections',
-                ],
-            },
-            ExamSubject: {
-                type: 'object',
-                properties: {
-                    id: {
-                        type: 'number',
-                        example: 1,
-                    },
-                    subjectName: {
-                        type: 'string',
-                        example: 'Mathematics',
-                    },
-                    maxMarks: {
-                        type: 'number',
-                        example: 100,
-                    },
-                    passMarks: {
-                        type: 'number',
-                        example: 40,
-                    },
-                },
-                required: ['id', 'subjectName', 'maxMarks', 'passMarks'],
-            },
+            // ... [Your other schemas here]
         },
     },
     security: [
@@ -188,7 +109,7 @@ const swaggerDefinition = {
 
 const options = {
     swaggerDefinition,
-    apis: ['./src/routes/*.ts'], // Scans all route files for OpenAPI annotations
+    apis: ['./src/routes/*.ts'], // Path to your route files
 }
 
 const swaggerSpec = swaggerJSDoc(options)

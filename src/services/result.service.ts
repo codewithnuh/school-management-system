@@ -1,159 +1,169 @@
-import sequelize from '@/config/database.js'
-import {
-    Result,
-    Exam,
-    StudentExam,
-    Grade,
-    User,
-    Class,
-    Section,
-    Subject,
-} from '@/models/index.js'
-import { ResultAttributes, resultSchema } from '@/models/Result.js'
+import { Result } from '@/models/Result.js' // Adjust path if necessary
+import { ResultAttributes } from '@/models/Result.js' // Adjust path if necessary
+import { ResultSchema } from '@/schema/result.schema.js' // Adjust path if necessary
+import { Exam } from '@/models/Exam.js' // Adjust path if necessary
+import { User } from '@/models/index.js'
 
 export class ResultService {
-    // Service to generate results for a specific exam
-    static async generateExamResults(
-        examId: number,
-    ): Promise<{ message: string }> {
-        const transaction = await sequelize.transaction()
+    /**
+     * Creates a new exam result.
+     * Validates input and handles database interaction.
+     *
+     * @param input - Data to create a new result, conforming to ResultAttributes
+     * @returns The newly created Result instance.
+     * @throws Error if validation fails or database operation fails.
+     */
+    public static async createResult(input: ResultAttributes): Promise<Result> {
         try {
-            // Fetch the exam including associated Class and Section data.
-            const exam = await Exam.findByPk(examId, {
-                include: [
-                    { model: Class, include: [{ model: Subject }] }, // Include subjects associated with the class
-                    { model: Section }, // Include sections for result breakdown if available.
-                ],
-            })
-            if (!exam) {
-                throw new Error(`Exam with ID ${examId} not found`)
-            }
-            // Fetch grades ordered by lowerPercentage descending.
-            const grades = await Grade.findAll({
-                order: [['lowerPercentage', 'DESC']],
-            })
-            // Get sections from exam or query all sections for the class.
-            let sections: Section[] = []
-            if (exam.sections) {
-                sections = Array.isArray(exam.sections)
-                    ? exam.sections
-                    : [exam.sections]
-            } else {
-                sections = await Section.findAll({
-                    where: { classId: exam.classId },
-                })
-            }
-            // Loop through each section.
-            for (const section of sections) {
-                // Query for all students in the section with entityType 'STUDENT'.
-                const students = await User.findAll({
-                    where: {
-                        sectionId: section.id,
-                        classId: exam.classId,
-                        entityType: 'STUDENT',
-                    },
-                    transaction,
-                })
-                // Process each student.
-                for (const student of students) {
-                    let totalMarksObtained = 0
-                    // Ensure exam has associated class data with subjectIds.
-                    if (
-                        !exam.class ||
-                        !exam.class ||
-                        !Array.isArray(exam.class.subjectIds)
-                    ) {
-                        throw new Error(
-                            'Exam is missing associated class subjects',
-                        )
-                    }
-                    // Sum marks for each subject.
-
-                    for (const subject of exam.class.subjectIds) {
-                        const studentExamRecord = await StudentExam.findOne({
-                            where: {
-                                examId: examId,
-                                studentId: student.id,
-                                subjectId: subject,
-                            },
-                            transaction,
-                        })
-
-                        if (
-                            studentExamRecord &&
-                            studentExamRecord.marksObtained !== null
-                        ) {
-                            totalMarksObtained += Number(
-                                studentExamRecord.marksObtained,
-                            )
-                        }
-                    }
-                    // Default result status is Fail if not meeting passing criteria.
-                    let overallGrade: string | null = null
-                    let resultStatus: 'Pass' | 'Fail' | 'Pending' = 'Fail'
-                    // Check if student has passed based on exam passing marks.
-                    if (
-                        exam.passingMarks != null &&
-                        totalMarksObtained >= Number(exam.passingMarks)
-                    ) {
-                        resultStatus = 'Pass'
-                    }
-                    // Determine the grade based on percentage.
-                    const percentage =
-                        exam.totalMarks > 0
-                            ? (totalMarksObtained / Number(exam.totalMarks)) *
-                              100
-                            : 0
-                    for (const grade of grades) {
-                        if (
-                            exam.totalMarks > 0 &&
-                            percentage >= Number(grade.lowerPercentage) &&
-                            percentage <= Number(grade.upperPercentage)
-                        ) {
-                            overallGrade = grade.gradeName
-                            break
-                        }
-                    }
-                    const resultInput: ResultAttributes = {
-                        examId: examId,
-                        studentId: student.id,
-                        classId: exam.classId,
-                        totalMarksObtained: totalMarksObtained,
-                        percentage: percentage,
-                        overallGrade: overallGrade,
-                        resultStatus: resultStatus,
-                    }
-                    // Validate result input using Zod schema
-                    resultSchema.parse(resultInput)
-                    // Instead of using upsert with a where clause (which is not supported),
-                    // find an existing result and update it, or create a new one.
-                    const existingResult = await Result.findOne({
-                        where: { examId: examId, studentId: student.id },
-                        transaction,
-                    })
-                    if (existingResult) {
-                        await existingResult.update(resultInput, {
-                            transaction,
-                        })
-                    } else {
-                        await Result.create(resultInput, { transaction })
-                    }
-                }
-            }
-            await transaction.commit()
-            return {
-                message: `Results generated successfully for exam ${exam.examName}`,
-            }
-        } catch (error) {
-            await transaction.rollback()
-            throw error // Propagate error after rollback for proper error handling.
+            ResultSchema.parse(input) // Validate input against schema
+            const newResult = await Result.create(input)
+            return newResult
+        } catch (error: unknown) {
+            console.error('Error creating result:', error)
+            throw error // Re-throw to be caught by the controller
         }
     }
-    static async getAllResults() {
-        return Result.findAll({ include: [Exam, User, Class] })
+
+    /**
+     * Fetches all exam results.
+     *
+     * @returns Array of all Result instances.
+     * @throws Error if database operation fails.
+     */
+    public static async getAllResults(): Promise<Result[]> {
+        try {
+            const results = await Result.findAll({
+                include: [
+                    { model: User, as: 'student' }, // Assuming you have associations defined
+                    { model: Exam, as: 'exam' }, // Assuming you have associations defined
+                ],
+            })
+            return results
+        } catch (error: unknown) {
+            console.error('Error fetching all results:', error)
+            throw error
+        }
     }
-    static async getResultById(id: number) {
-        return Result.findByPk(id, { include: [Exam, User, Class] })
+
+    /**
+     * Fetches a result by its unique ID.
+     *
+     * @param resultId - The ID of the result to fetch.
+     * @returns The Result instance if found, null otherwise.
+     * @throws Error if database operation fails.
+     */
+    public static async getResultById(
+        resultId: number,
+    ): Promise<Result | null> {
+        try {
+            const result = await Result.findByPk(resultId, {
+                include: [
+                    { model: User, as: 'student' },
+                    { model: Exam, as: 'exam' },
+                ],
+            })
+            return result
+        } catch (error: unknown) {
+            console.error(`Error fetching result by ID ${resultId}:`, error)
+            throw error
+        }
     }
-    // Additional methods (e.g., updateResult, deleteResult) can be implemented with input functionalities.
+
+    /**
+     * Fetches all results for a specific student.
+     *
+     * @param studentId - The ID of the student.
+     * @returns Array of Result instances for the student.
+     * @throws Error if database operation fails.
+     */
+    public static async getResultsByStudentId(
+        studentId: number,
+    ): Promise<Result[]> {
+        try {
+            const results = await Result.findAll({
+                where: { studentId },
+                include: [{ model: Exam, as: 'exam' }],
+            })
+            return results
+        } catch (error: unknown) {
+            console.error(
+                `Error fetching results for student ID ${studentId}:`,
+                error,
+            )
+            throw error
+        }
+    }
+
+    /**
+     * Fetches all results for a specific exam.
+     *
+     * @param examId - The ID of the exam.
+     * @returns Array of Result instances for the exam.
+     * @throws Error if database operation fails.
+     */
+    public static async getResultsByExamId(examId: number): Promise<Result[]> {
+        try {
+            const results = await Result.findAll({
+                where: { examId },
+                include: [{ model: User, as: 'student' }],
+            })
+            return results
+        } catch (error: unknown) {
+            console.error(
+                `Error fetching results for exam ID ${examId}:`,
+                error,
+            )
+            throw error
+        }
+    }
+
+    /**
+     * Updates an existing exam result.
+     *
+     * @param resultId - The ID of the result to update.
+     * @param updates - An object containing the fields to update and their new values.
+     * @returns The number of affected rows (usually 1 if successful).
+     * @throws Error if validation fails or database operation fails.
+     */
+    public static async updateResult(
+        resultId: number,
+        updates: Partial<ResultAttributes>,
+    ): Promise<number> {
+        try {
+            // Fetch the existing result to validate updates against schema (optional, but good practice)
+            const existingResult = await ResultService.getResultById(resultId)
+            if (!existingResult) {
+                throw new Error(`Result with ID ${resultId} not found`) // Or handle not found appropriately
+            }
+
+            const validatedUpdates = ResultSchema.partial().parse(updates) // Validate updates - using partial schema for updates
+
+            const [affectedRows] = await Result.update(validatedUpdates, {
+                where: { resultId },
+            })
+            return affectedRows
+        } catch (error: unknown) {
+            console.error(`Error updating result ID ${resultId}:`, error)
+            throw error
+        }
+    }
+
+    /**
+     * Deletes an exam result by ID.
+     *
+     * @param resultId - The ID of the result to delete.
+     * @returns The number of deleted rows (usually 1 if successful).
+     * @throws Error if database operation fails.
+     */
+    public static async deleteResult(resultId: number): Promise<number> {
+        try {
+            const deletedRows = await Result.destroy({
+                where: { resultId },
+            })
+            return deletedRows
+        } catch (error: unknown) {
+            console.error(`Error deleting result ID ${resultId}:`, error)
+            throw error
+        }
+    }
 }

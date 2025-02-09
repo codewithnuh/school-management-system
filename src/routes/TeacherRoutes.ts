@@ -1,5 +1,6 @@
 import express from 'express'
 import TeacherController from '@/controllers/TeacherController.js'
+import { authenticate } from '@/middleware/auth.js'
 
 const router = express.Router()
 
@@ -8,6 +9,71 @@ const router = express.Router()
  * tags:
  *   - name: Teachers
  *     description: Teacher management endpoints
+ */
+
+/**
+ * @openapi
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     Teacher:
+ *       type: object
+ *       properties:
+ *         teacherId:
+ *           type: string
+ *           example: "1"
+ *         name:
+ *           type: string
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john.doe@example.com"
+ *         subject:
+ *           type: string
+ *           example: "Mathematics"
+ *         qualifications:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Bachelors", "Masters"]
+ *         status:
+ *           type: string
+ *           enum:
+ *             - active
+ *             - pending
+ *             - rejected
+ *           description: The current status of the teacher's application.
+ *           example: "pending"
+ *       required:
+ *         - name
+ *         - email
+ *         - subject
+ *         - qualifications
+ *     TeacherResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         data:
+ *           $ref: '#/components/schemas/Teacher'
+ *         message:
+ *           type: string
+ *           example: "Teacher retrieved successfully"
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: false
+ *         message:
+ *           type: string
+ *           example: "An error occurred"
  */
 
 /**
@@ -57,65 +123,6 @@ router.get('/', TeacherController.getTeachers)
 
 /**
  * @openapi
- * /teachers/register:
- *   post:
- *     summary: Register a new teacher
- *     tags: [Teachers]
- *     requestBody:
- *       description: Teacher registration data.
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - name
- *               - email
- *               - subject
- *               - qualifications
- *             properties:
- *               name:
- *                 type: string
- *                 example: "John Doe"
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "john.doe@example.com"
- *               subject:
- *                 type: string
- *                 example: "Mathematics"
- *               qualifications:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["Bachelors", "Masters"]
- *     responses:
- *       201:
- *         description: Teacher registration submitted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Teacher'
- *                 message:
- *                   type: string
- *                   example: "Registration successful"
- *       400:
- *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.post('/register', TeacherController.registerTeacher)
-
-/**
- * @openapi
  * /teachers/{id}:
  *   get:
  *     summary: Get teacher by ID
@@ -136,16 +143,7 @@ router.post('/register', TeacherController.registerTeacher)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Teacher'
- *                 message:
- *                   type: string
- *                   example: "Teacher retrieved successfully"
+ *               $ref: '#/components/schemas/TeacherResponse'
  *       401:
  *         description: Unauthorized
  *         content:
@@ -163,107 +161,32 @@ router.get('/:id', TeacherController.getTeacherById)
 
 /**
  * @openapi
- * /teachers/accept:
+ * /teachers/register:
  *   post:
- *     summary: Accept a teacher application
+ *     summary: Register a new teacher
  *     tags: [Teachers]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
- *       description: Data to accept a teacher application.
+ *       description: Teacher registration data.
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - teacherId
- *             properties:
- *               teacherId:
- *                 type: string
- *                 example: "1"
+ *             $ref: '#/components/schemas/Teacher'
  *     responses:
- *       200:
- *         description: Teacher application accepted successfully
+ *       201:
+ *         description: Teacher registration submitted successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Teacher application accepted"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Teacher not found
+ *               $ref: '#/components/schemas/TeacherResponse'
+ *       400:
+ *         description: Invalid input
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/accept', TeacherController.acceptTeacherApplication)
-
-/**
- * @openapi
- * /teachers/reject:
- *   post:
- *     summary: Reject a teacher application
- *     tags: [Teachers]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       description: Data to reject a teacher application.
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - teacherId
- *               - reason
- *             properties:
- *               teacherId:
- *                 type: string
- *                 example: "1"
- *               reason:
- *                 type: string
- *                 example: "Insufficient qualifications"
- *     responses:
- *       200:
- *         description: Teacher application rejected successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Teacher application rejected"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Teacher not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.post('/reject', TeacherController.rejectTeacherApplication)
+router.post('/register', TeacherController.registerTeacher)
 
 /**
  * @openapi
@@ -321,6 +244,10 @@ router.post('/reject', TeacherController.rejectTeacherApplication)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/interview', TeacherController.interviewTeacherApplicant)
+router.post(
+    '/interview',
+    authenticate,
+    TeacherController.interviewTeacherApplicant,
+)
 
 export default router

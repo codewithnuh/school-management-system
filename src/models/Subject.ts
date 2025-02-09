@@ -7,8 +7,7 @@ import {
     HasMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Class, StudentExam } from '@/models/index.js'
-import { ClassSubject } from './ClassSubject' // Junction table
+import { Class, StudentExam, ClassSubject } from '@/models/index.js'
 
 // Zod schema for validation
 export const SubjectSchema = z.object({
