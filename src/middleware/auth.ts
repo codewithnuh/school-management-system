@@ -1,6 +1,6 @@
 // middleware/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express'
-import { Session } from '@/models/Session'
+import { Session } from '@/models/Session.js'
 
 export interface AuthenticatedRequest extends Request {
     userId?: number
