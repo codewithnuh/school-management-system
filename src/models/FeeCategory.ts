@@ -8,16 +8,15 @@ import {
     HasMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { FeeStructure } from '@/models/index.js' // Import FeeStructure model
+import { FeeStructure } from '@/models/index.js'
 
-// Zod schema for FeeCategory creation
 export const FeeCategorySchema = z.object({
     categoryName: z.string().min(1, { message: 'Category name is required' }),
     description: z.string().optional().nullable(),
 })
 
 export type FeeCategoryAttributes = z.infer<typeof FeeCategorySchema> & {
-    feeCategoryId?: number // Auto-incrementing primary key
+    feeCategoryId?: number
     createdAt?: Date
     updatedAt?: Date
 }
@@ -56,7 +55,6 @@ export class FeeCategory
     @UpdatedAt
     updatedAt!: Date
 
-    // Associations
     @HasMany(() => FeeStructure)
-    feeStructures?: FeeStructure[]
+    feeStructures!: FeeStructure[]
 }

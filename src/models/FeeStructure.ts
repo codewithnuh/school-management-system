@@ -11,25 +11,15 @@ import {
 import { z } from 'zod'
 import { AcademicYear, Class, FeeCategory } from '@/models/index.js'
 
-// Zod schema for FeeStructure creation
 export const feeStructureSchema = z.object({
-    academicYearId: z
-        .number()
-        .int()
-        .positive({ message: 'Academic Year ID must be a positive integer' }),
-    classId: z
-        .number()
-        .int()
-        .positive({ message: 'Class ID must be a positive integer' }),
-    feeCategoryId: z
-        .number()
-        .int()
-        .positive({ message: 'Fee Category ID must be a positive integer' }),
-    amount: z.number().positive({ message: 'Amount must be positive' }),
+    academicYearId: z.number().int().positive(),
+    classId: z.number().int().positive(),
+    feeCategoryId: z.number().int().positive(),
+    amount: z.number().positive(),
 })
 
 export type FeeStructureAttributes = z.infer<typeof feeStructureSchema> & {
-    feeStructureId?: number // Auto-incrementing primary key
+    feeStructureId?: number
     createdAt?: Date
     updatedAt?: Date
 }
@@ -49,13 +39,6 @@ export class FeeStructure
     })
     feeStructureId!: number
 
-    @ForeignKey(() => AcademicYear)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    academicYearId!: number
-
     @ForeignKey(() => Class)
     @Column({
         type: DataType.INTEGER,
@@ -63,15 +46,8 @@ export class FeeStructure
     })
     classId!: number
 
-    @ForeignKey(() => FeeCategory)
     @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    feeCategoryId!: number
-
-    @Column({
-        type: DataType.DECIMAL,
+        type: DataType.DECIMAL(10, 2),
         allowNull: false,
     })
     amount!: number
@@ -82,12 +58,22 @@ export class FeeStructure
     @UpdatedAt
     updatedAt!: Date
 
-    // Associations
-    @BelongsTo(() => AcademicYear)
+    @ForeignKey(() => AcademicYear)
+    @Column({
+        type: DataType.INTEGER, // Explicitly defining the data type
+        allowNull: false,
+    })
+    academicYearId!: number
+
+    @BelongsTo(() => AcademicYear, { as: 'academicYear' })
     academicYear!: AcademicYear
 
-    @BelongsTo(() => Class)
-    class!: Class
+    @ForeignKey(() => FeeCategory)
+    @Column({
+        type: DataType.INTEGER, // Explicitly defining the data type
+        allowNull: false,
+    })
+    feeCategoryId!: number
 
     @BelongsTo(() => FeeCategory)
     feeCategory!: FeeCategory

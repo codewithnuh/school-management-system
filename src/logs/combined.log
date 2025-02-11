@@ -92,3 +92,5 @@
 {"level":"info","message":{"duration":1,"ip":"::1","method":"GET","path":"/api/v1/timetables//weekly/1/3","statusCode":404,"userAgent":"HTTPie"},"timestamp":"2025-02-10T05:43:37.469Z"}
 {"level":"info","message":{"duration":113,"ip":"::1","method":"GET","path":"/weekly/1/3","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-10T05:43:40.388Z"}
 {"level":"info","message":{"duration":102,"ip":"::1","method":"GET","path":"/weekly/3/3","statusCode":200,"userAgent":"HTTPie"},"timestamp":"2025-02-10T05:43:44.138Z"}
+{"level":"info","message":{"duration":53,"ip":"::1","method":"GET","path":"/fee-categories","statusCode":500,"userAgent":"HTTPie"},"timestamp":"2025-02-10T16:13:55.470Z"}
+{"level":"info","message":{"duration":22,"ip":"::1","method":"GET","path":"/fee-categories","statusCode":500,"userAgent":"HTTPie"},"timestamp":"2025-02-10T16:15:44.174Z"}

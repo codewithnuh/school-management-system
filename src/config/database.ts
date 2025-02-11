@@ -19,6 +19,11 @@ import {
     Exam,
     ClassSubject,
     StudentExam,
+    FeePayment,
+    AcademicYear,
+    FeeCategory,
+    FeeStructure,
+    StudentFeeAllocation,
 } from '@/models/index.js'
 
 config()
@@ -50,6 +55,12 @@ const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
         Grade,
         Exam,
         StudentExam,
+        AcademicYear,
+        AcademicYear,
+        FeePayment,
+        FeeStructure,
+        FeeCategory,
+        StudentFeeAllocation,
     ],
 })
 Section.belongsTo(Teacher, { foreignKey: 'classTeacherId' })

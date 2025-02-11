@@ -4,6 +4,7 @@ import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from '@/config/swagger.js'
 import userRoutes from '@/routes/UserRoutes.js'
 import teacherRoutes from '@/routes/TeacherRoutes.js'
+import feeRoutes from '@/routes/FeeRoutes.js'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import process from 'process'
@@ -86,6 +87,8 @@ const configureRoutes = (app: express.Application) => {
     // Result Routes
     app.use('/api/v1/results', resultRoutes)
     app.use('/api/v1/subjects', subjectRoutes)
+    //Fee Routes
+    app.use('/api/v1/fee', feeRoutes)
 
     // Grade Routes
     app.use('/api/v1/grades', gradeRoutes)
@@ -110,7 +113,7 @@ const startServer = async () => {
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
         // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
-        // await sequelize.sync({ force: true })
+        await sequelize.sync({ force: true })
         // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1')
         // await seed()
         app.listen(port, () => {

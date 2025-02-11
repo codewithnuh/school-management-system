@@ -10,7 +10,14 @@ import {
     HasMany,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { User, AcademicYear, Class, FeePayment } from '@/models/index.js'
+import {
+    User,
+    AcademicYear,
+    Class,
+    FeePayment,
+    FeeCategory,
+} from '@/models/index.js'
+
 // Zod schema for StudentFeeAllocation creation
 export const StudentFeeAllocationSchema = z.object({
     studentId: z
@@ -63,13 +70,6 @@ export class StudentFeeAllocation
     })
     studentId!: number
 
-    @ForeignKey(() => AcademicYear)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-    })
-    academicYearId!: number
-
     @ForeignKey(() => Class)
     @Column({
         type: DataType.INTEGER,
@@ -78,13 +78,13 @@ export class StudentFeeAllocation
     classId!: number
 
     @Column({
-        type: DataType.DECIMAL,
+        type: DataType.DECIMAL(10, 2),
         allowNull: false,
     })
     totalFeeAmount!: number
 
     @Column({
-        type: DataType.DECIMAL,
+        type: DataType.DECIMAL(10, 2),
         allowNull: false,
         defaultValue: 0.0, // Initialize at 0.00
     })
@@ -100,12 +100,29 @@ export class StudentFeeAllocation
     @BelongsTo(() => User)
     student!: User
 
-    @BelongsTo(() => AcademicYear)
-    academicYear!: AcademicYear
-
     @BelongsTo(() => Class)
     class!: Class
 
     @HasMany(() => FeePayment)
     feePayments?: FeePayment[]
+
+    @ForeignKey(() => AcademicYear)
+    @Column({
+        type: DataType.INTEGER, // Explicitly defining the data type
+        allowNull: false,
+    })
+    academicYearId!: number
+
+    @BelongsTo(() => AcademicYear, { as: 'allocatedAcademicYear' })
+    academicYear!: AcademicYear
+
+    @ForeignKey(() => FeeCategory)
+    @Column({
+        type: DataType.INTEGER, // Explicitly defining the data type
+        allowNull: false,
+    })
+    feeCategoryId!: number
+
+    @BelongsTo(() => FeeCategory, { as: 'allocatedFeeCategory' })
+    feeCategory!: FeeCategory
 }

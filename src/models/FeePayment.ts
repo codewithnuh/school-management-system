@@ -9,9 +9,8 @@ import {
     UpdatedAt,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { StudentFeeAllocation } from '@/models/index.js' // Import StudentFeeAllocation model
+import { FeeStructure, StudentFeeAllocation } from '@/models/index.js'
 
-// Zod schema for FeePayment creation
 export const feePaymentSchema = z.object({
     studentFeeAllocationId: z.number().int().positive({
         message: 'Student Fee Allocation ID must be a positive integer',
@@ -32,7 +31,7 @@ export const feePaymentSchema = z.object({
 })
 
 export type FeePaymentAttributes = z.infer<typeof feePaymentSchema> & {
-    feePaymentId?: number // Auto-incrementing primary key
+    feePaymentId?: number
     createdAt?: Date
     updatedAt?: Date
 }
@@ -60,10 +59,10 @@ export class FeePayment
     studentFeeAllocationId!: number
 
     @Column({
-        type: DataType.DATE, // Or DataType.STRING to match Exam model if you prefer string dates
+        type: DataType.DATE,
         allowNull: false,
     })
-    paymentDate!: Date // Or string
+    paymentDate!: Date
 
     @Column({
         type: DataType.ENUM('Cash', 'Cheque', 'Online', 'Bank Transfer', 'POS'),
@@ -72,7 +71,7 @@ export class FeePayment
     paymentMethod!: 'Cash' | 'Cheque' | 'Online' | 'Bank Transfer' | 'POS'
 
     @Column({
-        type: DataType.DECIMAL,
+        type: DataType.DECIMAL(10, 2),
         allowNull: false,
     })
     amountPaid!: number
@@ -105,4 +104,14 @@ export class FeePayment
     // Associations
     @BelongsTo(() => StudentFeeAllocation)
     studentFeeAllocation!: StudentFeeAllocation
+
+    @ForeignKey(() => FeeStructure)
+    @Column({
+        type: DataType.INTEGER, // Explicitly defining data type
+        allowNull: false,
+    })
+    feeStructureId!: number
+
+    @BelongsTo(() => FeeStructure, { as: 'feeStructurePayment' })
+    feeStructure!: FeeStructure
 }

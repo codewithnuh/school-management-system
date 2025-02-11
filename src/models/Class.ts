@@ -1,5 +1,5 @@
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
-import { Exam, Section } from '@/models/index.js'
+import { Exam, FeeStructure, Section } from '@/models/index.js'
 
 import { z } from 'zod'
 
@@ -101,4 +101,6 @@ export class Class extends Model<CreateClassInput> {
     description?: string
     @HasMany(() => Exam) // Association with Exam model
     exams!: Exam[]
+    @HasMany(() => FeeStructure, { as: 'classFeeStructures' }) // Changed alias to be unique and class-specific
+    classFeeStructures!: FeeStructure[]
 }

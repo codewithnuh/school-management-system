@@ -5,7 +5,6 @@ import {
     FeeCategorySchema, // Import Fee Management Models and potentially Class, AcademicYear, Student
 } from '@/models/index.js' // Adjust path if needed
 
-// ========================= Fee Category Service =========================
 export class FeeCategoryService {
     static async createFeeCategory(input: FeeCategoryAttributes) {
         FeeCategorySchema.parse(input) // Input validation

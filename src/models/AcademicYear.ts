@@ -7,17 +7,16 @@ import {
     UpdatedAt,
     HasMany,
 } from 'sequelize-typescript'
-import { FeeStructure, StudentFeeAllocation } from '@/models/index.js' //Import StudentFeeAllocation Model
+import { FeeStructure, StudentFeeAllocation } from '@/models/index.js'
 import { z } from 'zod'
 
-// Zod schema for AcademicYear creation
 export const academicYearSchema = z.object({
-    year: z.string().min(1, { message: 'Year is required' }), //e.g., "2023-2024"
+    year: z.string().min(1, { message: 'Year is required' }),
     description: z.string().optional().nullable(),
 })
 
 export type AcademicYearAttributes = z.infer<typeof academicYearSchema> & {
-    academicYearId?: number // Auto-incrementing primary key
+    academicYearId?: number
     createdAt?: Date
     updatedAt?: Date
 }
@@ -56,10 +55,12 @@ export class AcademicYear
     @UpdatedAt
     updatedAt!: Date
 
-    //Associations
     @HasMany(() => FeeStructure)
-    feeStructures?: FeeStructure[]
+    feeStructures!: FeeStructure[]
 
-    @HasMany(() => StudentFeeAllocation)
+    @HasMany(() => StudentFeeAllocation, {
+        foreignKey: 'academicYearId',
+        as: 'academicYearStudentFeeAllocations', // Unique alias
+    })
     studentFeeAllocations?: StudentFeeAllocation[]
 }
