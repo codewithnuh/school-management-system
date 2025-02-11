@@ -4,7 +4,6 @@ import {
     Model,
     DataType,
     ForeignKey,
-    BelongsTo,
     CreatedAt,
     UpdatedAt,
 } from 'sequelize-typescript'
@@ -102,7 +101,7 @@ export class FeePayment
     updatedAt!: Date
 
     // Associations
-    @BelongsTo(() => StudentFeeAllocation)
+
     studentFeeAllocation!: StudentFeeAllocation
 
     @ForeignKey(() => FeeStructure)
@@ -112,6 +111,5 @@ export class FeePayment
     })
     feeStructureId!: number
 
-    @BelongsTo(() => FeeStructure, { as: 'feeStructurePayment' })
     feeStructure!: FeeStructure
 }

@@ -101,6 +101,6 @@ export class Class extends Model<CreateClassInput> {
     description?: string
     @HasMany(() => Exam) // Association with Exam model
     exams!: Exam[]
-    @HasMany(() => FeeStructure, { as: 'classFeeStructures' }) // Changed alias to be unique and class-specific
+    @HasMany(() => FeeStructure) // Changed alias to be unique and class-specific
     classFeeStructures!: FeeStructure[]
 }

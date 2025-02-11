@@ -55,12 +55,7 @@ export class AcademicYear
     @UpdatedAt
     updatedAt!: Date
 
-    @HasMany(() => FeeStructure)
-    feeStructures!: FeeStructure[]
+    academicYearFeeStructures!: FeeStructure[]
 
-    @HasMany(() => StudentFeeAllocation, {
-        foreignKey: 'academicYearId',
-        as: 'academicYearStudentFeeAllocations', // Unique alias
-    })
     studentFeeAllocations?: StudentFeeAllocation[]
 }

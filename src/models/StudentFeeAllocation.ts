@@ -113,7 +113,7 @@ export class StudentFeeAllocation
     })
     academicYearId!: number
 
-    @BelongsTo(() => AcademicYear, { as: 'allocatedAcademicYear' })
+    @BelongsTo(() => AcademicYear)
     academicYear!: AcademicYear
 
     @ForeignKey(() => FeeCategory)
@@ -123,6 +123,6 @@ export class StudentFeeAllocation
     })
     feeCategoryId!: number
 
-    @BelongsTo(() => FeeCategory, { as: 'allocatedFeeCategory' })
+    @BelongsTo(() => FeeCategory)
     feeCategory!: FeeCategory
 }

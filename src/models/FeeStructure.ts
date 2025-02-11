@@ -65,7 +65,7 @@ export class FeeStructure
     })
     academicYearId!: number
 
-    @BelongsTo(() => AcademicYear, { as: 'academicYear' })
+    @BelongsTo(() => AcademicYear)
     academicYear!: AcademicYear
 
     @ForeignKey(() => FeeCategory)

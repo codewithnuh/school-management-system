@@ -74,4 +74,14 @@ Exam.hasMany(Class, { foreignKey: 'classId' })
 Exam.hasMany(Section, { foreignKey: 'sectionId' })
 Section.belongsTo(Exam, { foreignKey: 'examId' })
 Class.hasMany(User, { foreignKey: 'studentId' })
+FeePayment.belongsTo(StudentFeeAllocation, {
+    foreignKey: 'studentFeeAllocationId',
+})
+FeePayment.belongsTo(FeeStructure, { foreignKey: 'feeStructureId' })
+AcademicYear.hasMany(StudentFeeAllocation, {
+    foreignKey: 'studentFeeAllocationId',
+})
+AcademicYear.hasMany(StudentFeeAllocation, {
+    foreignKey: 'studentFeeAllocationId',
+})
 export default sequelize
