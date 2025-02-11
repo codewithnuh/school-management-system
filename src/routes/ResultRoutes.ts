@@ -126,7 +126,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/results', ResultController.createResult)
+router.post('/', ResultController.createResult)
 
 /**
  * @openapi
@@ -154,7 +154,7 @@ router.post('/results', ResultController.createResult)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/results', ResultController.getAllResults)
+router.get('/', ResultController.getAllResults)
 
 /**
  * @openapi

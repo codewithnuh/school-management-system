@@ -27,6 +27,7 @@ export class ResultController {
             )
             res.status(response.statusCode).json(response)
         } catch (error: unknown) {
+            console.error(error)
             console.error('Error creating result:', error)
             const genericMessage =
                 'Failed to create result. Please check your input.'
