@@ -5,7 +5,6 @@ import {
     DataType,
     CreatedAt,
     UpdatedAt,
-    HasMany,
 } from 'sequelize-typescript'
 import { FeeStructure, StudentFeeAllocation } from '@/models/index.js'
 import { z } from 'zod'

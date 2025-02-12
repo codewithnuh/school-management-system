@@ -113,7 +113,7 @@ const startServer = async () => {
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
         // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
-        await sequelize.sync({ force: true })
+        // await sequelize.sync({ force: true })
         // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1')
         // await seed()
         app.listen(port, () => {

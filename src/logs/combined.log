@@ -94,3 +94,21 @@
 {"level":"info","message":{"duration":102,"ip":"::1","method":"GET","path":"/weekly/3/3","statusCode":200,"userAgent":"HTTPie"},"timestamp":"2025-02-10T05:43:44.138Z"}
 {"level":"info","message":{"duration":53,"ip":"::1","method":"GET","path":"/fee-categories","statusCode":500,"userAgent":"HTTPie"},"timestamp":"2025-02-10T16:13:55.470Z"}
 {"level":"info","message":{"duration":22,"ip":"::1","method":"GET","path":"/fee-categories","statusCode":500,"userAgent":"HTTPie"},"timestamp":"2025-02-10T16:15:44.174Z"}
+{"level":"info","message":{"duration":61,"ip":"::1","method":"GET","path":"/fee-categories","statusCode":200,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:32:40.441Z"}
+{"level":"info","message":{"duration":5,"ip":"::1","method":"GET","path":"/api/v1/timetables/generate","statusCode":404,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:32:58.075Z"}
+{"level":"info","message":{"duration":1,"ip":"::1","method":"GET","path":"/api/v1/timetables/generate","statusCode":404,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:32:58.255Z"}
+{"level":"info","message":{"duration":1,"ip":"::1","method":"GET","path":"/api/v1/timetables/generate","statusCode":404,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:32:58.446Z"}
+{"level":"info","message":{"duration":0,"ip":"::1","method":"GET","path":"/api/v1/timetables/generate","statusCode":404,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:32:58.678Z"}
+{"level":"info","message":{"duration":3,"ip":"::1","method":"GET","path":"/api/v1/timetable/generate","statusCode":404,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:03.341Z"}
+{"level":"info","message":{"duration":3,"ip":"::1","method":"POST","path":"/api/v1/timetable/generate","statusCode":404,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:12.782Z"}
+{"level":"info","message":{"duration":1,"ip":"::1","method":"POST","path":"/api/v1/timetables/generate","statusCode":404,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:14.862Z"}
+{"level":"info","message":{"duration":138,"ip":"::1","method":"POST","path":"/generate/2","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:41.969Z"}
+{"level":"info","message":{"duration":23,"ip":"::1","method":"POST","path":"/generate/1","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:44.148Z"}
+{"level":"info","message":{"duration":29,"ip":"::1","method":"POST","path":"/generate/10","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:46.532Z"}
+{"level":"info","message":{"duration":22,"ip":"::1","method":"POST","path":"/generate/11","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:48.145Z"}
+{"level":"info","message":{"duration":22,"ip":"::1","method":"POST","path":"/generate/12","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:50.594Z"}
+{"level":"info","message":{"duration":21,"ip":"::1","method":"POST","path":"/generate/123","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:52.126Z"}
+{"level":"info","message":{"duration":18,"ip":"::1","method":"POST","path":"/generate/12312312","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:53.489Z"}
+{"level":"info","message":{"duration":17,"ip":"::1","method":"POST","path":"/generate/123123123123","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:53.921Z"}
+{"level":"info","message":{"duration":22,"ip":"::1","method":"POST","path":"/generate/12312312312312dasd","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:55.263Z"}
+{"level":"info","message":{"duration":39,"ip":"::ffff:127.0.0.1","method":"GET","path":"/","statusCode":200,"userAgent":"IntelliJ HTTP Client/WebStorm 2024.3.1"},"timestamp":"2025-02-11T17:17:22.241Z"}
