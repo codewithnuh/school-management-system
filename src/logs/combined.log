@@ -112,3 +112,4 @@
 {"level":"info","message":{"duration":17,"ip":"::1","method":"POST","path":"/generate/123123123123","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:53.921Z"}
 {"level":"info","message":{"duration":22,"ip":"::1","method":"POST","path":"/generate/12312312312312dasd","statusCode":400,"userAgent":"HTTPie"},"timestamp":"2025-02-11T16:33:55.263Z"}
 {"level":"info","message":{"duration":39,"ip":"::ffff:127.0.0.1","method":"GET","path":"/","statusCode":200,"userAgent":"IntelliJ HTTP Client/WebStorm 2024.3.1"},"timestamp":"2025-02-11T17:17:22.241Z"}
+{"level":"info","message":{"duration":9,"ip":"::ffff:127.0.0.1","method":"GET","path":"/","statusCode":404,"userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"},"timestamp":"2025-02-13T10:23:31.049Z"}
