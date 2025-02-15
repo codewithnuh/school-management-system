@@ -1,5 +1,5 @@
 export * from '@/models/Class.js'
-export * from '@/models/section.js'
+export * from '@/models/Section.js'
 export * from '@/models/OTP.js'
 
 export * from '@/models/PasswordResetToken.js'

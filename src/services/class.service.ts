@@ -1,6 +1,6 @@
 import sequelize from '@/config/database.js'
 import { Class } from '@/models/Class.js'
-import { Section } from '@/models/section.js'
+import { Section } from '@/models/Section.js'
 import { SectionTeacher } from '@/models/SectionTeacher.js'
 import { Teacher } from '@/models/Teacher.js'
 import { CreateClassInput } from '@/models/Class.js' // Import your types

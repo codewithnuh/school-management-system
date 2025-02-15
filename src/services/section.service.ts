@@ -1,5 +1,5 @@
 import sequelize from '@/config/database.js'
-import { CreateSectionInput, Section } from '@/models/section.js'
+import { CreateSectionInput, Section } from '@/models/Section.js'
 import { SectionTeacher } from '@/models/SectionTeacher.js'
 import { Teacher } from '@/models/Teacher.js'
 export class SectionService {

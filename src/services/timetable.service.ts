@@ -6,7 +6,7 @@ import { Teacher } from '@/models/Teacher.js'
 // Fix capitalization to Timetable
 // Fix capitalization to TimetableEntry
 import { SectionTeacher } from '@/models/SectionTeacher.js'
-import { Section } from '@/models/section.js'
+import { Section } from '@/models/Section.js'
 import { Timetable } from '@/models/TimeTable.js'
 import { TimetableEntry } from '@/models/TimeTableEntry.js'
 import { Sequelize } from 'sequelize-typescript'

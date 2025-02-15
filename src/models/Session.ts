@@ -23,7 +23,8 @@ export class Session
 
     @Column({ type: DataType.STRING, allowNull: false })
     sessionId!: string
-
+    @Column({type:DataType.ENUM('ADMIN','PARENTS','TEACHER','USER')})
+    entityType!:string
     @Column({ type: DataType.DATE, allowNull: false })
     expiresAt!: Date
 }
