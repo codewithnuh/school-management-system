@@ -34,6 +34,7 @@
         "express-rate-limit": "^7.5.0",
         "helmet": "^8.0.0",
         "jose": "^5.9.6",
+        "jsonwebtoken": "^9.0.2",
         "morgan": "^1.10.0",
         "mysql2": "^3.12.0",
         "node-cron": "^3.0.3",
@@ -62,6 +63,7 @@
         "@types/helmet": "^4.0.0",
         "@types/jest": "^29.5.12",
         "@types/js-yaml": "^4.0.9",
+        "@types/jsonwebtoken": "^9.0.8",
         "@types/morgan": "^1.9.9",
         "@types/node": "^22.10.10",
         "@types/node-cron": "^3.0.11",
@@ -82,5 +84,6 @@
         "tsc-alias": "^1.8.10",
         "tsx": "^4.19.2",
         "typescript-eslint": "^8.21.0"
-    }
+    },
+    "packageManager": "pnpm@10.3.0+sha1.6981f53a2d726323a7fd5f4ca5107102338511c8"
 }
