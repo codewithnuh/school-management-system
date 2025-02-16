@@ -8,9 +8,10 @@ import {
     Default,
     ForeignKey,
     HasMany,
+    BelongsTo,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Class, Section, StudentExam } from '@/models/index.js'
+import { Class, Parent, Section, StudentExam } from '@/models/index.js'
 
 type UserAttributes = z.infer<typeof userSchema>
 
@@ -169,4 +170,12 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     updatedAt?: Date
     @HasMany(() => StudentExam)
     studentExams!: StudentExam[]
+    @ForeignKey(() => Parent)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: true,
+    })
+    parentId?: number;
+    @BelongsTo(() => Parent)
+    parent?: Parent;
 }
