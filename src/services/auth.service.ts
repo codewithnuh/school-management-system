@@ -1,71 +1,107 @@
 import { Admin, Parent, Session, Teacher, User } from '@/models/index';
-import jwt from 'jsonwebtoken';
-import { SignOptions } from 'jsonwebtoken'
-import bcrypt from 'bcryptjs'
+import jwt, { SignOptions } from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
-
-const JWT_SECRET = process.env.JWT_SECRET
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '1h';
 const SESSION_EXPIRY_HOURS = parseInt(process.env.SESSION_EXPIRY_HOURS || '24', 10);
 
+// Define EntityType enum for better type safety and readability
+export enum EntityType {
+    ADMIN = 'ADMIN',
+    TEACHER = 'TEACHER',
+    USER = 'USER',
+    PARENT = 'PARENT',
+}
+
 /**
- * Interface representing the payload for the current user.
+ * Interface representing the payload for the current user in the JWT.
  */
 interface CurrentUserPayload {
   userId: number;
-  entityType: string;
+  entityType: EntityType; // Use the EntityType enum here
+}
+
+/**
+ * Interface defining the structure of a User model *instance* required by AuthService.login.
+ * Ensures type safety when accessing user properties like id, email, and password.
+ */
+interface UserModelInstance {
+  id: number;
+  email: string;
+  password?: string; // Password is often present but might be optional in some model definitions
+}
+
+/**
+ * Interface defining the structure of a User model *constructor* (the class itself).
+ * It enforces that the model constructor has a static 'findOne' method with a specific signature
+ * for finding users by email.
+ */
+interface UserModelConstructor<T extends UserModelInstance> {
+  findOne(options: { where: { email: string } }): Promise<T | null>;
 }
 
 /**
  * AuthService class responsible for handling user authentication and session management.
  */
 class AuthService {
-
   /**
    * Authenticates a user and creates a session.
    *
    * @param {string} email - The user's email.
    * @param {string} passwordPlain - The user's password in plain text.
-   * @param {'ADMIN'|'TEACHER'|'USER'|'PARENT'} entityType - The type of user entity.
-   * @param {any} userModel - The model to use for finding the user (e.g., User, Admin, Teacher, Parent).
-   * @param {string} [userAgent] - The user agent string (optional).
-   * @param {string} [ipAddress] - The user's IP address (optional).
+   * @param {EntityType} entityType - The type of user entity (using EntityType enum).
+   * @param {UserModelConstructor<UserModelInstance>} userModel - The Sequelize model constructor
+   *        (e.g., User, Admin, Teacher, Parent) to use for finding the user. It must conform to UserModelConstructor.
+   * @param {string} [userAgent] - The user agent string (optional, for session tracking).
+   * @param {string} [ipAddress] - The user's IP address (optional, for session tracking).
    * @returns {Promise<{ token: string }>} An object containing the authentication token.
-   * @throws {Error} Throws an error if the credentials are invalid.
+   * @throws {Error} Throws an error if credentials are invalid or JWT_SECRET is not defined.
    *
    * @example
    * const authService = new AuthService();
    * try {
-   *  const { token } = await authService.login('test@test.com', 'password', 'USER', User);
+   *  const { token } = await authService.login('test@test.com', 'password', EntityType.USER, User);
    *  console.log('User logged in with token:', token);
    * } catch (error) {
-   *  console.error('Login failed:', error.mefinssage);
+   *  console.error('Login failed:', error.message);
    * }
    */
-  async login(email: string, passwordPlain: string, entityType: 'ADMIN'|'TEACHER'|'USER'|'PARENT', userModel: any, userAgent?: string, ipAddress?: string): Promise<{ token: string }> { // userModel type as 'any' for flexibility
+  async login<T extends UserModelInstance>(
+    email: string,
+    passwordPlain: string,
+    entityType: EntityType,
+    userModel: UserModelConstructor<T>, // Using the correctly typed UserModelConstructor
+    userAgent?: string,
+    ipAddress?: string
+  ): Promise<{ token: string }> {
     const user = await userModel.findOne({ where: { email } });
+
     if (!user) {
       throw new Error('Invalid credentials');
     }
 
-    const passwordMatch = await bcrypt.compare(passwordPlain, user.password);
+    const passwordMatch = await bcrypt.compare(passwordPlain, user.password!); // Non-null assertion as password should be present for login
     if (!passwordMatch) {
       throw new Error('Invalid credentials');
     }
 
-    const payload = {
+    const payload: CurrentUserPayload = {
       userId: user.id,
-      entityType: entityType.toLowerCase(),
+      entityType: entityType,
     };
-    const token = jwt.sign(payload, JWT_SECRET!, { expiresIn: JWT_EXPIRY } as SignOptions);
 
+    if (!JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRY } as SignOptions);
 
     const expiryDate = new Date();
     expiryDate.setHours(expiryDate.getHours() + SESSION_EXPIRY_HOURS);
 
     await Session.create({
-      userId: user.id, // Store the user's ID (regardless of model type)
-      entityType: entityType, // Store the entity type in the session
+      userId: user.id,
+      entityType: entityType, // Store entityType as string in Session model (or adjust Session model to use enum)
       token: token,
       expiryDate: expiryDate,
       userAgent: userAgent,
@@ -99,7 +135,7 @@ class AuthService {
    * const authService = new AuthService();
    * const currentUser = await authService.getCurrentUser('user-token');
    * if (currentUser) {
-   *   console.log('Current user:', currentUser);
+   *  console.log('Current user:', currentUser);
    * }
    */
   async getCurrentUser(token: string): Promise<CurrentUserPayload | null> {
@@ -108,7 +144,10 @@ class AuthService {
       if (!session || session.expiryDate < new Date()) {
         return null;
       }
-      jwt.verify(token, JWT_SECRET!);
+      if (!JWT_SECRET) {
+        throw new Error('JWT_SECRET is not defined');
+      }
+      jwt.verify(token, JWT_SECRET);
       const decoded = jwt.decode(token) as CurrentUserPayload;
       return decoded;
     } catch (error) {
@@ -120,10 +159,10 @@ class AuthService {
    * Gets the entity type of a user.
    *
    * @param {number} userId - The ID of the user.
-   * @param {string} entityType - The type of the entity.
-   * @returns {Promise<string>} The entity type.
+   * @param {EntityType} entityType - The type of the entity (using EntityType enum).
+   * @returns {Promise<EntityType>} The entity type (returns EntityType enum).
    */
-  async getUserEntityType(userId: number, entityType: string): Promise<string> { // Now entityType is readily available in JWT/Session
+  async getUserEntityType(userId: number, entityType: EntityType): Promise<EntityType> {
     return entityType;
   }
 
@@ -137,7 +176,7 @@ class AuthService {
    * const authService = new AuthService();
    * const userId = await authService.getUserId('user-token');
    * if (userId) {
-   *   console.log('User ID:', userId);
+   *  console.log('User ID:', userId);
    * }
    */
   async getUserId(token: string): Promise<number | null> {
@@ -145,22 +184,22 @@ class AuthService {
     return currentUser ? currentUser.userId : null;
   }
 
-   /**
-    * Fetches the user entity (User, Admin, Teacher, Parent) based on the user ID and entity type.
-    * @param userId - The ID of the user.
-    * @param entityType - The type of user entity.
-    * @returns The user entity or null if the entity is not found or the entityType is invalid.
-    */
-  // New method to fetch the actual user entity based on userId and entityType
-  async fetchUserEntity(userId: number, entityType: string): Promise<any | null> {
+  /**
+   * Fetches the user entity (User, Admin, Teacher, Parent) based on the user ID and entity type.
+   *
+   * @param {number} userId - The ID of the user.
+   * @param {EntityType} entityType - The type of user entity (using EntityType enum).
+   * @returns {Promise<any | null>} The user entity or null if not found or entityType is invalid.
+   */
+  async fetchUserEntity(userId: number, entityType: EntityType): Promise<any | null> {
     switch (entityType) {
-      case 'user':
+      case EntityType.USER:
         return User.findByPk(userId);
-      case 'admin':
+      case EntityType.ADMIN:
         return Admin.findByPk(userId);
-      case 'teacher':
+      case EntityType.TEACHER:
         return Teacher.findByPk(userId);
-      case 'parent':
+      case EntityType.PARENT:
         return Parent.findByPk(userId);
       default:
         return null; // Or throw an error for unknown entityType
