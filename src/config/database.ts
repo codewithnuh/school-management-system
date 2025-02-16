@@ -11,7 +11,6 @@ import {
     SectionTeacher,
     OTP,
     PasswordResetToken,
-    Session,
     TimeSlot,
     User,
     Result,
@@ -24,6 +23,10 @@ import {
     FeeCategory,
     FeeStructure,
     StudentFeeAllocation,
+    Parent,
+    Admin,
+    Session
+
 } from '@/models/index.js'
 
 config()
@@ -61,6 +64,8 @@ const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
         FeeStructure,
         FeeCategory,
         StudentFeeAllocation,
+        Parent,
+        Admin,
     ],
 })
 Section.belongsTo(Teacher, { foreignKey: 'classTeacherId' })
