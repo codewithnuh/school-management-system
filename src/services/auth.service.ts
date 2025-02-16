@@ -39,7 +39,7 @@ class AuthService {
    *  const { token } = await authService.login('test@test.com', 'password', 'USER', User);
    *  console.log('User logged in with token:', token);
    * } catch (error) {
-   *  console.error('Login failed:', error.message);
+   *  console.error('Login failed:', error.mefinssage);
    * }
    */
   async login(email: string, passwordPlain: string, entityType: 'ADMIN'|'TEACHER'|'USER'|'PARENT', userModel: any, userAgent?: string, ipAddress?: string): Promise<{ token: string }> { // userModel type as 'any' for flexibility

@@ -56,6 +56,5 @@ export const authController = {
     await authService.logout(token)
     const response=ResponseUtil.success('Logout successful')
     res.status(200).json(response)
-  
   }
-};
+  }

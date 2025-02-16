@@ -5,6 +5,7 @@ import swaggerSpec from '@/config/swagger.js'
 import userRoutes from '@/routes/UserRoutes.js'
 import teacherRoutes from '@/routes/TeacherRoutes.js'
 import feeRoutes from '@/routes/FeeRoutes.js'
+import authRoutes from '@/routes/authRoutes.js'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import process from 'process'
@@ -16,7 +17,7 @@ import { requestLogger } from './middleware/loggin.middleware.js'
 import {
     deleteExpiredPasswordResetTokens,
     deleteExpiredSessions,
-} from './cron/session.js'
+} from '@/cron/session.js'
 import TimeTableRoutes from '@/routes/TimeTableRoutes.js'
 import classRoutes from '@/routes/ClassRoutes.js'
 import examRoutes from '@/routes/ExamRoutes.js'
