@@ -1,4 +1,4 @@
-import { Admin, Parent, Session, Teacher, User } from '@/models/index';
+import { Admin, Parent, Session, Teacher, User } from '@/models/index.js';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 

@@ -90,7 +90,8 @@ const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/subjects', subjectRoutes)
     //Fee Routes
     app.use('/api/v1/fee', feeRoutes)
-
+   //Auth Routes
+   app.use('/api/v1/auth',authRoutes)
     // Grade Routes
     app.use('/api/v1/grades', gradeRoutes)
     // app.use('/api/v1/timetable/class', ClassRoutes)
@@ -100,6 +101,7 @@ const configureRoutes = (app: express.Application) => {
         res.send(swaggerSpec)
     })
 }
+console.log('server....')
 
 const startServer = async () => {
     try {
