@@ -99,7 +99,9 @@ export const authController = {
             res.status(201).json(response)
         } catch (error) {
             if (error instanceof Error) {
-                const response = ResponseUtil.error('Something went wrong')
+                const response = ResponseUtil.error(
+                    `${error.message} ${error.stack}`,
+                )
                 res.status(400).json(response)
             }
         }

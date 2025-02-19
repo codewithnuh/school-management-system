@@ -56,6 +56,8 @@ export class ForgotPassword {
         oneTimePassword: string,
         newPassword: string,
     ) => {
+        if (!oneTimePassword)
+            throw new Error('Please provide one-time password')
         const validOtp = await OTP.findOne({
             where: { otp: oneTimePassword },
         })
