@@ -338,7 +338,7 @@ router.patch('/auth/reset-token', UserController.resetUserPassword)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/auth/login', UserController.login)
+// router.post('/auth/login', UserController.login)
 
 /**
  * @openapi
@@ -369,7 +369,7 @@ router.post('/auth/login', UserController.login)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/auth/logout', authenticate, UserController.logout) // Added authentication middleware
+// router.post('/auth/logout', authenticate, UserController.logout) // Added authentication middleware
 
 /**
  * @openapi
@@ -410,6 +410,6 @@ router.post('/auth/logout', authenticate, UserController.logout) // Added authen
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/auth/forgot-password', UserController.forgotPassword)
+// router.post('/auth/forgot-password', UserController.forgotPassword)
 
 export default router

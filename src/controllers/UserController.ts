@@ -3,12 +3,12 @@ import { User } from '@/models/User.js'
 import { userSchema } from '@/schema/user.schema.js'
 import { PasswordResetToken } from '@/models/PasswordResetToken.js'
 import bcrypt from 'bcryptjs'
-import { createJWT } from '@/utils/jwt.js'
-import { Session } from '@/models/Session.js'
+// import { createJWT } from '@/utils/jwt.js'
+// import { Session } from '@/models/Session.js'
 import { acceptStudentApplication } from '@/services/application.service.js'
 import { ResponseUtil } from '@/utils/response.util.js'
-import { sendForgotPasswordOTP } from '@/services/forgot-password.service.js'
-import { OTP } from '@/models/OTP.js'
+// import { sendForgotPasswordOTP } from '@/services/forgot-password.service.js'
+// import { OTP } from '@/models/OTP.js'
 
 interface UserData {
     firstName: string
@@ -205,80 +205,80 @@ class UserController {
         }
     }
 
-    public login = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { email, password } = req.body
+    // public login = async (req: Request, res: Response): Promise<void> => {
+    //     try {
+    //         const { email, password } = req.body
 
-            if (!email || !password) {
-                const response = ResponseUtil.error(
-                    'Email and password are required',
-                    400,
-                )
-                res.status(response.statusCode).json(response)
-                return
-            }
+    //         if (!email || !password) {
+    //             const response = ResponseUtil.error(
+    //                 'Email and password are required',
+    //                 400,
+    //             )
+    //             res.status(response.statusCode).json(response)
+    //             return
+    //         }
 
-            const user = await User.findOne({
-                where: { email },
-            })
+    //         const user = await User.findOne({
+    //             where: { email },
+    //         })
 
-            if (!user) {
-                const response = ResponseUtil.error('Invalid credentials', 401)
-                res.status(response.statusCode).json(response)
-                return
-            }
+    //         if (!user) {
+    //             const response = ResponseUtil.error('Invalid credentials', 401)
+    //             res.status(response.statusCode).json(response)
+    //             return
+    //         }
 
-            const isPasswordValid = await bcrypt.compare(
-                password,
-                user.password,
-            )
-            if (!isPasswordValid) {
-                res.status(401).json({
-                    success: false,
-                    message: 'Invalid credentials',
-                })
-                return
-            }
+    //         const isPasswordValid = await bcrypt.compare(
+    //             password,
+    //             user.password,
+    //         )
+    //         if (!isPasswordValid) {
+    //             res.status(401).json({
+    //                 success: false,
+    //                 message: 'Invalid credentials',
+    //             })
+    //             return
+    //         }
 
-            // Clear any existing sessions
-            await Session.destroy({
-                where: { userId: user.id },
-            })
+    //         // Clear any existing sessions
+    //         await Session.destroy({
+    //             where: { userId: user.id },
+    //         })
 
-            const jwtToken = await createJWT({ userId: user.id })
+    //         const jwtToken = await createJWT({ userId: user.id })
 
-            // Create new session
-            const expiresAt = new Date()
-            expiresAt.setHours(
-                expiresAt.getHours() + UserController.SESSION_EXPIRY_HOURS,
-            )
+    //         // Create new session
+    //         const expiresAt = new Date()
+    //         expiresAt.setHours(
+    //             expiresAt.getHours() + UserController.SESSION_EXPIRY_HOURS,
+    //         )
 
-            const session = await Session.create({
-                userId: user.id,
-                sessionId: jwtToken,
-                expiresAt,
-            })
+    //         const session = await Session.create({
+    //             userId: user.id,
+    //             sessionId: jwtToken,
+    //             expiresAt,
+    //         })
 
-            res.cookie('sessionId', session.sessionId, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: UserController.SESSION_EXPIRY_HOURS * 60 * 60 * 1000,
-                sameSite: 'strict',
-            })
+    //         res.cookie('sessionId', session.sessionId, {
+    //             httpOnly: true,
+    //             secure: process.env.NODE_ENV === 'production',
+    //             maxAge: UserController.SESSION_EXPIRY_HOURS * 60 * 60 * 1000,
+    //             sameSite: 'strict',
+    //         })
 
-            const response = ResponseUtil.success(
-                {
-                    id: user.id,
-                    email: user.email,
-                    name: user.firstName,
-                },
-                'Login successful',
-            )
-            res.status(response.statusCode).json(response)
-        } catch (error) {
-            this.handleError(res, error)
-        }
-    }
+    //         const response = ResponseUtil.success(
+    //             {
+    //                 id: user.id,
+    //                 email: user.email,
+    //                 name: user.firstName,
+    //             },
+    //             'Login successful',
+    //         )
+    //         res.status(response.statusCode).json(response)
+    //     } catch (error) {
+    //         this.handleError(res, error)
+    //     }
+    // }
     public acceptUserApplication = async (
         req: Request,
         res: Response,
@@ -307,187 +307,187 @@ class UserController {
             }
         }
     }
-    public forgotPassword = async (
-        req: Request,
-        res: Response,
-    ): Promise<void> => {
-        try {
-            const { email, newPassword, otp, step } = req.body
-            const user = await User.findOne({ where: { email } })
-            switch (step) {
-                case 'verifyEmail': {
-                    if (!email) {
-                        const response = ResponseUtil.error(
-                            'Email missing',
-                            400,
-                            'Please provide an email address',
-                        )
-                        res.status(400).json(response)
-                        return
-                    }
+    // public forgotPassword = async (
+    //     req: Request,
+    //     res: Response,
+    // ): Promise<void> => {
+    //     try {
+    //         const { email, newPassword, otp, step } = req.body
+    //         const user = await User.findOne({ where: { email } })
+    //         switch (step) {
+    //             case 'verifyEmail': {
+    //                 if (!email) {
+    //                     const response = ResponseUtil.error(
+    //                         'Email missing',
+    //                         400,
+    //                         'Please provide an email address',
+    //                     )
+    //                     res.status(400).json(response)
+    //                     return
+    //                 }
 
-                    if (!user) {
-                        const response = ResponseUtil.error(
-                            'User not found',
-                            404,
-                            'No user registered with this email',
-                        )
-                        res.status(404).json(response)
-                        return
-                    }
+    //                 if (!user) {
+    //                     const response = ResponseUtil.error(
+    //                         'User not found',
+    //                         404,
+    //                         'No user registered with this email',
+    //                     )
+    //                     res.status(404).json(response)
+    //                     return
+    //                 }
 
-                    await sendForgotPasswordOTP({
-                        email,
-                        entityType: 'STUDENT',
-                    })
+    //                 await sendForgotPasswordOTP({
+    //                     email,
+    //                     entityType: 'STUDENT',
+    //                 })
 
-                    const response = ResponseUtil.success(
-                        { status: 'OTP sent' },
-                        'An OTP has been sent to your email',
-                        200,
-                    )
+    //                 const response = ResponseUtil.success(
+    //                     { status: 'OTP sent' },
+    //                     'An OTP has been sent to your email',
+    //                     200,
+    //                 )
 
-                    res.status(200).json(response)
-                    break
-                }
+    //                 res.status(200).json(response)
+    //                 break
+    //             }
 
-                case 'verifyOtp': {
-                    if (!email || !otp) {
-                        const response = ResponseUtil.error(
-                            'Email or OTP missing',
-                            400,
-                            'Please provide both email and OTP',
-                        )
-                        res.status(400).json(response)
-                        return
-                    }
+    //             case 'verifyOtp': {
+    //                 if (!email || !otp) {
+    //                     const response = ResponseUtil.error(
+    //                         'Email or OTP missing',
+    //                         400,
+    //                         'Please provide both email and OTP',
+    //                     )
+    //                     res.status(400).json(response)
+    //                     return
+    //                 }
 
-                    const validOtp = await OTP.findValidOTP(
-                        otp,
-                        user!.id as number,
-                        'STUDENT',
-                    )
-                    if (!validOtp) {
-                        const response = ResponseUtil.error(
-                            'Invalid OTP',
-                            400,
-                            'The provided OTP is invalid or has expired',
-                        )
-                        res.status(400).json(response)
-                        return
-                    }
+    //                 const validOtp = await OTP.findValidOTP(
+    //                     otp,
+    //                     user!.id as number,
+    //                     'STUDENT',
+    //                 )
+    //                 if (!validOtp) {
+    //                     const response = ResponseUtil.error(
+    //                         'Invalid OTP',
+    //                         400,
+    //                         'The provided OTP is invalid or has expired',
+    //                     )
+    //                     res.status(400).json(response)
+    //                     return
+    //                 }
 
-                    const otpResponse = ResponseUtil.success(
-                        'OTP verified',
-                        'The OTP has been verified successfully',
-                        200,
-                    )
-                    res.status(200).json(otpResponse)
-                    break
-                }
+    //                 const otpResponse = ResponseUtil.success(
+    //                     'OTP verified',
+    //                     'The OTP has been verified successfully',
+    //                     200,
+    //                 )
+    //                 res.status(200).json(otpResponse)
+    //                 break
+    //             }
 
-                case 'resetPassword': {
-                    if (!email || !newPassword || !otp) {
-                        const response = ResponseUtil.error(
-                            'Email, OTP, or new password missing',
-                            400,
-                            'Please provide email, OTP, and new password',
-                        )
-                        res.status(400).json(response)
-                        return
-                    }
+    //             case 'resetPassword': {
+    //                 if (!email || !newPassword || !otp) {
+    //                     const response = ResponseUtil.error(
+    //                         'Email, OTP, or new password missing',
+    //                         400,
+    //                         'Please provide email, OTP, and new password',
+    //                     )
+    //                     res.status(400).json(response)
+    //                     return
+    //                 }
 
-                    const isValidOtp = await OTP.findValidOTP(
-                        otp,
-                        user!.id as number,
-                        'STUDENT',
-                    )
-                    if (!isValidOtp) {
-                        const response = ResponseUtil.error(
-                            'Invalid OTP',
-                            400,
-                            'The provided OTP is invalid or has expired',
-                        )
-                        res.status(400).json(response)
-                        return
-                    }
+    //                 const isValidOtp = await OTP.findValidOTP(
+    //                     otp,
+    //                     user!.id as number,
+    //                     'STUDENT',
+    //                 )
+    //                 if (!isValidOtp) {
+    //                     const response = ResponseUtil.error(
+    //                         'Invalid OTP',
+    //                         400,
+    //                         'The provided OTP is invalid or has expired',
+    //                     )
+    //                     res.status(400).json(response)
+    //                     return
+    //                 }
 
-                    const userToUpdate = await User.findOne({
-                        where: { email },
-                    })
-                    if (!userToUpdate) {
-                        const response = ResponseUtil.error(
-                            'User not found',
-                            404,
-                            'No user registered with this email',
-                        )
-                        res.status(404).json(response)
-                        return
-                    }
+    //                 const userToUpdate = await User.findOne({
+    //                     where: { email },
+    //                 })
+    //                 if (!userToUpdate) {
+    //                     const response = ResponseUtil.error(
+    //                         'User not found',
+    //                         404,
+    //                         'No user registered with this email',
+    //                     )
+    //                     res.status(404).json(response)
+    //                     return
+    //                 }
 
-                    const newHashedPassword = await bcrypt.hash(newPassword, 10)
-                    await userToUpdate.update({ password: newHashedPassword })
+    //                 const newHashedPassword = await bcrypt.hash(newPassword, 10)
+    //                 await userToUpdate.update({ password: newHashedPassword })
 
-                    // Optionally, destroy the OTP after successful password reset
-                    await OTP.destroy({ where: { otp, entityType: 'STUDENT' } })
+    //                 // Optionally, destroy the OTP after successful password reset
+    //                 await OTP.destroy({ where: { otp, entityType: 'STUDENT' } })
 
-                    const resetResponse = ResponseUtil.success(
-                        'Password reset successful',
-                        'Your password has been reset successfully',
-                        200,
-                    )
-                    res.status(200).json(resetResponse)
-                    break
-                }
+    //                 const resetResponse = ResponseUtil.success(
+    //                     'Password reset successful',
+    //                     'Your password has been reset successfully',
+    //                     200,
+    //                 )
+    //                 res.status(200).json(resetResponse)
+    //                 break
+    //             }
 
-                default: {
-                    const defaultResponse = ResponseUtil.error(
-                        'Invalid step',
-                        400,
-                        'The provided step is invalid',
-                    )
-                    res.status(400).json(defaultResponse)
-                    break
-                }
-            }
-        } catch (error) {
-            const errorResponse = ResponseUtil.error(
-                'Internal Server Error',
-                500,
-                error instanceof Error
-                    ? error.message
-                    : 'Unknown error occurred',
-            )
-            res.status(500).json(errorResponse)
-            return
-        }
-    }
-    public logout = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const sessionId = req.cookies.sessionId
+    //             default: {
+    //                 const defaultResponse = ResponseUtil.error(
+    //                     'Invalid step',
+    //                     400,
+    //                     'The provided step is invalid',
+    //                 )
+    //                 res.status(400).json(defaultResponse)
+    //                 break
+    //             }
+    //         }
+    //     } catch (error) {
+    //         const errorResponse = ResponseUtil.error(
+    //             'Internal Server Error',
+    //             500,
+    //             error instanceof Error
+    //                 ? error.message
+    //                 : 'Unknown error occurred',
+    //         )
+    //         res.status(500).json(errorResponse)
+    //         return
+    //     }
+    // }
+    // public logout = async (req: Request, res: Response): Promise<void> => {
+    //     try {
+    //         const sessionId = req.cookies.sessionId
 
-            if (!sessionId) {
-                res.status(400).json({
-                    success: false,
-                    message: 'No active session',
-                })
-                return
-            }
+    //         if (!sessionId) {
+    //             res.status(400).json({
+    //                 success: false,
+    //                 message: 'No active session',
+    //             })
+    //             return
+    //         }
 
-            await Session.destroy({
-                where: { sessionId },
-            })
+    //         await Session.destroy({
+    //             where: { sessionId },
+    //         })
 
-            res.clearCookie('sessionId')
+    //         res.clearCookie('sessionId')
 
-            res.status(200).json({
-                success: true,
-                message: 'Logout successful',
-            })
-        } catch (error) {
-            this.handleError(res, error)
-        }
-    }
+    //         res.status(200).json({
+    //             success: true,
+    //             message: 'Logout successful',
+    //         })
+    //     } catch (error) {
+    //         this.handleError(res, error)
+    //     }
+    // }
 
     private handleError = (res: Response, error: unknown): void => {
         if (error instanceof Error) {
