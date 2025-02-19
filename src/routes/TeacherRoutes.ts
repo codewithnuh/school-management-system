@@ -1,6 +1,5 @@
 import express from 'express'
 import TeacherController from '@/controllers/TeacherController.js'
-import { authenticate } from '@/middleware/auth.js'
 
 const router = express.Router()
 
@@ -246,7 +245,7 @@ router.post('/register', TeacherController.registerTeacher)
  */
 router.post(
     '/interview',
-    authenticate,
+
     TeacherController.interviewTeacherApplicant,
 )
 

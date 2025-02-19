@@ -1,6 +1,5 @@
 import express from 'express'
 import UserController from '@/controllers/UserController.js'
-import { authenticate } from '@/middleware/auth.js' // Updated import for authenticate middleware
 
 const router = express.Router()
 
@@ -167,7 +166,7 @@ router.post('/', UserController.createUser)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', authenticate, UserController.getAllUsers) // Added authentication middleware
+router.get('/',  UserController.getAllUsers) // Added authentication middleware
 
 /**
  * @openapi
@@ -210,7 +209,7 @@ router.get('/', authenticate, UserController.getAllUsers) // Added authenticatio
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/accept-user', authenticate, UserController.acceptUserApplication) // Added authentication middleware
+router.post('/accept-user',  UserController.acceptUserApplication) // Added authentication middleware
 
 /**
  * @openapi
@@ -254,7 +253,7 @@ router.post('/accept-user', authenticate, UserController.acceptUserApplication) 
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:userId', authenticate, UserController.deleteUser) // Added authentication middleware
+router.delete('/:userId', UserController.deleteUser) // Added authentication middleware
 
 /**
  * @openapi
