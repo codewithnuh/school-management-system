@@ -3,8 +3,16 @@ import { authController } from '@/controllers/AuthController.js'
 
 const router = express.Router()
 
+// Login route
 router.post('/login', authController.login)
-router.post('/login', authController.logout)
-router.post('/forgotPassword', authController.forgotPassword)
+
+// Logout route
+router.post('/logout', authController.logout)
+
+// Forgot password initiation route
+router.post('/forgot-password/initiate', authController.forgotPasswordInitiate)
+
+// Forgot password reset route
+router.post('/forgot-password/reset', authController.forgotPasswordReset)
 
 export default router
