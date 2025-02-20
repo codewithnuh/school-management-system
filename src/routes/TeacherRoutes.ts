@@ -119,7 +119,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', authenticate, TeacherController.getTeachers)
+router.get('/', TeacherController.getTeachers)
 
 /**
  * @openapi
@@ -246,6 +246,7 @@ router.post('/register', TeacherController.registerTeacher)
  */
 router.post(
     '/interview',
+    authenticate(['ADMIN']),
 
     TeacherController.interviewTeacherApplicant,
 )

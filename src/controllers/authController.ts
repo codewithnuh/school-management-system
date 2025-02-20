@@ -24,6 +24,9 @@ const forgotPasswordResetSchema = z.object({
 })
 
 export const authController = {
+    /**
+     * Logs in a user, sets an auth cookie, and returns the result message based on session existence.
+     */
     async login(req: Request, res: Response): Promise<void> {
         try {
             const validatedData = loginSchema.parse(req.body)
@@ -51,7 +54,8 @@ export const authController = {
             const userAgent = req.headers['user-agent']
             const ipAddress = req.ip
 
-            const { token } = await authService.login(
+            // Capture both the token and the message returned by authService.login
+            const { token, message: loginMessage } = await authService.login(
                 email,
                 password,
                 entityType as EntityType,
@@ -59,13 +63,17 @@ export const authController = {
                 userAgent,
                 ipAddress,
             )
+
+            // Set the token as an HTTP-only cookie (adjust 'secure' as appropriate for your environment)
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'development',
+                secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
                 maxAge: 120 * 120 * 1000,
             })
-            const response = ResponseUtil.success('Login successful')
+
+            // Use the service-provided message so the user knows whether it was a new login or an existing session
+            const response = ResponseUtil.success(loginMessage)
             res.status(200).json(response)
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -83,6 +91,9 @@ export const authController = {
         }
     },
 
+    /**
+     * Log out the user by invalidating the active session token.
+     */
     async logout(req: Request, res: Response): Promise<void> {
         try {
             const token = req.cookies.token
@@ -108,8 +119,6 @@ export const authController = {
 
     /**
      * Initiates the forgot password process.
-     * This endpoint verifies if the email exists for the specified entity type,
-     * cleans up any previous OTPs, creates a new OTP, and sends it via email.
      */
     async forgotPasswordInitiate(req: Request, res: Response): Promise<void> {
         try {
@@ -139,10 +148,7 @@ export const authController = {
     },
 
     /**
-     * Resets the password using the OTP.
-     * This endpoint expects a valid OTP and a new password.
-     * It verifies the OTP (including expiration), then marks it as used,
-     * hashes the new password, and updates the corresponding entity.
+     * Resets the user's password using an OTP.
      */
     async forgotPasswordReset(req: Request, res: Response): Promise<void> {
         try {
