@@ -40,7 +40,7 @@ export class Session extends Model<SessionZod> implements SessionZod {
     entityType!: 'USER' | 'ADMIN' | 'TEACHER' | 'PARENT'
 
     @Column({
-        type: DataType.UUID,
+        type: DataType.STRING(512),
         allowNull: false,
         unique: true,
     })

@@ -1,6 +1,8 @@
 import { Admin, Parent, Session, Teacher, User } from '@/models/index.js'
 import jwt, { SignOptions } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import { Op } from 'sequelize'
+import process from 'process'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '1h'
@@ -22,26 +24,31 @@ export enum EntityType {
  */
 interface CurrentUserPayload {
     userId: number
-    entityType: EntityType // Use the EntityType enum here
+    entityType: EntityType
 }
 
 /**
- * Interface defining the structure of a User model *instance* required by AuthService.login.
- * Ensures type safety when accessing user properties like id, email, and password.
+ * Interface defining the structure of a User model instance required by AuthService.login.
  */
 interface UserModelInstance {
     id: number
     email: string
-    password?: string // Password is often present but might be optional in some model definitions
+    password?: string
 }
 
 /**
- * Interface defining the structure of a User model *constructor* (the class itself).
- * It enforces that the model constructor has a static 'findOne' method with a specific signature
- * for finding users by email.
+ * Interface defining the structure of a User model constructor.
  */
 interface UserModelConstructor<T extends UserModelInstance> {
     findOne(options: { where: { email: string } }): Promise<T | null>
+}
+
+/**
+ * Interface for the login response.
+ */
+interface LoginResponse {
+    token: string
+    message: string
 }
 
 /**
@@ -51,21 +58,23 @@ class AuthService {
     /**
      * Authenticates a user and creates a session.
      *
-     * @param {string} email - The user's email.
-     * @param {string} passwordPlain - The user's password in plain text.
-     * @param {EntityType} entityType - The type of user entity (using EntityType enum).
-     * @param {UserModelConstructor<UserModelInstance>} userModel - The Sequelize model constructor
-     *        (e.g., User, Admin, Teacher, Parent) to use for finding the user. It must conform to UserModelConstructor.
-     * @param {string} [userAgent] - The user agent string (optional, for session tracking).
-     * @param {string} [ipAddress] - The user's IP address (optional, for session tracking).
-     * @returns {Promise<{ token: string }>} An object containing the authentication token.
-     * @throws {Error} Throws an error if credentials are invalid or JWT_SECRET is not defined.
+     * Before creating a new session, this method checks if an active session already exists.
+     * If found, it returns the existing session's token along with a message indicating that.
+     *
+     * @param email - The user's email.
+     * @param passwordPlain - The user's plain text password.
+     * @param entityType - The type of user entity (using EntityType enum).
+     * @param userModel - The Sequelize model constructor (e.g., User, Admin, Teacher, Parent) for finding the user.
+     * @param userAgent - Optional user agent string for session tracking.
+     * @param ipAddress - Optional IP address for session tracking.
+     * @returns An object containing the authentication token and a message.
+     * @throws Error if credentials are invalid or JWT_SECRET is not defined.
      *
      * @example
      * const authService = new AuthService();
      * try {
-     *  const { token } = await authService.login('test@test.com', 'password', EntityType.USER, User);
-     *  console.log('User logged in with token:', token);
+     *  const response = await authService.login('test@test.com', 'password', EntityType.USER, User);
+     *  console.log('Response:', response);
      * } catch (error) {
      *  console.error('Login failed:', error.message);
      * }
@@ -74,10 +83,10 @@ class AuthService {
         email: string,
         passwordPlain: string,
         entityType: EntityType,
-        userModel: UserModelConstructor<T>, // Using the correctly typed UserModelConstructor
+        userModel: UserModelConstructor<T>,
         userAgent?: string,
         ipAddress?: string,
-    ): Promise<{ token: string }> {
+    ): Promise<LoginResponse> {
         const user = await userModel.findOne({ where: { email } })
 
         if (!user) {
@@ -87,9 +96,26 @@ class AuthService {
         const passwordMatch = await bcrypt.compare(
             passwordPlain,
             user.password!,
-        ) // Non-null assertion as password should be present for login
+        )
         if (!passwordMatch) {
             throw new Error('Invalid credentials')
+        }
+
+        // Check if an active session already exists for the user with the same entityType
+        const activeSession = await Session.findOne({
+            where: {
+                userId: user.id,
+                entityType: entityType,
+                expiryDate: { [Op.gt]: new Date() },
+            },
+        })
+
+        if (activeSession) {
+            // Return existing session token if active session is found
+            return {
+                token: activeSession.token,
+                message: 'Session already exists',
+            }
         }
 
         const payload: CurrentUserPayload = {
@@ -100,6 +126,7 @@ class AuthService {
         if (!JWT_SECRET) {
             throw new Error('JWT_SECRET is not defined')
         }
+
         const token = jwt.sign(payload, JWT_SECRET, {
             expiresIn: JWT_EXPIRY,
         } as SignOptions)
@@ -109,21 +136,21 @@ class AuthService {
 
         await Session.create({
             userId: user.id,
-            entityType: entityType, // Store entityType as string in Session model (or adjust Session model to use enum)
+            entityType: entityType,
             token: token,
             expiryDate: expiryDate,
             userAgent: userAgent,
             ipAddress: ipAddress,
         })
 
-        return { token }
+        return { token, message: 'Login successful' }
     }
 
     /**
      * Logs out a user by destroying the session associated with the given token.
      *
-     * @param {string} token - The authentication token.
-     * @returns {Promise<void>}
+     * @param token - The authentication token.
+     * @returns Promise that resolves when the session is destroyed.
      *
      * @example
      * const authService = new AuthService();
@@ -136,8 +163,8 @@ class AuthService {
     /**
      * Retrieves the current user information based on the provided token.
      *
-     * @param {string} token - The authentication token.
-     * @returns {Promise<CurrentUserPayload | null>} The current user payload or null if the token is invalid or expired.
+     * @param token - The authentication token.
+     * @returns The current user payload or null if the token is invalid or expired.
      *
      * @example
      * const authService = new AuthService();
@@ -167,9 +194,9 @@ class AuthService {
     /**
      * Gets the entity type of a user.
      *
-     * @param {number} userId - The ID of the user.
-     * @param {EntityType} entityType - The type of the entity (using EntityType enum).
-     * @returns {Promise<EntityType>} The entity type (returns EntityType enum).
+     * @param userId - The ID of the user.
+     * @param entityType - The type of the entity (using EntityType enum).
+     * @returns The entity type.
      */
     async getUserEntityType(
         userId: number,
@@ -181,8 +208,8 @@ class AuthService {
     /**
      * Retrieves the user ID from the provided token.
      *
-     * @param {string} token - The authentication token.
-     * @returns {Promise<number | null>} The user ID or null if the token is invalid or expired.
+     * @param token - The authentication token.
+     * @returns The user ID or null if the token is invalid or expired.
      *
      * @example
      * const authService = new AuthService();
@@ -199,9 +226,9 @@ class AuthService {
     /**
      * Fetches the user entity (User, Admin, Teacher, Parent) based on the user ID and entity type.
      *
-     * @param {number} userId - The ID of the user.
-     * @param {EntityType} entityType - The type of user entity (using EntityType enum).
-     * @returns {Promise<any | null>} The user entity or null if not found or entityType is invalid.
+     * @param userId - The ID of the user.
+     * @param entityType - The type of user entity (using EntityType enum).
+     * @returns The user entity or null if not found.
      */
     async fetchUserEntity(
         userId: number,
@@ -217,7 +244,7 @@ class AuthService {
             case EntityType.PARENT:
                 return Parent.findByPk(userId)
             default:
-                return null // Or throw an error for unknown entityType
+                return null
         }
     }
 }

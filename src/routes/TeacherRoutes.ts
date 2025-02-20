@@ -1,5 +1,6 @@
 import express from 'express'
 import TeacherController from '@/controllers/TeacherController.js'
+import authenticate from '@/middleware/auth.middleware'
 
 const router = express.Router()
 
@@ -118,7 +119,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', TeacherController.getTeachers)
+router.get('/', authenticate, TeacherController.getTeachers)
 
 /**
  * @openapi

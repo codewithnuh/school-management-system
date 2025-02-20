@@ -116,7 +116,7 @@ class TeacherController {
                 limit,
                 offset,
                 attributes: {
-                    exclude: ['cvPath', 'verificationDocument'],
+                    exclude: ['cvPath', 'verificationDocument', 'password'],
                 },
             })
 

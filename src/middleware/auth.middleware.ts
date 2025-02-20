@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 import { Session } from '@/models/index.js'
 import process from 'process'
 
-// Fix: Declare and extract JWT_SECRET from process.env
+// Ensure that JWT_SECRET is extracted from process.env
 const { JWT_SECRET } = process.env
 if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in environment variables.')
@@ -34,51 +34,47 @@ const validateSession = async (token: string): Promise<boolean> => {
     return true
 }
 
-// Express middleware that checks the Authorization header, verifies the JWT, validates the session,
+// Express middleware that checks for the token in cookies, verifies the JWT, validates the session,
 // and attaches the token payload to the request body for downstream usage.
+//
+// NOTE: Make sure to use cookie-parser in your application (e.g., app.use(cookieParser()))
 export const authenticate = async (
     req: Request,
     res: Response,
     next: NextFunction,
-) => {
+): Promise<void> => {
     try {
-        const authHeader = req.headers.authorization
-        if (!authHeader) {
-            return res
-                .status(AuthErrors.TOKEN_MISSING.status)
-                .json({ error: AuthErrors.TOKEN_MISSING.message })
-        }
-
-        // Expected format: "Bearer token"
-        const token = authHeader.split(' ')[1]
+        // Read token from cookies instead of authorization header
+        const token = req.cookies?.token
         if (!token) {
-            return res
-                .status(AuthErrors.TOKEN_MISSING.status)
-                .json({ error: AuthErrors.TOKEN_MISSING.message })
+            res.status(AuthErrors.TOKEN_MISSING.status).json({
+                error: AuthErrors.TOKEN_MISSING.message,
+            })
+            return
         }
-
-        // Verify the token using JWT_SECRET
         let payload
         try {
             payload = jwt.verify(token, JWT_SECRET)
         } catch (err) {
             console.error(err)
-            return res
-                .status(AuthErrors.INVALID_TOKEN.status)
-                .json({ error: AuthErrors.INVALID_TOKEN.message })
+            res.status(AuthErrors.INVALID_TOKEN.status).json({
+                error: AuthErrors.INVALID_TOKEN.message,
+            })
+            return
         }
 
-        // Validate associated session data from the database
+        // Validate session data based on the token
         await validateSession(token)
 
-        // Attach token payload to request body for further use
+        // Attach token payload to request body for further usage
         req.body.user = payload
+
         next()
     } catch (error) {
         console.error('Authentication error:', error)
-        return res
-            .status(AuthErrors.INTERNAL_ERROR.status)
-            .json({ error: AuthErrors.INTERNAL_ERROR.message })
+        res.status(AuthErrors.INTERNAL_ERROR.status).json({
+            error: AuthErrors.INTERNAL_ERROR.message,
+        })
     }
 }
 
