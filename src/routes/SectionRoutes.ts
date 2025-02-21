@@ -1,5 +1,6 @@
 import express from 'express'
 import { SectionController } from '@/controllers/SectionController.js'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const sectionRoutes = express.Router()
 
@@ -98,7 +99,11 @@ const sectionRoutes = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-sectionRoutes.post('/', SectionController.createSection)
+sectionRoutes.post(
+    '/',
+    authWithRBAC(['ADMIN']),
+    SectionController.createSection,
+)
 
 /**
  * @openapi

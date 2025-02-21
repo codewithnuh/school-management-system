@@ -1,5 +1,6 @@
 import express from 'express'
 import UserController from '@/controllers/UserController.js'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const router = express.Router()
 
@@ -140,7 +141,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', UserController.createUser)
+router.post('/', authWithRBAC(['ADMIN']), UserController.createUser)
 
 /**
  * @openapi
@@ -166,7 +167,11 @@ router.post('/', UserController.createUser)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/',  UserController.getAllUsers) // Added authentication middleware
+router.get(
+    '/',
+    authWithRBAC(['ADMIN', 'TEACHER', 'USER', 'PARENT']),
+    UserController.getAllUsers,
+) // Added authentication middleware
 
 /**
  * @openapi
@@ -209,7 +214,11 @@ router.get('/',  UserController.getAllUsers) // Added authentication middleware
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/accept-user',  UserController.acceptUserApplication) // Added authentication middleware
+router.post(
+    '/accept-user',
+    authWithRBAC(['ADMIN']),
+    UserController.acceptUserApplication,
+) // Added authentication middleware
 
 /**
  * @openapi
@@ -253,7 +262,7 @@ router.post('/accept-user',  UserController.acceptUserApplication) // Added auth
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:userId', UserController.deleteUser) // Added authentication middleware
+router.delete('/:userId', authWithRBAC(['ADMIN']), UserController.deleteUser) // Added authentication middleware
 
 /**
  * @openapi
@@ -302,7 +311,11 @@ router.delete('/:userId', UserController.deleteUser) // Added authentication mid
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.patch('/auth/reset-token', UserController.resetUserPassword)
+router.patch(
+    '/auth/reset-token',
+    authWithRBAC(['ADMIN']),
+    UserController.resetUserPassword,
+)
 
 /**
  * @openapi
@@ -338,77 +351,5 @@ router.patch('/auth/reset-token', UserController.resetUserPassword)
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 // router.post('/auth/login', UserController.login)
-
-/**
- * @openapi
- * /users/auth/logout:
- *   post:
- *     summary: Logout user
- *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Logout successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Logout successful"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-// router.post('/auth/logout', authenticate, UserController.logout) // Added authentication middleware
-
-/**
- * @openapi
- * /users/auth/forgot-password:
- *   post:
- *     summary: Initiate forgot password process
- *     tags: [Authentication]
- *     requestBody:
- *       description: Payload for initiating the forgot password process
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ForgotPasswordRequest'
- *           examples:
- *             forgotPassword:
- *               summary: Forgot password payload
- *               value:
- *                 email: "user@example.com"
- *     responses:
- *       200:
- *         description: Forgot password email sent successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Forgot password email sent successfully"
- *       400:
- *         description: Invalid input
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-// router.post('/auth/forgot-password', UserController.forgotPassword)
 
 export default router

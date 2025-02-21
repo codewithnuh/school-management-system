@@ -1,5 +1,6 @@
 import express from 'express'
 import { GradeController } from '@/controllers/GradeController.js'
+import authWithRBAC from '@/middleware/auth.middleware'
 
 const router = express.Router()
 
@@ -133,7 +134,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', GradeController.addGrade)
+router.post('/', authWithRBAC(['ADMIN']), GradeController.addGrade)
 
 /**
  * @openapi
@@ -158,7 +159,7 @@ router.post('/', GradeController.addGrade)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', GradeController.getAllGrades)
+router.get('/', authWithRBAC(), GradeController.getAllGrades)
 
 /**
  * @openapi
@@ -211,7 +212,7 @@ router.get('/', GradeController.getAllGrades)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/:id', GradeController.updateGrade)
+router.put('/:id', authWithRBAC(['ADMIN']), GradeController.updateGrade)
 
 /**
  * @openapi
@@ -245,6 +246,6 @@ router.put('/:id', GradeController.updateGrade)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', GradeController.deleteGrade)
+router.delete('/:id', authWithRBAC(['ADMIN']), GradeController.deleteGrade)
 
 export default router

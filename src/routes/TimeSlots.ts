@@ -1,5 +1,6 @@
 import express from 'express'
 import { TimeSlotController } from '@/controllers/TimeSlotController'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const router = express.Router()
 
@@ -40,7 +41,11 @@ const router = express.Router()
  *       500:
  *         description: Server error
  */
-router.post('/time-slots', TimeSlotController.createTimeSlots)
+router.post(
+    '/time-slots',
+    authWithRBAC(['ADMIN']),
+    TimeSlotController.createTimeSlots,
+)
 
 /**
  * @openapi
@@ -78,7 +83,11 @@ router.post('/time-slots', TimeSlotController.createTimeSlots)
  *       500:
  *         description: Server error
  */
-router.put('/time-slots/:id', TimeSlotController.updateTimeSlot)
+router.put(
+    '/time-slots/:id',
+    authWithRBAC(['ADMIN']),
+    TimeSlotController.updateTimeSlot,
+)
 
 /**
  * @openapi
@@ -103,5 +112,9 @@ router.put('/time-slots/:id', TimeSlotController.updateTimeSlot)
  *       500:
  *         description: Server error
  */
-router.delete('/time-slots/:id', TimeSlotController.deleteTimeSlot)
+router.delete(
+    '/time-slots/:id',
+    authWithRBAC(['ADMIN']),
+    TimeSlotController.deleteTimeSlot,
+)
 export default router

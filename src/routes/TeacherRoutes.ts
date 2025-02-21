@@ -119,7 +119,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', TeacherController.getTeachers)
+router.get('/', authenticate(['ADMIN']), TeacherController.getTeachers)
 
 /**
  * @openapi
@@ -187,7 +187,16 @@ router.get('/:id', TeacherController.getTeacherById)
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/register', TeacherController.registerTeacher)
-
+router.post(
+    '/accept-teacher-application',
+    authenticate(['ADMIN']),
+    TeacherController.acceptTeacherApplication,
+)
+router.post(
+    '/reject-teacher-application',
+    authenticate(['ADMIN']),
+    TeacherController.rejectTeacherApplication,
+)
 /**
  * @openapi
  * /teachers/interview:

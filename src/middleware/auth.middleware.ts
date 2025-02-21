@@ -143,7 +143,7 @@ function authWithRBAC(allowedRoles: UserRole[] = []) {
 
             // 4. If this route has allowed roles, verify user's role is permitted
             if (allowedRoles.length > 0) {
-                const userRole: UserRole = payload.role || 'USER'
+                const userRole: UserRole = payload.entityType!
                 const isRoleAllowed = allowedRoles.includes(userRole) // Check if userRole is in allowedRoles
                 if (!isRoleAllowed) {
                     res.status(AuthErrors.INSUFFICIENT_PERMISSIONS.status).json(

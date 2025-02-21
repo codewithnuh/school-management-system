@@ -1,5 +1,6 @@
 import express from 'express'
 import { ExamController } from '@/controllers/ExamController.js'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const router = express.Router()
 
@@ -114,7 +115,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', ExamController.createExam)
+router.post('/', authWithRBAC(['ADMIN']), ExamController.createExam)
 
 /**
  * @openapi

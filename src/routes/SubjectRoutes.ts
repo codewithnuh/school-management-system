@@ -1,6 +1,7 @@
 // subject.routes.ts
 import { Router } from 'express'
 import { SubjectController } from '@/controllers/SubjectController.js'
+import authWithRBAC from '@/middleware/auth.middleware'
 
 const router = Router()
 
@@ -104,7 +105,7 @@ const router = Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', SubjectController.create)
+router.post('/', authWithRBAC(['ADMIN']), SubjectController.create)
 
 /**
  * @openapi
@@ -141,7 +142,11 @@ router.post('/', SubjectController.create)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id', SubjectController.getById)
+router.get(
+    '/:id',
+    authWithRBAC(['ADMIN', 'TEACHER']),
+    SubjectController.getById,
+)
 
 /**
  * @openapi
@@ -167,7 +172,7 @@ router.get('/:id', SubjectController.getById)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', SubjectController.getAll)
+router.get('/', authWithRBAC(), SubjectController.getAll)
 
 /**
  * @openapi
@@ -217,7 +222,7 @@ router.get('/', SubjectController.getAll)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/:id', SubjectController.update)
+router.put('/:id', authWithRBAC(['ADMIN']), SubjectController.update)
 
 /**
  * @openapi
@@ -250,6 +255,6 @@ router.put('/:id', SubjectController.update)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', SubjectController.delete)
+router.delete('/:id', authWithRBAC(['ADMIN']), SubjectController.delete)
 
 export default router

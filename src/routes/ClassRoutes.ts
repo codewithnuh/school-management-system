@@ -1,5 +1,6 @@
 import express from 'express'
 import { ClassController } from '@/controllers/ClassController.js'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const router = express.Router()
 
@@ -150,7 +151,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', ClassController.createClass)
+router.post('/', authWithRBAC(['ADMIN']), ClassController.createClass)
 
 /**
  * @openapi
@@ -176,7 +177,7 @@ router.post('/', ClassController.createClass)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', ClassController.getAllClasses)
+router.get('/', authWithRBAC(['ADMIN']), ClassController.getAllClasses)
 
 /**
  * @openapi
@@ -207,7 +208,11 @@ router.get('/', ClassController.getAllClasses)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id', ClassController.getClassById)
+router.get(
+    '/:id',
+    authWithRBAC(['ADMIN', 'TEACHER', 'USER']),
+    ClassController.getClassById,
+)
 
 /**
  * @openapi
@@ -245,7 +250,7 @@ router.get('/:id', ClassController.getClassById)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/:id', ClassController.updateClass)
+router.put('/:id', authWithRBAC(['ADMIN']), ClassController.updateClass)
 
 /**
  * @openapi
@@ -283,6 +288,6 @@ router.put('/:id', ClassController.updateClass)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', ClassController.deleteClass)
+router.delete('/:id', authWithRBAC(['ADMIN']), ClassController.deleteClass)
 
 export default router

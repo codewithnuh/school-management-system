@@ -1,5 +1,6 @@
 import express from 'express'
 import { TimetableController } from '@/controllers/TimeTableController.js'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const router = express.Router()
 
@@ -113,7 +114,11 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/generate/:classid', TimetableController.generateTimetable)
+router.post(
+    '/generate/:classid',
+    authWithRBAC(['ADMIN']),
+    TimetableController.generateTimetable,
+)
 
 /**
  * @openapi
@@ -161,6 +166,7 @@ router.post('/generate/:classid', TimetableController.generateTimetable)
  */
 router.get(
     '/weekly/:classId/:sectionId',
+    authWithRBAC(['ADMIN']),
     TimetableController.getWeeklyTimetable,
 )
 
