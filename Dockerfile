@@ -25,7 +25,7 @@ RUN rm -f .env
 RUN pnpm exec tsc --version
 
 # Compile TypeScript and fix paths
-RUN pnpm exec tsc && pnpm exec tsc-alias
+RUN pnpm exec tsc  && tsc-alias
 
 # Expose port 3000
 EXPOSE 3000
