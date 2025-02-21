@@ -1,7 +1,7 @@
 // subject.routes.ts
 import { Router } from 'express'
 import { SubjectController } from '@/controllers/SubjectController.js'
-import authWithRBAC from '@/middleware/auth.middleware'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const router = Router()
 

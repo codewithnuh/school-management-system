@@ -1,6 +1,6 @@
 import express from 'express'
 import { GradeController } from '@/controllers/GradeController.js'
-import authWithRBAC from '@/middleware/auth.middleware'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const router = express.Router()
 

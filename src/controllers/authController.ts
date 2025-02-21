@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { authService, EntityType } from '@/services/auth.service.js'
-import { ForgotPassword } from '@/services/forgot-password.service'
+import { ForgotPassword } from '@/services/forgot-password.service.js'
 import { z } from 'zod'
 import { ResponseUtil } from '@/utils/response.util.js'
 import { Admin, User, Teacher, Parent, Session } from '@/models/index.js'
