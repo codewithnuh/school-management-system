@@ -9,9 +9,13 @@
         "experimentalDecorators": true, // Important for Sequelize decorators
         "emitDecoratorMetadata": true, // Important for Sequelize decorators
         "forceConsistentCasingInFileNames": true,
-        "baseUrl": "./src",
+        "baseUrl": ".",
         "paths": {
-            "@/*": ["*"]
+            "@/*": ["src/*"],
+            "@routes/*": ["src/routes/*"],
+            "@controllers/*": ["src/controllers/*"],
+            "@config/*": ["src/config/*"],
+            "@models/*": ["src/models/*"]
         },
         "moduleResolution": "node",
         "allowJs": true,

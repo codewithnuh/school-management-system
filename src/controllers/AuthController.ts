@@ -23,7 +23,7 @@ const forgotPasswordResetSchema = z.object({
         .min(6, { message: 'New password must be at least 6 characters long' }),
 })
 
-export const authController = {
+export const AuthController = {
     /**
      * Logs in a user, sets an auth cookie, and returns the result message based on session existence.
      */
