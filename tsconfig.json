@@ -5,7 +5,6 @@
         "module": "es2020",
         "outDir": "./dist",
         "strict": true,
-        "typeRoots": ["./src/types"],
         "esModuleInterop": true,
         "experimentalDecorators": true, // Important for Sequelize decorators
         "emitDecoratorMetadata": true, // Important for Sequelize decorators
