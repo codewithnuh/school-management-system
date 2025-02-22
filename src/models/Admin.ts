@@ -1,11 +1,6 @@
-import { DataTypes } from 'sequelize';
-import {
-    Table,
-    Column,
-    Model,
-    DataType,
-} from 'sequelize-typescript';
-import { z } from 'zod';
+import { DataTypes } from 'sequelize'
+import { Table, Column, Model, DataType } from 'sequelize-typescript'
+import { z } from 'zod'
 
 const adminSchema = z.object({
     firstName: z.string(),
@@ -17,10 +12,10 @@ const adminSchema = z.object({
     role: z.string(),
     isSuperAdmin: z.boolean(),
     createdAt: z.date().optional(),
-    updatedAt: z.date().optional()
-});
+    updatedAt: z.date().optional(),
+})
 
-type AdminAttributes = z.infer<typeof adminSchema>;
+type AdminAttributes = z.infer<typeof adminSchema>
 
 @Table({
     tableName: 'admins',
@@ -32,16 +27,16 @@ export class Admin extends Model<AdminAttributes> implements AdminAttributes {
         primaryKey: true,
         autoIncrement: true,
     })
-    id!: number;
+    id!: number
 
     @Column({ type: DataType.STRING, allowNull: false })
-    firstName!: string;
+    firstName!: string
 
     @Column({ type: DataType.STRING })
-    middleName?: string;
+    middleName?: string
 
     @Column({ type: DataType.STRING, allowNull: false })
-    lastName!: string;
+    lastName!: string
 
     @Column({
         type: DataType.STRING,
@@ -49,30 +44,30 @@ export class Admin extends Model<AdminAttributes> implements AdminAttributes {
         allowNull: false,
         validate: { isEmail: true },
     })
-    email!: string;
+    email!: string
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
         validate: { isNumeric: true, len: [10, 15] },
     })
-    phoneNo!: string;
+    phoneNo!: string
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    password!: string;
+    password!: string
 
     @Column({ type: DataType.STRING, allowNull: false })
-    role!: string;
+    role!: string
 
     @Column({ type: DataType.BOOLEAN, defaultValue: false, allowNull: false })
-    isSuperAdmin!: boolean;
+    isSuperAdmin!: boolean
 
     @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
-    createdAt?: Date;
+    createdAt?: Date
 
     @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
-    updatedAt?: Date;
+    updatedAt?: Date
 }

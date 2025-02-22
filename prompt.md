@@ -448,7 +448,6 @@ export class Subject extends Model<SubjectAttributes> {
 here is class model
 
 ```ts
-
 // class.model.ts
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript'
 import { Section } from '@/models/index.js'
@@ -552,7 +551,6 @@ export class Class extends Model<CreateClassInput> {
     })
     description?: string
 }
-
 ```
 
 ```ts
@@ -697,7 +695,6 @@ SectionTeacher.belongsTo(Subject, { foreignKey: 'subjectId' })
 SectionTeacher.belongsTo(Teacher, { foreignKey: 'teacherId' })
 Subject.hasMany(SectionTeacher, { foreignKey: 'sectionId' })
 export default sequelize
-
 ```
 
 Here you can see there we are referencing models in datbase config after model intializing because in this way can avoid circular dependancy
@@ -705,8 +702,6 @@ Here you can see there we are referencing models in datbase config after model i
 Try to define each exam model correctly adn also here is @/models/index.ts
 
 ```ts
-
-
 export * from '@/models/Class.js'
 export * from '@/models/section.js'
 export { EntityType as OTPEntityType, OTP } from './OTP.js'
@@ -1143,7 +1138,6 @@ export class TimetableService {
         return orderedTimetable
     }
 }
-
 ```
 
 if you need more info and have questions feel free to ask before procceeding.

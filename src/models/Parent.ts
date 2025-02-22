@@ -1,11 +1,5 @@
-import {
-    Table,
-    Column,
-    Model,
-    DataType,
-    HasMany,
-} from 'sequelize-typescript';
-import {User} from '@/models/index.js'
+import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript'
+import { User } from '@/models/index.js'
 
 @Table({
     tableName: 'parents',
@@ -17,25 +11,25 @@ export class Parent extends Model {
         primaryKey: true,
         autoIncrement: true,
     })
-    id!: number;
+    id!: number
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    firstName!: string;
+    firstName!: string
 
     @Column({
         type: DataType.STRING,
         allowNull: true,
     })
-    middleName?: string;
+    middleName?: string
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    lastName!: string;
+    lastName!: string
 
     @Column({
         type: DataType.STRING,
@@ -43,40 +37,40 @@ export class Parent extends Model {
         unique: true,
         validate: { isEmail: true },
     })
-    email!: string;
+    email!: string
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
         validate: { isNumeric: true, len: [10, 15] },
     })
-    phoneNo!: string;
+    phoneNo!: string
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    address!: string;
+    address!: string
     @Column({
         type: DataType.STRING,
         allowNull: false,
         validate: { isNumeric: true, len: [13, 13] },
     })
-    guardianCNIC!: string;
+    guardianCNIC!: string
 
     @Column({
         type: DataType.STRING,
         allowNull: true,
         validate: { isNumeric: true, len: [10, 15] },
     })
-    guardianPhone?: string;
+    guardianPhone?: string
     @Column({
         type: DataType.STRING,
         allowNull: true,
         validate: { isEmail: true },
     })
-    guardianEmail?: string;
+    guardianEmail?: string
 
     @HasMany(() => User)
-    users?: User[];
+    users?: User[]
 }

@@ -175,7 +175,7 @@ export class User extends Model<UserAttributes> implements UserAttributes {
         type: DataType.INTEGER,
         allowNull: true,
     })
-    parentId?: number;
+    parentId?: number
     @BelongsTo(() => Parent)
-    parent?: Parent;
+    parent?: Parent
 }

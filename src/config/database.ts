@@ -25,8 +25,7 @@ import {
     StudentFeeAllocation,
     Parent,
     Admin,
-    Session
-
+    Session,
 } from '@/models/index.js'
 
 config()

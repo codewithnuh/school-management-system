@@ -147,6 +147,7 @@ To ensure the quality of the codebase, consider implementing unit tests for cont
     - Expected outcome: Detailed Sequelize logs should appear in the console
 
 2. Server Start-up Failure:
+
     - Problem: Server fails to start
     - Error message: "Error: listen EADDRINUSE: address already in use :::3000"
     - Diagnostic steps:

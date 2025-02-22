@@ -1,23 +1,23 @@
 version: '3.8'
 
 services:
-  app:
-    build: .
-    ports:
-      - "${PORT:-3000}:3000"  # Maps host port (defaults to 3000) to container port 3000
-    env_file:
-      - .env  # Load environment variables from the .env file in your project root
-    depends_on:
-      - db
+    app:
+        build: .
+        ports:
+            - '${PORT:-3000}:3000' # Maps host port (defaults to 3000) to container port 3000
+        env_file:
+            - .env # Load environment variables from the .env file in your project root
+        depends_on:
+            - db
 
-  db:
-    image: mysql:8
-    ports:
-      - "3306:3306"  # Expose MySQL on the standard port
-    env_file:
-      - .env.db  # Optionally, if you have a separate env file for DB settings
-    volumes:
-      - mysql_data:/var/lib/mysql
+    db:
+        image: mysql:8
+        ports:
+            - '3306:3306' # Expose MySQL on the standard port
+        env_file:
+            - .env.db # Optionally, if you have a separate env file for DB settings
+        volumes:
+            - mysql_data:/var/lib/mysql
 
 volumes:
-  mysql_data:
+    mysql_data:

@@ -1,2214 +1,2214 @@
 openapi: 3.0.0
 info:
-  title: School Management System API
-  version: 1.0.0
-  description: API documentation for School Management System
-  contact:
-    name: API Support
-    email: support@example.com
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
+    title: School Management System API
+    version: 1.0.0
+    description: API documentation for School Management System
+    contact:
+        name: API Support
+        email: support@example.com
+    license:
+        name: MIT
+        url: https://opensource.org/licenses/MIT
 servers:
-  - url: http://localhost:3000
-    description: Development server
-  - url: https://api.production.com
-    description: Production server
+    - url: http://localhost:3000
+      description: Development server
+    - url: https://api.production.com
+      description: Production server
 tags:
-  - name: Timetable
-    description: Endpoints for managing timetables
-  - name: Exam Subjects
-    description: Endpoints for assigning and managing exam subjects
-  - name: Users
-    description: Endpoints for user management and authentication
-  - name: Exams
-    description: Endpoints for managing exams
-  - name: Grades
-    description: Endpoints for managing grade criteria
-  - name: Results
-    description: Endpoints for managing exam results
-  - name: Sections
-    description: Endpoints for managing school sections
-  - name: Subjects
-    description: Endpoints for managing school subjects
-  - name: Teachers
-    description: Endpoints for managing teachers
-  - name: Classes
-    description: API endpoints for managing classes.
-  - name: Authentication
-    description: API endpoints for authentication.
+    - name: Timetable
+      description: Endpoints for managing timetables
+    - name: Exam Subjects
+      description: Endpoints for assigning and managing exam subjects
+    - name: Users
+      description: Endpoints for user management and authentication
+    - name: Exams
+      description: Endpoints for managing exams
+    - name: Grades
+      description: Endpoints for managing grade criteria
+    - name: Results
+      description: Endpoints for managing exam results
+    - name: Sections
+      description: Endpoints for managing school sections
+    - name: Subjects
+      description: Endpoints for managing school subjects
+    - name: Teachers
+      description: Endpoints for managing teachers
+    - name: Classes
+      description: API endpoints for managing classes.
+    - name: Authentication
+      description: API endpoints for authentication.
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-  schemas:
-    Error:
-      type: object
-      properties:
-        message:
-          type: string
-        internal_code:
-          type: string
-    ErrorResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: false
-          example: false
-        message:
-          type: string
-          example: An error occurred
-      required:
-        - success
-        - message
-    Class:
-      type: object
-      properties:
-        id:
-          type: number
-          description: The auto-generated ID of the class
-          readOnly: true
-          example: 1
-        name:
-          type: string
-          description: The name of the class
-          example: Grade 10
-        description:
-          type: string
-          description: A brief description of the class
-          example: Class for 10th grade students
-        maxStudents:
-          type: number
-          description: Maximum number of students allowed in the class
-          example: 40
-        periodsPerDay:
-          type: number
-          description: Number of periods scheduled per day for this class
-          example: 8
-        periodLength:
-          type: number
-          description: Length of each period in minutes
-          example: 45
-        workingDays:
-          type: array
-          description: Days of the week when the class operates
-          items:
-            type: string
-            enum:
-              - Monday
-              - Tuesday
-              - Wednesday
-              - Thursday
-              - Friday
-              - Saturday
-              - Sunday
-          example:
-            - Monday
-            - Tuesday
-            - Wednesday
-            - Thursday
-            - Friday
-        subjectIds:
-          type: array
-          description: List of subject IDs associated with this class
-          items:
-            type: number
-          example:
-            - 1
-            - 2
-            - 3
-        sections:
-          type: array
-          description: List of sections within this class
-          items:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+    schemas:
+        Error:
             type: object
             properties:
-              name:
-                type: string
-                description: Name of the section
-                example: Section A
-              maxStudents:
-                type: number
-                description: Maximum students allowed in this section
-                example: 20
-              classTeacherId:
-                type: number
-                description: ID of the teacher assigned to this section
-                example: 10
-              subjectTeachers:
-                type: object
-                description: Mapping of subject IDs to teacher IDs for this section
-                additionalProperties:
-                  type: number
-                example:
-                  '1': 12
-                  '2': 15
+                message:
+                    type: string
+                internal_code:
+                    type: string
+        ErrorResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    default: false
+                    example: false
+                message:
+                    type: string
+                    example: An error occurred
             required:
-              - name
-              - maxStudents
-              - classTeacherId
-              - subjectTeachers
-      required:
-        - name
-        - maxStudents
-        - periodsPerDay
-        - periodLength
-        - workingDays
-        - subjectIds
-        - sections
-    ClassResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Class'
-        message:
-          type: string
-          example: Class created successfully
-    Exam:
-      type: object
-      properties:
-        examId:
-          type: number
-        examName:
-          type: string
-        academicYear:
-          type: string
-        classId:
-          type: number
-        sectionId:
-          type: number
-        examDate:
-          type: string
-          format: date
-        totalMarks:
-          type: number
-        passingMarks:
-          type: number
-        examType:
-          type: string
-        description:
-          type: string
-        isPublished:
-          type: boolean
-      required:
-        - examName
-        - classId
-        - examDate
-        - academicYear
-        - totalMarks
-    ExamResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          $ref: '#/components/schemas/Exam'
-        message:
-          type: string
-    Grade:
-      type: object
-      properties:
-        gradeId:
-          type: number
-          example: 1
-        gradeName:
-          type: string
-          example: A+
-        lowerPercentage:
-          type: number
-          example: 90
-        upperPercentage:
-          type: number
-          example: 100
-        description:
-          type: string
-          example: Excellent
-      required:
-        - gradeName
-        - lowerPercentage
-        - upperPercentage
-    GradeInput:
-      type: object
-      properties:
-        gradeName:
-          type: string
-          example: A
-        lowerPercentage:
-          type: number
-          example: 80
-        upperPercentage:
-          type: number
-          example: 89
-        description:
-          type: string
-          example: Very Good
-      required:
-        - gradeName
-        - lowerPercentage
-        - upperPercentage
-    GradeResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Grade'
-        message:
-          type: string
-          example: Grade added successfully
-    GradesListResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Grade'
-        message:
-          type: string
-          example: Grades retrieved successfully
-    ResultInput:
-      type: object
-      properties:
-        studentId:
-          type: integer
-          description: ID of the student.
-          example: 1
-        examId:
-          type: integer
-          description: ID of the exam.
-          example: 10
-        subjectId:
-          type: integer
-          description: ID of the subject.
-          example: 5
-        marksObtained:
-          type: number
-          description: Marks obtained by the student.
-          example: 85.5
-      required:
-        - studentId
-        - examId
-        - subjectId
-        - marksObtained
-    ResultResponse:
-      type: object
-      properties:
-        resultId:
-          type: integer
-          description: ID of the result.
-          example: 1
-        studentId:
-          type: integer
-          description: ID of the student.
-          example: 1
-        examId:
-          type: integer
-          description: ID of the exam.
-          example: 10
-        subjectId:
-          type: integer
-          description: ID of the subject.
-          example: 5
-        marksObtained:
-          type: number
-          description: Marks obtained by the student.
-          example: 85.5
-      required:
-        - studentId
-        - examId
-        - subjectId
-        - marksObtained
-    SectionInput:
-      type: object
-      properties:
-        name:
-          type: string
-          example: Section A
-        classId:
-          type: string
-          example: '101'
-      required:
-        - name
-        - classId
-    Section:
-      type: object
-      properties:
-        sectionId:
-          type: string
-          example: '1'
-        name:
-          type: string
-          example: Section A
-        classId:
-          type: string
-          example: '101'
-      required:
-        - name
-        - classId
-    SectionResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Section'
-        message:
-          type: string
-          example: Section created successfully
-    SubjectInput:
-      type: object
-      properties:
-        subjectName:
-          type: string
-          example: Mathematics
-        subjectCode:
-          type: string
-          example: MATH101
-      required:
-        - subjectName
-        - subjectCode
-    Subject:
-      type: object
-      properties:
-        subjectId:
-          type: integer
-          example: 1
-        subjectName:
-          type: string
-          example: Mathematics
-        subjectCode:
-          type: string
-          example: MATH101
-      required:
-        - subjectName
-        - subjectCode
-    SubjectResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Subject'
-        message:
-          type: string
-          example: Subject created successfully
-    Teacher:
-      type: object
-      properties:
-        teacherId:
-          type: string
-          example: '1'
-        name:
-          type: string
-          example: John Doe
-        email:
-          type: string
-          format: email
-          example: john.doe@example.com
-        subject:
-          type: string
-          example: Mathematics
-        qualifications:
-          type: array
-          items:
-            type: string
-          example:
-            - Bachelors
-            - Masters
-        status:
-          type: string
-          enum:
-            - active
-            - pending
-            - rejected
-          description: The current status of the teacher's application.
-          example: pending
-      required:
-        - name
-        - email
-        - subject
-        - qualifications
-    TeacherResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Teacher'
-        message:
-          type: string
-          example: Teacher retrieved successfully
-    TimetableInput:
-      type: object
-      properties:
-        classId:
-          type: string
-          example: '101'
-          description: The ID of the class.
-        sectionId:
-          type: string
-          example: '1'
-          description: The ID of the section.
-        day:
-          type: string
-          enum:
-            - Monday
-            - Tuesday
-            - Wednesday
-            - Thursday
-            - Friday
-            - Saturday
-            - Sunday
-          description: The day of the week.
-        periodNumber:
-          type: integer
-          description: The period number within the day.
-          example: 1
-        subjectId:
-          type: string
-          example: MATH101
-          description: The ID of the subject.
-        teacherId:
-          type: string
-          example: T123
-          description: The ID of the teacher.
-      required:
-        - classId
-        - sectionId
-        - day
-        - periodNumber
-        - subjectId
-        - teacherId
-    TimetableResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: object
-          description: The timetable data (structure may vary).
-        message:
-          type: string
-          example: Timetable generated successfully
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        email:
-          type: string
-          format: email
-        firstName:
-          type: string
-        lastName:
-          type: string
-        role:
-          type: string
-          enum:
-            - student
-            - teacher
-            - admin
-      required:
-        - email
-        - firstName
-        - lastName
-        - role
-    UserResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          $ref: '#/components/schemas/User'
-        message:
-          type: string
-    LoginRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
-      required:
-        - email
-        - password
-    LoginResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        token:
-          type: string
-        message:
-          type: string
-    ForgotPasswordRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-      required:
-        - email
-    ResetPasswordRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-        token:
-          type: string
-        newPassword:
-          type: string
-          format: password
-      required:
-        - email
-        - token
-        - newPassword
-security:
-  - bearerAuth: []
-paths:
-  /api/v1/classes:
-    post:
-      summary: Create a new class
-      tags:
-        - Classes
-      security:
-        - bearerAuth: []
-      requestBody:
-        description: Class creation payload
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Class'
-      responses:
-        '201':
-          description: Class created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClassResponse'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    get:
-      summary: Get all classes
-      tags:
-        - Classes
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of all classes
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Class'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/classes/{id}:
-    get:
-      summary: Get a class by ID
-      tags:
-        - Classes
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: Unique identifier for the class
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Class found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClassResponse'
-        '404':
-          description: Class not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      summary: Update a class
-      tags:
-        - Classes
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: ID of the class to update
-          schema:
-            type: string
-      requestBody:
-        description: Updated class data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Class'
-      responses:
-        '200':
-          description: Class updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClassResponse'
-        '404':
-          description: Class not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      summary: Delete a class
-      tags:
-        - Classes
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: ID of the class to delete
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Class deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
+                - success
+                - message
+        Class:
+            type: object
+            properties:
+                id:
+                    type: number
+                    description: The auto-generated ID of the class
+                    readOnly: true
+                    example: 1
+                name:
                     type: string
-                    example: Class deleted successfully
-        '404':
-          description: Class not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /exams:
-    post:
-      summary: Create a new exam
-      tags:
-        - Exams
-      security:
-        - bearerAuth: []
-      requestBody:
-        description: Exam creation data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Exam'
-            examples:
-              exam:
-                summary: Exam creation payload
-                value:
-                  examName: Midterm Exam
-                  classId: 1
-                  examDate: '2023-07-15'
-                  academicYear: 2023-2024
-                  totalMarks: 100
-                  passingMarks: 40
-                  examType: Unit Test
-                  description: Midterm examination for 10th grade students
-                  isPublished: false
-      responses:
-        '201':
-          description: Exam created successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ExamResponse'
-        '400':
-          description: Invalid input data.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    get:
-      summary: Fetch all exams
-      tags:
-        - Exams
-      responses:
-        '200':
-          description: List of exams retrieved successfully.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Exam'
-        '500':
-          description: Server error retrieving exams.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /exams/{id}:
-    get:
-      summary: Fetch an exam by ID
-      tags:
-        - Exams
-      parameters:
-        - in: path
-          name: id
-          description: Numeric ID of the exam to fetch
-          required: true
-          schema:
-            type: number
-      responses:
-        '200':
-          description: Exam retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Exam'
-        '400':
-          description: Invalid exam ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Exam not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      summary: Update an exam
-      tags:
-        - Exams
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          description: Numeric ID of the exam to update
-          required: true
-          schema:
-            type: number
-      requestBody:
-        description: Updated exam data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Exam'
-            examples:
-              exam:
-                summary: Updated exam payload
-                value:
-                  examName: Updated Midterm Exam
-                  classId: 1
-                  examDate: '2023-07-20'
-                  academicYear: 2023-2024
-                  totalMarks: 100
-                  passingMarks: 40
-                  examType: Unit Test
-                  description: Updated information for midterm exam
-                  isPublished: false
-      responses:
-        '200':
-          description: Exam updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Exam'
-        '400':
-          description: Invalid exam ID or input data.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Exam not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      summary: Delete an exam
-      tags:
-        - Exams
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          description: Numeric ID of the exam to delete
-          required: true
-          schema:
-            type: number
-      responses:
-        '204':
-          description: Exam deleted successfully. No content returned.
-        '400':
-          description: Invalid exam ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Exam not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /grades:
-    post:
-      summary: Add a new grade criterion
-      tags:
-        - Grades
-      security:
-        - bearerAuth: []
-      requestBody:
-        description: Grade information for creating a new criterion
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GradeInput'
-            examples:
-              newGrade:
-                summary: New grade criterion example
-                value:
-                  gradeName: A
-                  lowerPercentage: 80
-                  upperPercentage: 89
-                  description: Very Good
-      responses:
-        '201':
-          description: Grade added successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GradeResponse'
-        '400':
-          description: Invalid input or error adding grade.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    get:
-      summary: Fetch all grade criteria
-      tags:
-        - Grades
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Grades retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GradesListResponse'
-        '400':
-          description: Error retrieving grades.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /grades/{gradeId}:
-    put:
-      summary: Update a grade criterion
-      tags:
-        - Grades
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: gradeId
-          description: Numeric ID of the grade to update
-          required: true
-          schema:
-            type: number
-      requestBody:
-        description: Updated grade data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GradeInput'
-            examples:
-              updateGrade:
-                summary: Update grade criterion example
-                value:
-                  gradeName: A+
-                  lowerPercentage: 90
-                  upperPercentage: 100
-                  description: Excellent
-      responses:
-        '200':
-          description: Grade updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GradeResponse'
-        '400':
-          description: Invalid grade ID or input data.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Grade not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      summary: Delete a grade criterion
-      tags:
-        - Grades
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: gradeId
-          description: Numeric ID of the grade to delete
-          required: true
-          schema:
-            type: number
-      responses:
-        '204':
-          description: Grade deleted successfully. No content returned.
-        '400':
-          description: Invalid grade ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Grade not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /results:
-    post:
-      tags:
-        - Results
-      summary: Create a new exam result
-      description: Creates a new exam result in the system.
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResultInput'
-            examples:
-              resultInput:
-                summary: Exam Result Input Example
-                value:
-                  studentId: 1
-                  examId: 10
-                  subjectId: 5
-                  marksObtained: 85.5
-      responses:
-        '201':
-          description: Result created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResultResponse'
-        '400':
-          description: Bad request - invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    get:
-      tags:
-        - Results
-      summary: Get all exam results
-      description: Retrieves a list of all exam results in the system.
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Successful operation - returns list of results
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ResultResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /results/{resultId}:
-    get:
-      tags:
-        - Results
-      summary: Get result by ID
-      description: Retrieves a specific exam result by its ID.
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: resultId
-          required: true
-          description: ID of the result to retrieve
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successful operation - returns the result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResultResponse'
-        '400':
-          description: Bad request - invalid result ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Result not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      tags:
-        - Results
-      summary: Update an existing exam result
-      description: Updates an existing exam result using its ID.
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: resultId
-          required: true
-          description: ID of the result to update
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResultInput'
-            examples:
-              resultInput:
-                summary: Exam Result Input Example
-                value:
-                  studentId: 1
-                  examId: 10
-                  subjectId: 5
-                  marksObtained: 90
-      responses:
-        '200':
-          description: Result updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResultResponse'
-        '400':
-          description: Bad request - invalid input or result ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Result not found for update
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      tags:
-        - Results
-      summary: Delete an exam result by ID
-      description: Deletes an exam result from the system.
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: resultId
-          required: true
-          description: ID of the result to delete
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Result deleted successfully - No content
-        '400':
-          description: Bad request - invalid result ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Result not found for deletion
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /results/student/{studentId}:
-    get:
-      tags:
-        - Results
-      summary: Get results by student ID
-      description: Retrieves all exam results for a specific student.
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: studentId
-          required: true
-          description: ID of the student to retrieve results for
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successful operation - returns list of results for the student
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ResultResponse'
-        '400':
-          description: Bad request - invalid student ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /results/exam/{examId}:
-    get:
-      tags:
-        - Results
-      summary: Get results by exam ID
-      description: Retrieves all exam results for a specific exam.
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: examId
-          required: true
-          description: ID of the exam to retrieve results for
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successful operation - returns list of results for the exam
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ResultResponse'
-        '400':
-          description: Bad request - invalid exam ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /sections:
-    post:
-      summary: Create a new section
-      tags:
-        - Sections
-      security:
-        - bearerAuth: []
-      requestBody:
-        description: Payload to create a new section.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SectionInput'
-            examples:
-              sectionInput:
-                summary: New section input example
-                value:
-                  name: Section A
-                  classId: '101'
-      responses:
-        '201':
-          description: Section created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SectionResponse'
-        '400':
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /sections/class/{classId}:
-    get:
-      summary: Get all sections for a class
-      tags:
-        - Sections
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: classId
-          required: true
-          description: Unique identifier for the class.
-          schema:
-            type: string
-          example: '101'
-      responses:
-        '200':
-          description: List of sections
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
+                    description: The name of the class
+                    example: Grade 10
+                description:
+                    type: string
+                    description: A brief description of the class
+                    example: Class for 10th grade students
+                maxStudents:
+                    type: number
+                    description: Maximum number of students allowed in the class
+                    example: 40
+                periodsPerDay:
+                    type: number
+                    description: Number of periods scheduled per day for this class
+                    example: 8
+                periodLength:
+                    type: number
+                    description: Length of each period in minutes
+                    example: 45
+                workingDays:
                     type: array
+                    description: Days of the week when the class operates
                     items:
-                      $ref: '#/components/schemas/Section'
-                  message:
-                    type: string
-                    example: Sections retrieved successfully
-        '404':
-          description: Class not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /sections/{sectionId}:
-    get:
-      summary: Get section by ID
-      tags:
-        - Sections
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: sectionId
-          required: true
-          description: Unique identifier for the section.
-          schema:
-            type: string
-          example: '1'
-      responses:
-        '200':
-          description: Section details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SectionResponse'
-        '404':
-          description: Section not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      summary: Update a section
-      tags:
-        - Sections
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: sectionId
-          required: true
-          description: Unique identifier for the section to update.
-          schema:
-            type: string
-          example: '1'
-      requestBody:
-        description: Updated section data.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SectionInput'
-            examples:
-              sectionInput:
-                summary: Update section input example
-                value:
-                  name: Section A Updated
-                  classId: '102'
-      responses:
-        '200':
-          description: Section updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SectionResponse'
-        '404':
-          description: Section not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      summary: Delete a section
-      tags:
-        - Sections
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: sectionId
-          required: true
-          description: Unique identifier for the section to delete.
-          schema:
-            type: string
-          example: '1'
-      responses:
-        '200':
-          description: Section deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: Section deleted successfully
-        '404':
-          description: Section not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /subjects:
-    post:
-      summary: Create a new subject
-      tags:
-        - Subjects
-      security:
-        - bearerAuth: []
-      requestBody:
-        description: Subject information for creating a new subject
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SubjectInput'
-            examples:
-              newSubject:
-                summary: New subject input example
-                value:
-                  subjectName: Physics
-                  subjectCode: PHYS101
-      responses:
-        '201':
-          description: Subject created successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubjectResponse'
-        '400':
-          description: Invalid input or error adding subject.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    get:
-      summary: Get all subjects
-      tags:
-        - Subjects
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Subjects retrieved successfully.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Subject'
-        '400':
-          description: Error retrieving subjects.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /subjects/{subjectId}:
-    get:
-      summary: Get a subject by ID
-      tags:
-        - Subjects
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: subjectId
-          required: true
-          description: Numeric ID of the subject to retrieve
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Subject retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubjectResponse'
-        '400':
-          description: Invalid subject ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Subject not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      summary: Update a subject by ID
-      tags:
-        - Subjects
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: subjectId
-          description: Numeric ID of the subject to update
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        description: Updated subject data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SubjectInput'
-            examples:
-              updateSubject:
-                summary: Updated subject input example
-                value:
-                  subjectName: Advanced Physics
-                  subjectCode: PHYS201
-      responses:
-        '200':
-          description: Subject updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubjectResponse'
-        '400':
-          description: Invalid subject ID or input data.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Subject not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      summary: Delete a subject by ID
-      tags:
-        - Subjects
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: subjectId
-          description: Numeric ID of the subject to delete
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Subject deleted successfully. No content returned.
-        '400':
-          description: Invalid subject ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Subject not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /teachers:
-    get:
-      summary: Get all teachers
-      tags:
-        - Teachers
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: query
-          name: status
-          schema:
-            type: string
-            enum:
-              - active
-              - pending
-              - rejected
-          description: Filter teachers by status
-      responses:
-        '200':
-          description: List of teachers retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
+                        type: string
+                        enum:
+                            - Monday
+                            - Tuesday
+                            - Wednesday
+                            - Thursday
+                            - Friday
+                            - Saturday
+                            - Sunday
+                    example:
+                        - Monday
+                        - Tuesday
+                        - Wednesday
+                        - Thursday
+                        - Friday
+                subjectIds:
                     type: array
+                    description: List of subject IDs associated with this class
                     items:
-                      $ref: '#/components/schemas/Teacher'
-                  message:
-                    type: string
-                    example: Teachers retrieved successfully
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /teachers/{id}:
-    get:
-      summary: Get teacher by ID
-      tags:
-        - Teachers
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: Teacher ID
-          schema:
-            type: string
-          example: '1'
-      responses:
-        '200':
-          description: Teacher details retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TeacherResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Teacher not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /teachers/register:
-    post:
-      summary: Register a new teacher
-      tags:
-        - Teachers
-      requestBody:
-        description: Teacher registration data.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Teacher'
-      responses:
-        '201':
-          description: Teacher registration submitted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TeacherResponse'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /teachers/interview:
-    post:
-      summary: Schedule an interview for a teacher applicant
-      tags:
-        - Teachers
-      security:
-        - bearerAuth: []
-      requestBody:
-        description: Data to schedule an interview.
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - teacherId
-                - interviewDate
-              properties:
-                teacherId:
-                  type: string
-                  example: '1'
-                interviewDate:
-                  type: string
-                  format: date-time
-                  example: '2023-08-25T10:00:00Z'
-                notes:
-                  type: string
-                  example: Pre-interview call scheduled
-      responses:
-        '200':
-          description: Interview scheduled successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
+                        type: number
+                    example:
+                        - 1
+                        - 2
+                        - 3
+                sections:
+                    type: array
+                    description: List of sections within this class
+                    items:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+                                description: Name of the section
+                                example: Section A
+                            maxStudents:
+                                type: number
+                                description: Maximum students allowed in this section
+                                example: 20
+                            classTeacherId:
+                                type: number
+                                description: ID of the teacher assigned to this section
+                                example: 10
+                            subjectTeachers:
+                                type: object
+                                description: Mapping of subject IDs to teacher IDs for this section
+                                additionalProperties:
+                                    type: number
+                                example:
+                                    '1': 12
+                                    '2': 15
+                        required:
+                            - name
+                            - maxStudents
+                            - classTeacherId
+                            - subjectTeachers
+            required:
+                - name
+                - maxStudents
+                - periodsPerDay
+                - periodLength
+                - workingDays
+                - subjectIds
+                - sections
+        ClassResponse:
+            type: object
+            properties:
+                success:
                     type: boolean
                     example: true
-                  message:
+                data:
+                    $ref: '#/components/schemas/Class'
+                message:
                     type: string
-                    example: Interview scheduled successfully
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Teacher not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /time-slots:
-    post:
-      tags:
-        - Time Slots
-      summary: Create time slots for a class
-      description: Creates one or more time slots for a specific class
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
+                    example: Class created successfully
+        Exam:
+            type: object
+            properties:
+                examId:
+                    type: number
+                examName:
+                    type: string
+                academicYear:
+                    type: string
                 classId:
-                  type: string
-                  description: ID of the class
-                slots:
-                  type: array
-                  items:
+                    type: number
+                sectionId:
+                    type: number
+                examDate:
+                    type: string
+                    format: date
+                totalMarks:
+                    type: number
+                passingMarks:
+                    type: number
+                examType:
+                    type: string
+                description:
+                    type: string
+                isPublished:
+                    type: boolean
+            required:
+                - examName
+                - classId
+                - examDate
+                - academicYear
+                - totalMarks
+        ExamResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    $ref: '#/components/schemas/Exam'
+                message:
+                    type: string
+        Grade:
+            type: object
+            properties:
+                gradeId:
+                    type: number
+                    example: 1
+                gradeName:
+                    type: string
+                    example: A+
+                lowerPercentage:
+                    type: number
+                    example: 90
+                upperPercentage:
+                    type: number
+                    example: 100
+                description:
+                    type: string
+                    example: Excellent
+            required:
+                - gradeName
+                - lowerPercentage
+                - upperPercentage
+        GradeInput:
+            type: object
+            properties:
+                gradeName:
+                    type: string
+                    example: A
+                lowerPercentage:
+                    type: number
+                    example: 80
+                upperPercentage:
+                    type: number
+                    example: 89
+                description:
+                    type: string
+                    example: Very Good
+            required:
+                - gradeName
+                - lowerPercentage
+                - upperPercentage
+        GradeResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    example: true
+                data:
+                    $ref: '#/components/schemas/Grade'
+                message:
+                    type: string
+                    example: Grade added successfully
+        GradesListResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    example: true
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Grade'
+                message:
+                    type: string
+                    example: Grades retrieved successfully
+        ResultInput:
+            type: object
+            properties:
+                studentId:
+                    type: integer
+                    description: ID of the student.
+                    example: 1
+                examId:
+                    type: integer
+                    description: ID of the exam.
+                    example: 10
+                subjectId:
+                    type: integer
+                    description: ID of the subject.
+                    example: 5
+                marksObtained:
+                    type: number
+                    description: Marks obtained by the student.
+                    example: 85.5
+            required:
+                - studentId
+                - examId
+                - subjectId
+                - marksObtained
+        ResultResponse:
+            type: object
+            properties:
+                resultId:
+                    type: integer
+                    description: ID of the result.
+                    example: 1
+                studentId:
+                    type: integer
+                    description: ID of the student.
+                    example: 1
+                examId:
+                    type: integer
+                    description: ID of the exam.
+                    example: 10
+                subjectId:
+                    type: integer
+                    description: ID of the subject.
+                    example: 5
+                marksObtained:
+                    type: number
+                    description: Marks obtained by the student.
+                    example: 85.5
+            required:
+                - studentId
+                - examId
+                - subjectId
+                - marksObtained
+        SectionInput:
+            type: object
+            properties:
+                name:
+                    type: string
+                    example: Section A
+                classId:
+                    type: string
+                    example: '101'
+            required:
+                - name
+                - classId
+        Section:
+            type: object
+            properties:
+                sectionId:
+                    type: string
+                    example: '1'
+                name:
+                    type: string
+                    example: Section A
+                classId:
+                    type: string
+                    example: '101'
+            required:
+                - name
+                - classId
+        SectionResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    example: true
+                data:
+                    $ref: '#/components/schemas/Section'
+                message:
+                    type: string
+                    example: Section created successfully
+        SubjectInput:
+            type: object
+            properties:
+                subjectName:
+                    type: string
+                    example: Mathematics
+                subjectCode:
+                    type: string
+                    example: MATH101
+            required:
+                - subjectName
+                - subjectCode
+        Subject:
+            type: object
+            properties:
+                subjectId:
+                    type: integer
+                    example: 1
+                subjectName:
+                    type: string
+                    example: Mathematics
+                subjectCode:
+                    type: string
+                    example: MATH101
+            required:
+                - subjectName
+                - subjectCode
+        SubjectResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    example: true
+                data:
+                    $ref: '#/components/schemas/Subject'
+                message:
+                    type: string
+                    example: Subject created successfully
+        Teacher:
+            type: object
+            properties:
+                teacherId:
+                    type: string
+                    example: '1'
+                name:
+                    type: string
+                    example: John Doe
+                email:
+                    type: string
+                    format: email
+                    example: john.doe@example.com
+                subject:
+                    type: string
+                    example: Mathematics
+                qualifications:
+                    type: array
+                    items:
+                        type: string
+                    example:
+                        - Bachelors
+                        - Masters
+                status:
+                    type: string
+                    enum:
+                        - active
+                        - pending
+                        - rejected
+                    description: The current status of the teacher's application.
+                    example: pending
+            required:
+                - name
+                - email
+                - subject
+                - qualifications
+        TeacherResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    example: true
+                data:
+                    $ref: '#/components/schemas/Teacher'
+                message:
+                    type: string
+                    example: Teacher retrieved successfully
+        TimetableInput:
+            type: object
+            properties:
+                classId:
+                    type: string
+                    example: '101'
+                    description: The ID of the class.
+                sectionId:
+                    type: string
+                    example: '1'
+                    description: The ID of the section.
+                day:
+                    type: string
+                    enum:
+                        - Monday
+                        - Tuesday
+                        - Wednesday
+                        - Thursday
+                        - Friday
+                        - Saturday
+                        - Sunday
+                    description: The day of the week.
+                periodNumber:
+                    type: integer
+                    description: The period number within the day.
+                    example: 1
+                subjectId:
+                    type: string
+                    example: MATH101
+                    description: The ID of the subject.
+                teacherId:
+                    type: string
+                    example: T123
+                    description: The ID of the teacher.
+            required:
+                - classId
+                - sectionId
+                - day
+                - periodNumber
+                - subjectId
+                - teacherId
+        TimetableResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    example: true
+                data:
                     type: object
-                    properties:
-                      startTime:
-                        type: string
-                        format: date-time
-                      endTime:
-                        type: string
-                        format: date-time
-      responses:
-        '201':
-          description: Time slots created successfully
-        '400':
-          description: Invalid request body
-        '500':
-          description: Server error
-  /time-slots/{id}:
-    put:
-      tags:
-        - Time Slots
-      summary: Update a time slot
-      description: Updates an existing time slot by ID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Time slot ID
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                startTime:
-                  type: string
-                  format: date-time
-                endTime:
-                  type: string
-                  format: date-time
-      responses:
-        '200':
-          description: Time slot updated successfully
-        '404':
-          description: Time slot not found
-        '500':
-          description: Server error
-    delete:
-      tags:
-        - Time Slots
-      summary: Delete a time slot
-      description: Deletes an existing time slot by ID
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Time slot ID
-      responses:
-        '204':
-          description: Time slot deleted successfully
-        '404':
-          description: Time slot not found
-        '500':
-          description: Server error
-  /timetable/generate/{classid}:
-    post:
-      tags:
-        - Timetable
-      summary: Generate a new timetable for a class
-      description: Generates and saves a new timetable schedule for the specified class ID.
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: classid
-          required: true
-          description: The ID of the class to generate the timetable for.
-          schema:
-            type: string
-            example: '101'
-      responses:
-        '200':
-          description: Timetable generated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TimetableResponse'
-        '400':
-          description: Invalid input parameters.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error while generating timetable.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /timetable/weekly/{classId}/{sectionId}:
-    get:
-      tags:
-        - Timetable
-      summary: Get weekly timetable for a class section
-      description: Retrieves the weekly timetable schedule for the specified class and section.
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: classId
-          required: true
-          description: The ID of the class.
-          schema:
-            type: string
-            example: '101'
-        - in: path
-          name: sectionId
-          required: true
-          description: The ID of the section.
-          schema:
-            type: string
-            example: '1'
-      responses:
-        '200':
-          description: Returns the weekly timetable data.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TimetableResponse'
-        '404':
-          description: Timetable not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error while fetching timetable.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users:
-    post:
-      summary: Create a new user
-      tags:
-        - Users
-      requestBody:
-        description: User creation payload
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-            examples:
-              user:
-                summary: User creation payload
-                value:
-                  email: user@example.com
-                  firstName: John
-                  lastName: Doe
-                  role: student
-      responses:
-        '201':
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    get:
-      summary: Get all users
-      tags:
-        - Users
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of users retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/accept-user:
-    post:
-      summary: Accept a user application
-      tags:
-        - Users
-      security:
-        - bearerAuth: []
-      requestBody:
-        description: Payload to accept a user application
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - userId
-              properties:
-                userId:
-                  type: integer
-                  example: 123
-      responses:
-        '200':
-          description: User application accepted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/{userId}:
-    delete:
-      summary: Delete a user
-      tags:
-        - Users
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: integer
-          description: ID of the user to delete
-      responses:
-        '200':
-          description: User deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
+                    description: The timetable data (structure may vary).
+                message:
                     type: string
-                    example: User deleted successfully
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/auth/reset-token:
-    patch:
-      summary: Reset user password
-      tags:
-        - Authentication
-      requestBody:
-        description: Payload for resetting the user password
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordRequest'
-            examples:
-              resetPassword:
-                summary: Reset password payload
-                value:
-                  email: user@example.com
-                  token: reset-token-123
-                  newPassword: NewPassword123
-      responses:
-        '200':
-          description: Password reset successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
+                    example: Timetable generated successfully
+        User:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    readOnly: true
+                email:
                     type: string
-                    example: Password reset successful
-        '400':
-          description: Invalid token or request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/auth/login:
-    post:
-      summary: Login user
-      tags:
-        - Authentication
-      requestBody:
-        description: Payload for logging in a user
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-            examples:
-              login:
-                summary: Login payload
-                value:
-                  email: user@example.com
-                  password: Password123
-      responses:
-        '200':
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '401':
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/auth/logout:
-    post:
-      summary: Logout user
-      tags:
-        - Authentication
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Logout successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
+                    format: email
+                firstName:
                     type: string
-                    example: Logout successful
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/auth/forgot-password:
-    post:
-      summary: Initiate forgot password process
-      tags:
-        - Authentication
-      requestBody:
-        description: Payload for initiating the forgot password process
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ForgotPasswordRequest'
-            examples:
-              forgotPassword:
-                summary: Forgot password payload
-                value:
-                  email: user@example.com
-      responses:
-        '200':
-          description: Forgot password email sent successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
+                lastName:
                     type: string
-                    example: Forgot password email sent successfully
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                role:
+                    type: string
+                    enum:
+                        - student
+                        - teacher
+                        - admin
+            required:
+                - email
+                - firstName
+                - lastName
+                - role
+        UserResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                data:
+                    $ref: '#/components/schemas/User'
+                message:
+                    type: string
+        LoginRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    format: email
+                password:
+                    type: string
+                    format: password
+            required:
+                - email
+                - password
+        LoginResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                token:
+                    type: string
+                message:
+                    type: string
+        ForgotPasswordRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    format: email
+            required:
+                - email
+        ResetPasswordRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    format: email
+                token:
+                    type: string
+                newPassword:
+                    type: string
+                    format: password
+            required:
+                - email
+                - token
+                - newPassword
+security:
+    - bearerAuth: []
+paths:
+    /api/v1/classes:
+        post:
+            summary: Create a new class
+            tags:
+                - Classes
+            security:
+                - bearerAuth: []
+            requestBody:
+                description: Class creation payload
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Class'
+            responses:
+                '201':
+                    description: Class created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClassResponse'
+                '400':
+                    description: Invalid input
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        get:
+            summary: Get all classes
+            tags:
+                - Classes
+            security:
+                - bearerAuth: []
+            responses:
+                '200':
+                    description: List of all classes
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Class'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /api/v1/classes/{id}:
+        get:
+            summary: Get a class by ID
+            tags:
+                - Classes
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  description: Unique identifier for the class
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Class found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClassResponse'
+                '404':
+                    description: Class not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        put:
+            summary: Update a class
+            tags:
+                - Classes
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  description: ID of the class to update
+                  schema:
+                      type: string
+            requestBody:
+                description: Updated class data
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Class'
+            responses:
+                '200':
+                    description: Class updated successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClassResponse'
+                '404':
+                    description: Class not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        delete:
+            summary: Delete a class
+            tags:
+                - Classes
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  description: ID of the class to delete
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Class deleted successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: Class deleted successfully
+                '404':
+                    description: Class not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /exams:
+        post:
+            summary: Create a new exam
+            tags:
+                - Exams
+            security:
+                - bearerAuth: []
+            requestBody:
+                description: Exam creation data
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Exam'
+                        examples:
+                            exam:
+                                summary: Exam creation payload
+                                value:
+                                    examName: Midterm Exam
+                                    classId: 1
+                                    examDate: '2023-07-15'
+                                    academicYear: 2023-2024
+                                    totalMarks: 100
+                                    passingMarks: 40
+                                    examType: Unit Test
+                                    description: Midterm examination for 10th grade students
+                                    isPublished: false
+            responses:
+                '201':
+                    description: Exam created successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ExamResponse'
+                '400':
+                    description: Invalid input data.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        get:
+            summary: Fetch all exams
+            tags:
+                - Exams
+            responses:
+                '200':
+                    description: List of exams retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Exam'
+                '500':
+                    description: Server error retrieving exams.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /exams/{id}:
+        get:
+            summary: Fetch an exam by ID
+            tags:
+                - Exams
+            parameters:
+                - in: path
+                  name: id
+                  description: Numeric ID of the exam to fetch
+                  required: true
+                  schema:
+                      type: number
+            responses:
+                '200':
+                    description: Exam retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Exam'
+                '400':
+                    description: Invalid exam ID.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Exam not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        put:
+            summary: Update an exam
+            tags:
+                - Exams
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  description: Numeric ID of the exam to update
+                  required: true
+                  schema:
+                      type: number
+            requestBody:
+                description: Updated exam data
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Exam'
+                        examples:
+                            exam:
+                                summary: Updated exam payload
+                                value:
+                                    examName: Updated Midterm Exam
+                                    classId: 1
+                                    examDate: '2023-07-20'
+                                    academicYear: 2023-2024
+                                    totalMarks: 100
+                                    passingMarks: 40
+                                    examType: Unit Test
+                                    description: Updated information for midterm exam
+                                    isPublished: false
+            responses:
+                '200':
+                    description: Exam updated successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Exam'
+                '400':
+                    description: Invalid exam ID or input data.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Exam not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        delete:
+            summary: Delete an exam
+            tags:
+                - Exams
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  description: Numeric ID of the exam to delete
+                  required: true
+                  schema:
+                      type: number
+            responses:
+                '204':
+                    description: Exam deleted successfully. No content returned.
+                '400':
+                    description: Invalid exam ID.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Exam not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /grades:
+        post:
+            summary: Add a new grade criterion
+            tags:
+                - Grades
+            security:
+                - bearerAuth: []
+            requestBody:
+                description: Grade information for creating a new criterion
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GradeInput'
+                        examples:
+                            newGrade:
+                                summary: New grade criterion example
+                                value:
+                                    gradeName: A
+                                    lowerPercentage: 80
+                                    upperPercentage: 89
+                                    description: Very Good
+            responses:
+                '201':
+                    description: Grade added successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GradeResponse'
+                '400':
+                    description: Invalid input or error adding grade.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        get:
+            summary: Fetch all grade criteria
+            tags:
+                - Grades
+            security:
+                - bearerAuth: []
+            responses:
+                '200':
+                    description: Grades retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GradesListResponse'
+                '400':
+                    description: Error retrieving grades.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /grades/{gradeId}:
+        put:
+            summary: Update a grade criterion
+            tags:
+                - Grades
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: gradeId
+                  description: Numeric ID of the grade to update
+                  required: true
+                  schema:
+                      type: number
+            requestBody:
+                description: Updated grade data
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GradeInput'
+                        examples:
+                            updateGrade:
+                                summary: Update grade criterion example
+                                value:
+                                    gradeName: A+
+                                    lowerPercentage: 90
+                                    upperPercentage: 100
+                                    description: Excellent
+            responses:
+                '200':
+                    description: Grade updated successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GradeResponse'
+                '400':
+                    description: Invalid grade ID or input data.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Grade not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        delete:
+            summary: Delete a grade criterion
+            tags:
+                - Grades
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: gradeId
+                  description: Numeric ID of the grade to delete
+                  required: true
+                  schema:
+                      type: number
+            responses:
+                '204':
+                    description: Grade deleted successfully. No content returned.
+                '400':
+                    description: Invalid grade ID.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Grade not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /results:
+        post:
+            tags:
+                - Results
+            summary: Create a new exam result
+            description: Creates a new exam result in the system.
+            security:
+                - bearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResultInput'
+                        examples:
+                            resultInput:
+                                summary: Exam Result Input Example
+                                value:
+                                    studentId: 1
+                                    examId: 10
+                                    subjectId: 5
+                                    marksObtained: 85.5
+            responses:
+                '201':
+                    description: Result created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResultResponse'
+                '400':
+                    description: Bad request - invalid input
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        get:
+            tags:
+                - Results
+            summary: Get all exam results
+            description: Retrieves a list of all exam results in the system.
+            security:
+                - bearerAuth: []
+            responses:
+                '200':
+                    description: Successful operation - returns list of results
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/ResultResponse'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /results/{resultId}:
+        get:
+            tags:
+                - Results
+            summary: Get result by ID
+            description: Retrieves a specific exam result by its ID.
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: resultId
+                  required: true
+                  description: ID of the result to retrieve
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: Successful operation - returns the result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResultResponse'
+                '400':
+                    description: Bad request - invalid result ID
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Result not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        put:
+            tags:
+                - Results
+            summary: Update an existing exam result
+            description: Updates an existing exam result using its ID.
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: resultId
+                  required: true
+                  description: ID of the result to update
+                  schema:
+                      type: integer
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResultInput'
+                        examples:
+                            resultInput:
+                                summary: Exam Result Input Example
+                                value:
+                                    studentId: 1
+                                    examId: 10
+                                    subjectId: 5
+                                    marksObtained: 90
+            responses:
+                '200':
+                    description: Result updated successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResultResponse'
+                '400':
+                    description: Bad request - invalid input or result ID
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Result not found for update
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        delete:
+            tags:
+                - Results
+            summary: Delete an exam result by ID
+            description: Deletes an exam result from the system.
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: resultId
+                  required: true
+                  description: ID of the result to delete
+                  schema:
+                      type: integer
+            responses:
+                '204':
+                    description: Result deleted successfully - No content
+                '400':
+                    description: Bad request - invalid result ID
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Result not found for deletion
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /results/student/{studentId}:
+        get:
+            tags:
+                - Results
+            summary: Get results by student ID
+            description: Retrieves all exam results for a specific student.
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: studentId
+                  required: true
+                  description: ID of the student to retrieve results for
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: Successful operation - returns list of results for the student
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/ResultResponse'
+                '400':
+                    description: Bad request - invalid student ID
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /results/exam/{examId}:
+        get:
+            tags:
+                - Results
+            summary: Get results by exam ID
+            description: Retrieves all exam results for a specific exam.
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: examId
+                  required: true
+                  description: ID of the exam to retrieve results for
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: Successful operation - returns list of results for the exam
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/ResultResponse'
+                '400':
+                    description: Bad request - invalid exam ID
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /sections:
+        post:
+            summary: Create a new section
+            tags:
+                - Sections
+            security:
+                - bearerAuth: []
+            requestBody:
+                description: Payload to create a new section.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SectionInput'
+                        examples:
+                            sectionInput:
+                                summary: New section input example
+                                value:
+                                    name: Section A
+                                    classId: '101'
+            responses:
+                '201':
+                    description: Section created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SectionResponse'
+                '400':
+                    description: Invalid request body
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /sections/class/{classId}:
+        get:
+            summary: Get all sections for a class
+            tags:
+                - Sections
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: classId
+                  required: true
+                  description: Unique identifier for the class.
+                  schema:
+                      type: string
+                  example: '101'
+            responses:
+                '200':
+                    description: List of sections
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Section'
+                                    message:
+                                        type: string
+                                        example: Sections retrieved successfully
+                '404':
+                    description: Class not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /sections/{sectionId}:
+        get:
+            summary: Get section by ID
+            tags:
+                - Sections
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: sectionId
+                  required: true
+                  description: Unique identifier for the section.
+                  schema:
+                      type: string
+                  example: '1'
+            responses:
+                '200':
+                    description: Section details
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SectionResponse'
+                '404':
+                    description: Section not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        put:
+            summary: Update a section
+            tags:
+                - Sections
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: sectionId
+                  required: true
+                  description: Unique identifier for the section to update.
+                  schema:
+                      type: string
+                  example: '1'
+            requestBody:
+                description: Updated section data.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SectionInput'
+                        examples:
+                            sectionInput:
+                                summary: Update section input example
+                                value:
+                                    name: Section A Updated
+                                    classId: '102'
+            responses:
+                '200':
+                    description: Section updated successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SectionResponse'
+                '404':
+                    description: Section not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        delete:
+            summary: Delete a section
+            tags:
+                - Sections
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: sectionId
+                  required: true
+                  description: Unique identifier for the section to delete.
+                  schema:
+                      type: string
+                  example: '1'
+            responses:
+                '200':
+                    description: Section deleted successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: Section deleted successfully
+                '404':
+                    description: Section not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /subjects:
+        post:
+            summary: Create a new subject
+            tags:
+                - Subjects
+            security:
+                - bearerAuth: []
+            requestBody:
+                description: Subject information for creating a new subject
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SubjectInput'
+                        examples:
+                            newSubject:
+                                summary: New subject input example
+                                value:
+                                    subjectName: Physics
+                                    subjectCode: PHYS101
+            responses:
+                '201':
+                    description: Subject created successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SubjectResponse'
+                '400':
+                    description: Invalid input or error adding subject.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        get:
+            summary: Get all subjects
+            tags:
+                - Subjects
+            security:
+                - bearerAuth: []
+            responses:
+                '200':
+                    description: Subjects retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Subject'
+                '400':
+                    description: Error retrieving subjects.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /subjects/{subjectId}:
+        get:
+            summary: Get a subject by ID
+            tags:
+                - Subjects
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: subjectId
+                  required: true
+                  description: Numeric ID of the subject to retrieve
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: Subject retrieved successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SubjectResponse'
+                '400':
+                    description: Invalid subject ID.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Subject not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        put:
+            summary: Update a subject by ID
+            tags:
+                - Subjects
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: subjectId
+                  description: Numeric ID of the subject to update
+                  required: true
+                  schema:
+                      type: integer
+            requestBody:
+                description: Updated subject data
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SubjectInput'
+                        examples:
+                            updateSubject:
+                                summary: Updated subject input example
+                                value:
+                                    subjectName: Advanced Physics
+                                    subjectCode: PHYS201
+            responses:
+                '200':
+                    description: Subject updated successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SubjectResponse'
+                '400':
+                    description: Invalid subject ID or input data.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Subject not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        delete:
+            summary: Delete a subject by ID
+            tags:
+                - Subjects
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: subjectId
+                  description: Numeric ID of the subject to delete
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                '204':
+                    description: Subject deleted successfully. No content returned.
+                '400':
+                    description: Invalid subject ID.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Subject not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /teachers:
+        get:
+            summary: Get all teachers
+            tags:
+                - Teachers
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: query
+                  name: status
+                  schema:
+                      type: string
+                      enum:
+                          - active
+                          - pending
+                          - rejected
+                  description: Filter teachers by status
+            responses:
+                '200':
+                    description: List of teachers retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Teacher'
+                                    message:
+                                        type: string
+                                        example: Teachers retrieved successfully
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /teachers/{id}:
+        get:
+            summary: Get teacher by ID
+            tags:
+                - Teachers
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  description: Teacher ID
+                  schema:
+                      type: string
+                  example: '1'
+            responses:
+                '200':
+                    description: Teacher details retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TeacherResponse'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Teacher not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /teachers/register:
+        post:
+            summary: Register a new teacher
+            tags:
+                - Teachers
+            requestBody:
+                description: Teacher registration data.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Teacher'
+            responses:
+                '201':
+                    description: Teacher registration submitted successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TeacherResponse'
+                '400':
+                    description: Invalid input
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /teachers/interview:
+        post:
+            summary: Schedule an interview for a teacher applicant
+            tags:
+                - Teachers
+            security:
+                - bearerAuth: []
+            requestBody:
+                description: Data to schedule an interview.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - teacherId
+                                - interviewDate
+                            properties:
+                                teacherId:
+                                    type: string
+                                    example: '1'
+                                interviewDate:
+                                    type: string
+                                    format: date-time
+                                    example: '2023-08-25T10:00:00Z'
+                                notes:
+                                    type: string
+                                    example: Pre-interview call scheduled
+            responses:
+                '200':
+                    description: Interview scheduled successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: Interview scheduled successfully
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: Teacher not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /time-slots:
+        post:
+            tags:
+                - Time Slots
+            summary: Create time slots for a class
+            description: Creates one or more time slots for a specific class
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                classId:
+                                    type: string
+                                    description: ID of the class
+                                slots:
+                                    type: array
+                                    items:
+                                        type: object
+                                        properties:
+                                            startTime:
+                                                type: string
+                                                format: date-time
+                                            endTime:
+                                                type: string
+                                                format: date-time
+            responses:
+                '201':
+                    description: Time slots created successfully
+                '400':
+                    description: Invalid request body
+                '500':
+                    description: Server error
+    /time-slots/{id}:
+        put:
+            tags:
+                - Time Slots
+            summary: Update a time slot
+            description: Updates an existing time slot by ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Time slot ID
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                startTime:
+                                    type: string
+                                    format: date-time
+                                endTime:
+                                    type: string
+                                    format: date-time
+            responses:
+                '200':
+                    description: Time slot updated successfully
+                '404':
+                    description: Time slot not found
+                '500':
+                    description: Server error
+        delete:
+            tags:
+                - Time Slots
+            summary: Delete a time slot
+            description: Deletes an existing time slot by ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                  description: Time slot ID
+            responses:
+                '204':
+                    description: Time slot deleted successfully
+                '404':
+                    description: Time slot not found
+                '500':
+                    description: Server error
+    /timetable/generate/{classid}:
+        post:
+            tags:
+                - Timetable
+            summary: Generate a new timetable for a class
+            description: Generates and saves a new timetable schedule for the specified class ID.
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: classid
+                  required: true
+                  description: The ID of the class to generate the timetable for.
+                  schema:
+                      type: string
+                      example: '101'
+            responses:
+                '200':
+                    description: Timetable generated successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TimetableResponse'
+                '400':
+                    description: Invalid input parameters.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Server error while generating timetable.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /timetable/weekly/{classId}/{sectionId}:
+        get:
+            tags:
+                - Timetable
+            summary: Get weekly timetable for a class section
+            description: Retrieves the weekly timetable schedule for the specified class and section.
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: classId
+                  required: true
+                  description: The ID of the class.
+                  schema:
+                      type: string
+                      example: '101'
+                - in: path
+                  name: sectionId
+                  required: true
+                  description: The ID of the section.
+                  schema:
+                      type: string
+                      example: '1'
+            responses:
+                '200':
+                    description: Returns the weekly timetable data.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TimetableResponse'
+                '404':
+                    description: Timetable not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Server error while fetching timetable.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /users:
+        post:
+            summary: Create a new user
+            tags:
+                - Users
+            requestBody:
+                description: User creation payload
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/User'
+                        examples:
+                            user:
+                                summary: User creation payload
+                                value:
+                                    email: user@example.com
+                                    firstName: John
+                                    lastName: Doe
+                                    role: student
+            responses:
+                '201':
+                    description: User created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserResponse'
+                '400':
+                    description: Invalid input
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+        get:
+            summary: Get all users
+            tags:
+                - Users
+            security:
+                - bearerAuth: []
+            responses:
+                '200':
+                    description: List of users retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/User'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /users/accept-user:
+        post:
+            summary: Accept a user application
+            tags:
+                - Users
+            security:
+                - bearerAuth: []
+            requestBody:
+                description: Payload to accept a user application
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - userId
+                            properties:
+                                userId:
+                                    type: integer
+                                    example: 123
+            responses:
+                '200':
+                    description: User application accepted successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserResponse'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: User not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /users/{userId}:
+        delete:
+            summary: Delete a user
+            tags:
+                - Users
+            security:
+                - bearerAuth: []
+            parameters:
+                - in: path
+                  name: userId
+                  required: true
+                  schema:
+                      type: integer
+                  description: ID of the user to delete
+            responses:
+                '200':
+                    description: User deleted successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: User deleted successfully
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: User not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /users/auth/reset-token:
+        patch:
+            summary: Reset user password
+            tags:
+                - Authentication
+            requestBody:
+                description: Payload for resetting the user password
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResetPasswordRequest'
+                        examples:
+                            resetPassword:
+                                summary: Reset password payload
+                                value:
+                                    email: user@example.com
+                                    token: reset-token-123
+                                    newPassword: NewPassword123
+            responses:
+                '200':
+                    description: Password reset successful
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: Password reset successful
+                '400':
+                    description: Invalid token or request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '404':
+                    description: User not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /users/auth/login:
+        post:
+            summary: Login user
+            tags:
+                - Authentication
+            requestBody:
+                description: Payload for logging in a user
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/LoginRequest'
+                        examples:
+                            login:
+                                summary: Login payload
+                                value:
+                                    email: user@example.com
+                                    password: Password123
+            responses:
+                '200':
+                    description: Login successful
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LoginResponse'
+                '401':
+                    description: Invalid credentials
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /users/auth/logout:
+        post:
+            summary: Logout user
+            tags:
+                - Authentication
+            security:
+                - bearerAuth: []
+            responses:
+                '200':
+                    description: Logout successful
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: Logout successful
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+    /users/auth/forgot-password:
+        post:
+            summary: Initiate forgot password process
+            tags:
+                - Authentication
+            requestBody:
+                description: Payload for initiating the forgot password process
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ForgotPasswordRequest'
+                        examples:
+                            forgotPassword:
+                                summary: Forgot password payload
+                                value:
+                                    email: user@example.com
+            responses:
+                '200':
+                    description: Forgot password email sent successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: Forgot password email sent successfully
+                '400':
+                    description: Invalid input
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
