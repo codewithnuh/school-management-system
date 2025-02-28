@@ -125,7 +125,6 @@ const startServer = async () => {
         // Database connection
         await sequelize.authenticate()
         console.log('Database connection established successfully')
-
         // Configure middleware and routes
         configureMiddleware(app)
 
@@ -133,7 +132,7 @@ const startServer = async () => {
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
         // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
-        // await sequelize.sync({ alter: true })
+        // await sequelize.sync({ force: true })
         // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1')
         // await seed()
         app.listen(port, () => {

@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize'
 import { Table, Column, Model, DataType } from 'sequelize-typescript'
 import { z } from 'zod'
 
-const adminSchema = z.object({
+export const adminSchema = z.object({
     firstName: z.string(),
     middleName: z.string().optional(),
     lastName: z.string(),
