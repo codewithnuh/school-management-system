@@ -55,7 +55,11 @@ export const AuthController = {
             const ipAddress = req.ip
 
             // Capture both the token and the message returned by authService.login
-            const { token, message: loginMessage } = await authService.login(
+            const {
+                token,
+                message: loginMessage,
+                success,
+            } = await authService.login(
                 email,
                 password,
                 entityType as EntityType,
@@ -71,9 +75,12 @@ export const AuthController = {
                 sameSite: 'strict',
                 maxAge: 120 * 120 * 1000,
             })
-
+            if (!success) {
+                throw new Error(loginMessage)
+            }
             // Use the service-provided message so the user knows whether it was a new login or an existing session
             const response = ResponseUtil.success(loginMessage)
+
             res.status(200).json(response)
         } catch (error) {
             if (error instanceof z.ZodError) {

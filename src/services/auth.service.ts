@@ -47,6 +47,7 @@ interface UserModelConstructor<T extends UserModelInstance> {
  * Interface for the login response.
  */
 interface LoginResponse {
+    success: boolean
     token: string
     message: string
 }
@@ -113,6 +114,7 @@ class AuthService {
         if (activeSession) {
             // Return existing session token if active session is found
             return {
+                success: false,
                 token: activeSession.token,
                 message: 'Session already exists',
             }
@@ -143,7 +145,7 @@ class AuthService {
             ipAddress: ipAddress,
         })
 
-        return { token, message: 'Login successful' }
+        return { token, message: 'Login successful', success: true }
     }
 
     /**

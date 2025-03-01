@@ -32,6 +32,7 @@ import {
     errorHandler,
 } from './middleware/error.middleware.js'
 import { uploadRouter } from './config/uploadthing.js'
+// import seed from './seeders/index.js'
 
 // Define User interface
 interface User {
@@ -62,6 +63,7 @@ const configureMiddleware = (app: express.Application) => {
             origin: ['http://localhost:5173'],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization'],
+
             credentials: true,
             maxAge: 86400, // 24 hours
         }),
