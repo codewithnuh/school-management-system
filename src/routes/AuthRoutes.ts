@@ -8,6 +8,7 @@ router.post('/login', AuthController.login)
 
 // Logout route
 router.post('/logout', AuthController.logout)
+router.get('/session', AuthController.checkSession)
 
 // Forgot password initiation route
 router.post('/forgot-password/initiate', AuthController.forgotPasswordInitiate)

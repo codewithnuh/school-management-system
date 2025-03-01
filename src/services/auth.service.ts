@@ -249,6 +249,48 @@ class AuthService {
                 return null
         }
     }
+    /**
+     * Verifies session validity and returns user data with role
+     * @param token - JWT token from cookie
+     * @returns Session status, user data, and role
+     */
+    async verifySession(token: string): Promise<{
+        isValid: boolean
+        user: unknown | null
+        role: EntityType | null
+    }> {
+        try {
+            // 1. Check if session exists in database and is not expired
+            const session = await Session.findOne({
+                where: {
+                    token,
+                    expiryDate: { [Op.gt]: new Date() },
+                },
+            })
+
+            if (!session) {
+                return { isValid: false, user: null, role: null }
+            }
+
+            // 2. Verify JWT token
+            const decoded = jwt.verify(token, JWT_SECRET!) as CurrentUserPayload
+
+            // 3. Fetch user entity based on role
+            const user = await this.fetchUserEntity(
+                decoded.userId,
+                decoded.entityType,
+            )
+
+            return {
+                isValid: true,
+                user,
+                role: decoded.entityType,
+            }
+        } catch {
+            // Handle JWT verification errors or database errors
+            return { isValid: false, user: null, role: null }
+        }
+    }
 }
 
 export const authService = new AuthService()

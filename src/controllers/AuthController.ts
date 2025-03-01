@@ -180,4 +180,42 @@ export const AuthController = {
             }
         }
     },
+
+    /**
+     * Verify session and return user data with role
+     */
+    async checkSession(req: Request, res: Response): Promise<void> {
+        try {
+            const token = req.cookies.token
+
+            if (!token) {
+                res.status(401).json(
+                    ResponseUtil.error('No session found', 401),
+                )
+                return
+            }
+
+            const { isValid, user, role } =
+                await authService.verifySession(token)
+
+            if (!isValid) {
+                res.clearCookie('token') // Clear invalid/expired token
+                res.status(401).json(ResponseUtil.error('Session expired', 401))
+                return
+            }
+
+            // Return session data with role
+            res.status(200).json(
+                ResponseUtil.success({
+                    user: user,
+                    role: role,
+                    isAuthenticated: true,
+                }),
+            )
+        } catch {
+            res.status(500).json(
+                ResponseUtil.error('Session verification failed', 500),
+            )
+        }
+    },
 }
