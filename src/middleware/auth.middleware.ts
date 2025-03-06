@@ -78,8 +78,10 @@ const validateSession = async (token: string): Promise<void> => {
     if (!session) {
         throw new Error(AuthErrors.SESSION_NOT_FOUND.message)
     }
-
+    console.log(new Date() > session.expiryDate)
     if (new Date() > session.expiryDate) {
+        // Immediately delete the expired session from the database.
+        await Session.destroy({ where: { token } })
         throw new Error(AuthErrors.SESSION_EXPIRED.message)
     }
 }

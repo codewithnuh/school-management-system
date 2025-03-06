@@ -60,7 +60,7 @@ const configureMiddleware = (app: express.Application) => {
     app.use(helmet())
     app.use(
         cors({
-            origin: ['http://localhost:5173'],
+            origin: 'http://localhost:5173',
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization'],
 

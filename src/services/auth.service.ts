@@ -88,6 +88,13 @@ class AuthService {
         userAgent?: string,
         ipAddress?: string,
     ): Promise<LoginResponse> {
+        // First, delete all expired sessions
+        await Session.destroy({
+            where: {
+                expiryDate: { [Op.lte]: new Date() },
+            },
+        })
+
         const user = await userModel.findOne({ where: { email } })
 
         if (!user) {
@@ -260,22 +267,26 @@ class AuthService {
         role: EntityType | null
     }> {
         try {
-            // 1. Check if session exists in database and is not expired
+            // 1. Retrieve session by token regardless of expiry
             const session = await Session.findOne({
-                where: {
-                    token,
-                    expiryDate: { [Op.gt]: new Date() },
-                },
+                where: { token },
             })
-
             if (!session) {
                 return { isValid: false, user: null, role: null }
             }
 
-            // 2. Verify JWT token
+            // 2. Check if the session is expired; if yes, destroy it and return invalid status
+            if (session.expiryDate < new Date()) {
+                await session.destroy()
+                return { isValid: false, user: null, role: null }
+            }
+
+            console.log(`Session valid until: ${session.expiryDate}`)
+
+            // 3. Verify JWT token
             const decoded = jwt.verify(token, JWT_SECRET!) as CurrentUserPayload
 
-            // 3. Fetch user entity based on role
+            // 4. Fetch user entity based on role
             const user = await this.fetchUserEntity(
                 decoded.userId,
                 decoded.entityType,
@@ -286,8 +297,8 @@ class AuthService {
                 user,
                 role: decoded.entityType,
             }
-        } catch {
-            // Handle JWT verification errors or database errors
+        } catch (error) {
+            console.error('Verification error:', error)
             return { isValid: false, user: null, role: null }
         }
     }

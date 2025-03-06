@@ -4,6 +4,7 @@ import { ForgotPassword } from '@/services/forgot-password.service.js'
 import { z } from 'zod'
 import { ResponseUtil } from '@/utils/response.util.js'
 import { Admin, User, Teacher, Parent, Session } from '@/models/index.js'
+import { Op } from 'sequelize'
 
 const loginSchema = z.object({
     email: z.string().email(),
@@ -29,9 +30,11 @@ export const AuthController = {
      */
     async login(req: Request, res: Response): Promise<void> {
         try {
+            // Validate request payload
             const validatedData = loginSchema.parse(req.body)
             const { email, password, entityType } = validatedData
 
+            // Determine the model to use based on the entity type
             let userModel
             switch (entityType) {
                 case 'ADMIN':
@@ -51,6 +54,15 @@ export const AuthController = {
                     return
             }
 
+            // Delete any expired sessions securely.
+            // Import Op from sequelize where needed (import { Op } from 'sequelize';)
+            await Session.destroy({
+                where: {
+                    expiryDate: { [Op.lt]: new Date() },
+                },
+            })
+
+            // Get other request parameters
             const userAgent = req.headers['user-agent']
             const ipAddress = req.ip
 
@@ -68,19 +80,20 @@ export const AuthController = {
                 ipAddress,
             )
 
-            // Set the token as an HTTP-only cookie (adjust 'secure' as appropriate for your environment)
+            // Set the token as an HTTP-only cookie (adjust secure flag according to your environment)
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
                 maxAge: 120 * 120 * 1000,
             })
+
             if (!success) {
                 throw new Error(loginMessage)
             }
-            // Use the service-provided message so the user knows whether it was a new login or an existing session
-            const response = ResponseUtil.success(loginMessage)
 
+            // Return a successful response using the service-provided message
+            const response = ResponseUtil.success(loginMessage)
             res.status(200).json(response)
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -187,14 +200,13 @@ export const AuthController = {
     async checkSession(req: Request, res: Response): Promise<void> {
         try {
             const token = req.cookies.token
-
             if (!token) {
                 res.status(401).json(
                     ResponseUtil.error('No session found', 401),
                 )
                 return
             }
-
+            console.log('session router')
             const { isValid, user, role } =
                 await authService.verifySession(token)
 
