@@ -7,7 +7,7 @@ import process from 'process'
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '1h'
 const SESSION_EXPIRY_HOURS = parseInt(
-    process.env.SESSION_EXPIRY_HOURS || '24',
+    process.env.SESSION_EXPIRY_HOURS || '168',
     10,
 )
 

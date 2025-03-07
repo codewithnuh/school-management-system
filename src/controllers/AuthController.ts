@@ -85,7 +85,7 @@ export const AuthController = {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: 120 * 120 * 1000,
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
             if (!success) {
@@ -200,6 +200,7 @@ export const AuthController = {
     async checkSession(req: Request, res: Response): Promise<void> {
         try {
             const token = req.cookies.token
+
             if (!token) {
                 res.status(401).json(
                     ResponseUtil.error('No session found', 401),
