@@ -142,7 +142,12 @@ const router = express.Router()
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/', authWithRBAC(['ADMIN']), UserController.createUser)
-
+// In StudentRoutes.ts
+router.get(
+    '/applications',
+    authWithRBAC(['ADMIN']),
+    UserController.getUnregisteredStudents,
+)
 /**
  * @openapi
  * /users:

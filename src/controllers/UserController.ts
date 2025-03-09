@@ -3,13 +3,10 @@ import { User } from '@/models/User.js'
 import { userSchema } from '@/schema/user.schema.js'
 import { PasswordResetToken } from '@/models/PasswordResetToken.js'
 import bcrypt from 'bcryptjs'
-// import { createJWT } from '@/utils/jwt.js'
-// import { Session } from '@/models/Session.js'
+
 import { acceptStudentApplication } from '@/services/application.service.js'
 import { ResponseUtil } from '@/utils/response.util.js'
-// import { sendForgotPasswordOTP } from '@/services/forgot-password.service.js'
-// import { OTP } from '@/models/OTP.js'
-
+import { logger } from '@/middleware/loggin.middleware.js'
 interface UserData {
     firstName: string
     middleName?: string
@@ -500,6 +497,50 @@ class UserController {
                 500,
             )
             res.status(response.statusCode).json(response)
+        }
+    }
+    /**
+     * Get all students who are not registered yet (pending applications)
+     */
+    public getUnregisteredStudents = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
+        try {
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 10
+            const offset = (page - 1) * limit
+
+            const unregisteredStudents = await User.findAndCountAll({
+                where: {
+                    isRegistered: false,
+                },
+                limit,
+                offset,
+                attributes: {
+                    exclude: ['verificationDocument', 'password'],
+                },
+                order: [['createdAt', 'DESC']], // Most recent applications first
+            })
+
+            const response = ResponseUtil.paginated(
+                unregisteredStudents.rows,
+                unregisteredStudents.count,
+                page,
+                limit,
+                'Unregistered students retrieved successfully',
+            )
+
+            res.status(response.statusCode).json(response)
+            return
+        } catch (error) {
+            logger.error('Error fetching unregistered students', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+            })
+
+            const response = ResponseUtil.error('Internal server error', 500)
+            res.status(response.statusCode).json(response)
+            return
         }
     }
 
