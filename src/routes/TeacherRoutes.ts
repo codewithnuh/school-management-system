@@ -157,7 +157,6 @@ router.get('/', authenticate(['ADMIN']), TeacherController.getTeachers)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id', TeacherController.getTeacherById)
 
 /**
  * @openapi
@@ -186,6 +185,7 @@ router.get('/:id', TeacherController.getTeacherById)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+
 router.post('/register', TeacherController.registerTeacher)
 router.post(
     '/accept-teacher-application',
@@ -259,5 +259,10 @@ router.post(
 
     TeacherController.interviewTeacherApplicant,
 )
-
+router.get(
+    '/applications',
+    authenticate(['ADMIN']),
+    TeacherController.getUnregisteredTeachers,
+)
+router.get('/:id', TeacherController.getTeacherById)
 export default router

@@ -5,7 +5,7 @@ import { Op } from 'sequelize'
 import process from 'process'
 
 const JWT_SECRET = process.env.JWT_SECRET
-const JWT_EXPIRY = process.env.JWT_EXPIRY || '1h'
+const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d'
 const SESSION_EXPIRY_HOURS = parseInt(
     process.env.SESSION_EXPIRY_HOURS || '168',
     10,

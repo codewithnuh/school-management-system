@@ -269,6 +269,53 @@ class TeacherController {
             }
         }
     }
+    /**
+     * Get all teachers who are not registered yet (pending applications)
+     */
+    public getUnregisteredTeachers = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
+        try {
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 10
+            const offset = (page - 1) * limit
+
+            const unregisteredTeachers = await Teacher.findAndCountAll({
+                where: {
+                    isVerified: false,
+                    applicationStatus: {
+                        [Op.in]: ['Pending', 'Interview'],
+                    },
+                },
+                limit,
+                offset,
+                attributes: {
+                    exclude: ['cvPath', 'verificationDocument', 'password'],
+                },
+                order: [['createdAt', 'DESC']], // Most recent applications first
+            })
+
+            const response = ResponseUtil.paginated(
+                unregisteredTeachers.rows,
+                unregisteredTeachers.count,
+                page,
+                limit,
+                'Unregistered teachers retrieved successfully',
+            )
+
+            res.status(response.statusCode).json(response)
+            return
+        } catch (error) {
+            logger.error('Error fetching unregistered teachers', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+            })
+
+            const response = ResponseUtil.error('Internal server error', 500)
+            res.status(response.statusCode).json(response)
+            return
+        }
+    }
 }
 
 export default new TeacherController()
