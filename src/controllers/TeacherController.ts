@@ -18,7 +18,7 @@ class TeacherController {
         try {
             // Validate request body against schema
             const validatedData = teacherSchema.parse(req.body)
-            console.log('validatedData', validatedData)
+
             // Check if teacher already exists with same email or CNIC
             const existingTeacher = await Teacher.findOne({
                 where: {
@@ -56,6 +56,7 @@ class TeacherController {
                 ...documents,
                 isVerified: false, // New teachers start unverified
                 role: 'TEACHER',
+                password: undefined,
                 subjectId: validatedData.subjectId, // Include subjectId
             })
 
