@@ -177,7 +177,11 @@ router.get(
     authWithRBAC(['ADMIN', 'TEACHER', 'USER', 'PARENT']),
     UserController.getAllUsers,
 ) // Added authentication middleware
-
+router.get(
+    'verified-users',
+    authWithRBAC(['ADMIN']),
+    UserController.getAllVerfiedUsers,
+)
 /**
  * @openapi
  * /users/accept-user:

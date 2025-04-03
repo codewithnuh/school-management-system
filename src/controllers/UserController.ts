@@ -72,6 +72,32 @@ class UserController {
     public getAllUsers = async (req: Request, res: Response): Promise<void> => {
         try {
             const allUsers = await User.findAll({
+                attributes: { exclude: ['password'] }, // Don't send password in response
+            })
+
+            if (!allUsers.length) {
+                res.status(404).json({
+                    success: false,
+                    message: 'No users found',
+                })
+                return
+            }
+
+            res.status(200).json({
+                success: true,
+                data: allUsers,
+                message: 'Users retrieved successfully',
+            })
+        } catch (error) {
+            this.handleError(res, error)
+        }
+    }
+    public getAllVerfiedUsers = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
+        try {
+            const allUsers = await User.findAll({
                 where: { isRegistered: true },
                 attributes: { exclude: ['password'] }, // Don't send password in response
             })
