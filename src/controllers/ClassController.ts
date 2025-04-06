@@ -73,11 +73,10 @@ export class ClassController {
                 ),
             )
         } catch (error) {
+            console.log(error)
             if (error instanceof Error) {
                 res.status(400).json(
-                    ResponseUtil.error(
-                        error?.message || 'Failed to update class',
-                    ),
+                    ResponseUtil.error('Failed to update class'),
                 )
             }
         }

@@ -72,16 +72,33 @@ export class ClassService {
     static async updateClass(id: number, input: CreateClassInput) {
         const transaction = await sequelize.transaction()
         try {
-            const updatedClass = await Class.update(input, {
+            // Update basic class information
+            await Class.update(input, {
                 where: { id },
                 transaction,
             })
 
-            // Update Sections (more complex, requires careful handling)
-            // 1. Delete existing sections for the class
-            await Section.destroy({ where: { classId: id }, transaction })
+            // Get all existing sections for this class
+            const existingSections = await Section.findAll({
+                where: { classId: id },
+                transaction,
+            })
 
-            // 2. Create new sections based on the input:
+            // 1. First, delete all section_teachers records for these sections
+            for (const section of existingSections) {
+                await SectionTeacher.destroy({
+                    where: { sectionId: section.id },
+                    transaction,
+                })
+            }
+
+            // 2. Now it's safe to delete the sections
+            await Section.destroy({
+                where: { classId: id },
+                transaction,
+            })
+
+            // 3. Create new sections based on the input
             for (const sectionInput of input.sections) {
                 const section = await Section.create(
                     {
@@ -94,10 +111,14 @@ export class ClassService {
                     },
                     { transaction },
                 )
+
                 // Subject Teacher assignment
                 for (const [subjectId, teacherId] of Object.entries(
                     sectionInput!.subjectTeachers,
                 )) {
+                    // Skip if teacherId is 0 (no teacher assigned)
+                    if (!teacherId) continue
+
                     const teacher = await Teacher.findOne({
                         where: { id: teacherId, subjectId: Number(subjectId) }, // Check if teacher is qualified for the subject
                         transaction,
@@ -108,6 +129,7 @@ export class ClassService {
                             `Teacher ${teacherId} is not qualified for subject ${subjectId}`,
                         )
                     }
+
                     await SectionTeacher.create(
                         {
                             sectionId: section.id,
@@ -120,7 +142,12 @@ export class ClassService {
             }
 
             await transaction.commit()
-            return updatedClass
+
+            // Return the updated class with its sections
+            return await Class.findByPk(id, {
+                include: [Section],
+                transaction: null, // Use a new transaction or no transaction
+            })
         } catch (error) {
             await transaction.rollback()
             throw error
@@ -130,11 +157,32 @@ export class ClassService {
     static async deleteClass(id: number) {
         const transaction = await sequelize.transaction()
         try {
-            await Section.destroy({ where: { classId: id }, transaction }) // Delete associated sections first
+            // Get all sections for this class
+            const sections = await Section.findAll({
+                where: { classId: id },
+                transaction,
+            })
+
+            // Delete section_teachers records first
+            for (const section of sections) {
+                await SectionTeacher.destroy({
+                    where: { sectionId: section.id },
+                    transaction,
+                })
+            }
+
+            // Now it's safe to delete the sections
+            await Section.destroy({
+                where: { classId: id },
+                transaction,
+            })
+
+            // Finally delete the class
             const deletedClass = await Class.destroy({
                 where: { id },
                 transaction,
             })
+
             await transaction.commit()
             return deletedClass
         } catch (error) {
