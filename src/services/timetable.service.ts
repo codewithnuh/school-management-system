@@ -1,19 +1,44 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import sequelize from '@/config/database.js'
 import { Class } from '@/models/Class.js'
-// Fix capitalization to Section
 import { Subject } from '@/models/Subject.js'
 import { Teacher } from '@/models/Teacher.js'
-// Fix capitalization to Timetable
-// Fix capitalization to TimetableEntry
 import { SectionTeacher } from '@/models/SectionTeacher.js'
 import { Section } from '@/models/Section.js'
 import { Timetable } from '@/models/TimeTable.js'
 import { TimetableEntry } from '@/models/TimeTableEntry.js'
-import { Sequelize } from 'sequelize-typescript'
-import { Transaction } from 'sequelize'
+import { Sequelize, Transaction, Op } from 'sequelize' // Import Op for queries
+
+// Type definitions for timetable generation
+interface TeacherAvailability {
+    [day: string]: {
+        [periodNumber: number]: boolean // true if available, false if booked
+    }
+}
+
+interface SubjectDistribution {
+    [subjectId: number]: number // Number of periods allocated
+}
+
+interface SubjectTeacherPair {
+    subjectId: number
+    teacherId: number
+    sectionTeacherId: number
+    weight: number // Weight for prioritization
+}
+
+interface SubjectPeriodPreference {
+    [subjectId: number]: {
+        preferredPeriods: number[]
+        avoidPeriods: number[]
+    }
+}
+
 export class TimetableService {
     /**
-     * Generates a timetable for all sections of a given class.
+     * Generates a timetable for all sections of a given class, ensuring teacher availability
+     * across sections and cleaning up previous timetables for the class.
      * @param classId - The ID of the class for which to generate the timetable.
      * @param config - Optional configuration for overrides (e.g., periods per day, break times).
      * @returns An array of generated timetables for each section.
@@ -26,9 +51,39 @@ export class TimetableService {
             breakEndTime?: string
         },
     ) {
+        // Start a transaction for atomic operations
         const transaction = await sequelize.transaction()
 
         try {
+            // --- Cleanup Previous Timetables ---
+            // 1. Find existing timetable IDs for this class
+            const existingTimetables = await Timetable.findAll({
+                where: { classId },
+                attributes: ['id'], // Only need the IDs
+                transaction,
+                raw: true, // Get plain objects
+            })
+            const existingTimetableIds = existingTimetables.map(tt => tt.id)
+
+            // 2. Delete existing timetable entries associated with these timetables
+            if (existingTimetableIds.length > 0) {
+                await TimetableEntry.destroy({
+                    where: {
+                        timetableId: {
+                            [Op.in]: existingTimetableIds,
+                        },
+                    },
+                    transaction,
+                })
+            }
+
+            // 3. Delete the existing timetables themselves
+            await Timetable.destroy({
+                where: { classId },
+                transaction,
+            })
+            // --- End Cleanup ---
+
             // Fetch class data including sections
             const classData = await Class.findByPk(classId, {
                 include: [Section],
@@ -45,24 +100,97 @@ export class TimetableService {
 
             const timetables = []
 
-            // Generate a timetable for each section
+            // Initialize teacher availability tracking *before* the loop
+            // This map will be shared across all sections of this class generation
+            const sharedTeacherAvailability: {
+                [teacherId: number]: TeacherAvailability
+            } = {}
+
+            // Generate subject preferences - can still be different for each section
+            const sectionSubjectPreferences: {
+                [sectionId: number]: SubjectPeriodPreference
+            } = {}
+
+            // Pre-calculate preferences for all sections
             for (const section of classData.sections) {
+                sectionSubjectPreferences[section.id] =
+                    await this.generateSectionSubjectPreferences(
+                        section.id,
+                        transaction,
+                    )
+            }
+
+            // Generate a timetable for each section, using the shared availability map
+            for (let i = 0; i < classData.sections.length; i++) {
+                const section = classData.sections[i]
+
+                // Generate a section-specific pattern staggered from other sections
+                const sectionOffset = i * 2 // Stagger pattern by 2 periods per section
+
                 const timetable = await this.createTimetableForSection(
                     classData,
                     section,
                     config || {},
                     transaction,
+                    sharedTeacherAvailability, // Pass the shared map
+                    sectionSubjectPreferences[section.id],
+                    sectionOffset,
                 )
 
                 timetables.push(timetable)
             }
 
+            // If everything succeeded, commit the transaction
             await transaction.commit()
             return timetables
         } catch (error) {
+            // If any error occurred, rollback the transaction
             await transaction.rollback()
-            throw error
+            console.error('Error generating timetable:', error) // Log the error
+            // Re-throw the error so the caller knows something went wrong
+            throw new Error(
+                `Failed to generate timetable: ${error instanceof Error ? error.message : String(error)}`,
+            )
         }
+    }
+
+    /**
+     * Generates subject preferences for a specific section.
+     * This creates variety between sections by assigning different
+     * period preferences to subjects for each section.
+     */
+    private static async generateSectionSubjectPreferences(
+        sectionId: number,
+        transaction: Transaction,
+    ): Promise<SubjectPeriodPreference> {
+        const sectionTeachers = await SectionTeacher.findAll({
+            where: { sectionId },
+            include: [Subject],
+            transaction,
+        })
+
+        const preferences: SubjectPeriodPreference = {}
+        const periodsPerDay = 8 // Assuming max 8 periods per day
+
+        sectionTeachers.forEach((st, index) => {
+            // Assign different preferred periods for each subject
+            // by staggering them across the day
+            const preferredStart = ((index * 2) % periodsPerDay) + 1
+
+            preferences[st.subjectId] = {
+                preferredPeriods: [
+                    preferredStart,
+                    (preferredStart % periodsPerDay) + 1,
+                    ((preferredStart + 2) % periodsPerDay) + 1,
+                ].filter(p => p > 0 && p <= periodsPerDay), // Ensure periods are valid
+                avoidPeriods: [
+                    ((preferredStart + 4) % periodsPerDay) + 1,
+                    ((preferredStart + 5) % periodsPerDay) + 1,
+                ].filter(p => p > 0 && p <= periodsPerDay), // Ensure periods are valid
+            }
+        })
+
+        return preferences
     }
 
     /**
@@ -71,6 +199,9 @@ export class TimetableService {
      * @param section - The section for which to create the timetable.
      * @param config - Optional configuration for overrides.
      * @param transaction - The Sequelize transaction.
+     * @param teacherAvailability - Shared record of teacher availability to prevent conflicts.
+     * @param subjectPreferences - Subject period preferences for this section.
+     * @param sectionOffset - Offset value to stagger patterns between sections.
      * @returns The created timetable.
      */
     private static async createTimetableForSection(
@@ -82,13 +213,21 @@ export class TimetableService {
             breakEndTime?: string
         },
         transaction: Transaction,
+        // This is now the SHARED availability map
+        teacherAvailability: { [teacherId: number]: TeacherAvailability },
+        subjectPreferences: SubjectPeriodPreference,
+        sectionOffset: number = 0,
     ) {
+        // --- Input Validations ---
         if (!classData.periodsPerDay || classData.periodsPerDay <= 0) {
-            throw new Error('Invalid periods per day')
+            throw new Error(
+                `Invalid periods per day defined for class ${classData.id}`,
+            )
         }
-
         if (!classData.periodLength || classData.periodLength <= 0) {
-            throw new Error('Invalid period length')
+            throw new Error(
+                `Invalid period length defined for class ${classData.id}`,
+            )
         }
 
         // Fetch subject-teacher assignments for this section
@@ -99,12 +238,15 @@ export class TimetableService {
         })
 
         if (sectionTeachers.length === 0) {
-            throw new Error(
-                `No subject-teacher assignments found for section ${section.id}`,
+            console.warn(
+                `No subject-teacher assignments found for section ${section.id} (Class ${classData.id}). Skipping timetable generation for this section.`,
             )
+            // Return a placeholder or handle as needed, maybe throw error if required
+            // For now, let's skip creating a timetable for this section to avoid errors later
+            return null // Or throw new Error(...) if a section *must* have teachers
         }
 
-        // Create the timetable
+        // --- Timetable Creation ---
         const timetable = await Timetable.create(
             {
                 classId: classData.id,
@@ -113,12 +255,14 @@ export class TimetableService {
                 periodsPerDayOverrides: config?.periodsPerDayOverrides || {},
                 breakStartTime: config?.breakStartTime,
                 breakEndTime: config?.breakEndTime,
-                teacherId: sectionTeachers[0].teacherId, // Assuming the first teacher as default
+                // Assign a default teacher ID - maybe the class teacher if available?
+                // Using the first section teacher as a fallback. Consider refining this.
+                teacherId: sectionTeachers[0].teacherId,
             },
             { transaction },
         )
 
-        // Generate timetable entries for each day and period
+        // --- Scheduling Logic ---
         const daysOfWeek: (
             | 'Monday'
             | 'Tuesday'
@@ -136,170 +280,481 @@ export class TimetableService {
             'Saturday',
             'Sunday',
         ]
+
+        // Filter out days with 0 periods based on overrides or base value
+        const activeDays = daysOfWeek.filter(
+            day =>
+                (timetable.periodsPerDayOverrides?.[day] ??
+                    timetable.periodsPerDay) > 0,
+        )
+
+        const totalPeriodsForSection = activeDays.reduce(
+            (sum, day) =>
+                sum +
+                (timetable.periodsPerDayOverrides?.[day] ??
+                    timetable.periodsPerDay),
+            0,
+        )
+
+        // Ensure there are periods to schedule
+        if (totalPeriodsForSection === 0) {
+            console.warn(
+                `Section ${section.id} has 0 periods to schedule. Skipping entry generation.`,
+            )
+            return timetable // Return the created timetable shell
+        }
+
+        // Determine subject distribution
+        const subjectDistribution = this.calculateSubjectDistribution(
+            sectionTeachers,
+            totalPeriodsForSection,
+            section.id,
+            sectionOffset,
+        )
+
+        // Create pools for each day
+        const subjectTeacherPoolsByDay: {
+            [day: string]: SubjectTeacherPair[]
+        } = {}
+        activeDays.forEach(day => {
+            subjectTeacherPoolsByDay[day] = this.createSubjectTeacherPool(
+                sectionTeachers,
+                subjectDistribution, // Use overall distribution
+                day,
+                section.id,
+                subjectPreferences,
+            )
+            this.shuffleArray(subjectTeacherPoolsByDay[day]) // Shuffle each day's pool
+        })
+
+        const lastPeriodSubjectByDay: { [day: string]: number | null } = {}
+        const subjectOccurrencesByDay: {
+            [day: string]: { [subjectId: number]: number }
+        } = {}
+
+        activeDays.forEach(day => {
+            lastPeriodSubjectByDay[day] = null
+            subjectOccurrencesByDay[day] = {}
+            sectionTeachers.forEach(st => {
+                subjectOccurrencesByDay[day][st.subjectId] = 0
+            })
+        })
+
         const timetableEntries = []
 
-        for (const day of daysOfWeek) {
+        for (const day of activeDays) {
             const periodsForDay =
                 timetable.periodsPerDayOverrides?.[day] ??
                 timetable.periodsPerDay
-
-            if (periodsForDay <= 0) {
-                continue // Skip days with no periods
-            }
+            const dailyPool = [...subjectTeacherPoolsByDay[day]] // Copy pool for modification
+            let assignedCount = 0
 
             for (
                 let periodNumber = 1;
                 periodNumber <= periodsForDay;
                 periodNumber++
             ) {
-                // Assign subject and teacher in a round-robin fashion
-                const subjectTeacher =
-                    sectionTeachers[(periodNumber - 1) % sectionTeachers.length]
-
                 const startTime = this.calculateStartTime(
                     day,
                     periodNumber,
                     timetable,
                     classData.periodLength,
                 )
-
                 const endTime = this.calculateEndTime(
                     startTime,
                     classData.periodLength,
                 )
 
-                const entry = await TimetableEntry.create(
-                    {
-                        timetableId: timetable.id,
-                        sectionId: section.id, // Ensure sectionId is assigned
-                        dayOfWeek: day,
-                        classId: classData.id,
-                        periodNumber,
-                        subjectId: subjectTeacher.subjectId,
-                        teacherId: subjectTeacher.teacherId,
-                        startTime,
-                        endTime,
-                    },
-                    { transaction },
-                )
+                let bestOption: SubjectTeacherPair | null = null
+                let bestScore = -Infinity
+                let bestOptionIndex = -1
 
+                // Find the best available option for this period
+                for (let i = 0; i < dailyPool.length; i++) {
+                    const pair = dailyPool[i]
+
+                    // *** CORE CHANGE: Check SHARED teacherAvailability ***
+                    const isTeacherAvailable =
+                        teacherAvailability[pair.teacherId]?.[day]?.[
+                            periodNumber
+                        ] !== false // Defaults to true if not set
+
+                    if (!isTeacherAvailable) {
+                        continue // Skip if teacher is booked in another section
+                    }
+
+                    // Calculate score (similar logic as before)
+                    let score = pair.weight
+                    if (
+                        subjectPreferences[
+                            pair.subjectId
+                        ]?.preferredPeriods.includes(periodNumber)
+                    )
+                        score += 3
+                    if (
+                        subjectPreferences[
+                            pair.subjectId
+                        ]?.avoidPeriods.includes(periodNumber)
+                    )
+                        score -= 2
+                    if (
+                        (subjectOccurrencesByDay[day][pair.subjectId] || 0) ===
+                        0
+                    )
+                        score += 2
+                    else if (
+                        (subjectOccurrencesByDay[day][pair.subjectId] || 0) ===
+                        1
+                    )
+                        score += 1
+                    if (lastPeriodSubjectByDay[day] === pair.subjectId)
+                        score -= 5 // Avoid consecutive
+
+                    if (score > bestScore) {
+                        bestScore = score
+                        bestOption = pair
+                        bestOptionIndex = i
+                    }
+                }
+
+                // If no suitable option found from the pool, try fallback
+                if (!bestOption) {
+                    console.warn(
+                        `[${day} P${periodNumber} S${section.id}] No ideal subject found. Trying fallback.`,
+                    )
+                    // Fallback: Find *any* teacher assigned to this section who is available
+                    const availableSectionTeachers = sectionTeachers.filter(
+                        st =>
+                            teacherAvailability[st.teacherId]?.[day]?.[
+                                periodNumber
+                            ] !== false,
+                    )
+
+                    if (availableSectionTeachers.length > 0) {
+                        // Prioritize teachers whose subjects haven't been taught yet today or least taught
+                        availableSectionTeachers.sort(
+                            (a, b) =>
+                                (subjectOccurrencesByDay[day][a.subjectId] ||
+                                    0) -
+                                (subjectOccurrencesByDay[day][b.subjectId] ||
+                                    0),
+                        )
+                        const fallbackTeacher = availableSectionTeachers[0]
+                        bestOption = {
+                            subjectId: fallbackTeacher.subjectId,
+                            teacherId: fallbackTeacher.teacherId,
+                            sectionTeacherId: fallbackTeacher.id,
+                            weight: -10, // Indicate fallback
+                        }
+                        console.log(
+                            `Fallback assigned: T${bestOption.teacherId} Sub${bestOption.subjectId}`,
+                        )
+                    } else {
+                        // VERY BAD SCENARIO: No teacher available AT ALL for this slot.
+                        // This indicates a fundamental scheduling conflict (e.g., not enough teachers).
+                        console.error(
+                            `[${day} P${periodNumber} S${section.id}] CRITICAL: No available teacher found for this slot! Skipping period.`,
+                        )
+                        // Skip creating an entry for this period? Or assign a placeholder?
+                        // Skipping for now. This needs careful consideration based on requirements.
+                        continue // Skip to the next period
+                    }
+                }
+
+                // Assign the chosen option
+                const assignedPair = bestOption
+
+                // *** CORE CHANGE: Mark teacher as unavailable in SHARED map ***
+                if (!teacherAvailability[assignedPair.teacherId])
+                    teacherAvailability[assignedPair.teacherId] = {}
+                if (!teacherAvailability[assignedPair.teacherId][day])
+                    teacherAvailability[assignedPair.teacherId][day] = {}
+                teacherAvailability[assignedPair.teacherId][day][periodNumber] =
+                    false // Mark as booked
+
+                // Update tracking
+                lastPeriodSubjectByDay[day] = assignedPair.subjectId
+                subjectOccurrencesByDay[day][assignedPair.subjectId] =
+                    (subjectOccurrencesByDay[day][assignedPair.subjectId] ||
+                        0) + 1
+
+                // Remove used option from the daily pool if it wasn't a fallback generated on the spot
+                if (bestOptionIndex !== -1) {
+                    dailyPool.splice(bestOptionIndex, 1)
+                }
+
+                // Create the timetable entry
+                const entry = {
+                    // Create as object first for bulkCreate later
+                    timetableId: timetable.id,
+                    sectionId: section.id,
+                    dayOfWeek: day,
+                    classId: classData.id,
+                    periodNumber,
+                    subjectId: assignedPair.subjectId,
+                    teacherId: assignedPair.teacherId,
+                    startTime,
+                    endTime,
+                }
                 timetableEntries.push(entry)
+                assignedCount++
+            }
+
+            // Log if not all periods were assigned (due to critical conflicts)
+            if (assignedCount < periodsForDay) {
+                console.warn(
+                    `[${day} S${section.id}] Only ${assignedCount}/${periodsForDay} periods were assigned due to conflicts.`,
+                )
             }
         }
 
-        // Update the timetable with the generated entries
-        await timetable.update({}, { transaction })
+        // Bulk create entries for efficiency
+        if (timetableEntries.length > 0) {
+            await TimetableEntry.bulkCreate(timetableEntries, { transaction })
+        }
 
+        // No need to update timetable here, bulkCreate handles entries
         return timetable
     }
 
     /**
-     * Calculates the start time for a period.
-     * @param day - The day of the week.
-     * @param periodNumber - The period number.
-     * @param timetable - The timetable configuration.
-     * @param periodLength - The length of each period in minutes.
-     * @returns The start time in "HH:MM" format.
+     * Calculates how many periods each subject should have based on importance
+     * and total available periods. Now section-specific for variety.
+     */
+    private static calculateSubjectDistribution(
+        sectionTeachers: SectionTeacher[],
+        totalPeriods: number,
+        sectionId: number,
+        sectionOffset: number,
+    ): SubjectDistribution {
+        const distribution: SubjectDistribution = {}
+        if (sectionTeachers.length === 0 || totalPeriods <= 0) {
+            return distribution // Avoid division by zero or pointless calculation
+        }
+
+        // Base distribution values
+        const basePeriodsPerSubject = Math.max(
+            0,
+            Math.floor(totalPeriods / sectionTeachers.length),
+        )
+        let remainingPeriods = Math.max(
+            0,
+            totalPeriods - basePeriodsPerSubject * sectionTeachers.length,
+        )
+
+        const subjectOrder = [...sectionTeachers]
+        // Stable sort based on section variance logic
+        subjectOrder.sort((a, b) => {
+            const valA = (a.subjectId * 3 + sectionId + sectionOffset * 2) % 101
+            const valB = (b.subjectId * 3 + sectionId + sectionOffset * 2) % 101
+            if (valA !== valB) return valA - valB
+            return a.subjectId - b.subjectId // Tie-breaker
+        })
+
+        // Initial distribution
+        subjectOrder.forEach(st => {
+            distribution[st.subjectId] = basePeriodsPerSubject
+        })
+
+        // Distribute remaining periods giving priority based on the sorted order
+        let i = 0
+        while (remainingPeriods > 0 && i < subjectOrder.length) {
+            distribution[subjectOrder[i].subjectId]++
+            remainingPeriods--
+            i++
+        }
+
+        // Sanity check: Log if distribution doesn't match total periods (can happen with rounding)
+        const distributedTotal = Object.values(distribution).reduce(
+            (sum, count) => sum + count,
+            0,
+        )
+        if (distributedTotal !== totalPeriods && sectionTeachers.length > 0) {
+            console.warn(
+                `Section ${sectionId}: Subject distribution total (${distributedTotal}) does not match target periods (${totalPeriods}). Adjusting...`,
+            )
+            // Simple adjustment: add/remove from the first subject in the order
+            const diff = totalPeriods - distributedTotal
+            if (subjectOrder.length > 0) {
+                distribution[subjectOrder[0].subjectId] = Math.max(
+                    0,
+                    distribution[subjectOrder[0].subjectId] + diff,
+                )
+            }
+        }
+
+        return distribution
+    }
+
+    /**
+     * Creates a pool of subject-teacher pairs based on the desired distribution.
+     * Incorporates day-specific and section-specific weighting for variety.
+     */
+    private static createSubjectTeacherPool(
+        sectionTeachers: SectionTeacher[],
+        distribution: SubjectDistribution,
+        day: string,
+        sectionId: number,
+        preferences: SubjectPeriodPreference,
+    ): SubjectTeacherPair[] {
+        const pool: SubjectTeacherPair[] = []
+
+        const dayWeights: { [key: string]: number } = {
+            Monday: 1.2,
+            Tuesday: 1.0,
+            Wednesday: 0.9,
+            Thursday: 1.1,
+            Friday: 1.0,
+            Saturday: 0.7,
+            Sunday: 0.5, // Lower weights for weekends if applicable
+        }
+        const dayFactor = dayWeights[day] || 1.0 // Default factor
+
+        sectionTeachers.forEach(st => {
+            // Calculate target count for this subject *on this day*
+            // This is tricky; the distribution is weekly. Let's aim for roughly distribution / active_days
+            const approxPeriodsPerDay = (distribution[st.subjectId] || 0) / 5 // Assume 5 active days roughly
+            const count = Math.max(
+                0,
+                Math.round(approxPeriodsPerDay * dayFactor),
+            ) // Allow 0 periods
+
+            // Calculate base weight with section variance
+            let baseWeight = 10 + ((st.subjectId + sectionId * 2) % 7) // Vary weight by section
+
+            // Adjust weight based on day - prioritize certain subjects on certain days
+            const dayIndex = [
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+            ].indexOf(day)
+            if (dayIndex !== -1) {
+                // Only apply for weekdays perhaps
+                // Example: Prioritize core subjects (e.g., low subject IDs) early week
+                if (st.subjectId < 5 && dayIndex < 2) baseWeight += 3
+                // Example: Prioritize other subjects later in week
+                if (st.subjectId >= 5 && dayIndex > 2) baseWeight += 2
+            }
+
+            for (let i = 0; i < count; i++) {
+                pool.push({
+                    subjectId: st.subjectId,
+                    teacherId: st.teacherId,
+                    sectionTeacherId: st.id,
+                    weight: baseWeight + Math.random() * 0.1, // Add small random jitter
+                })
+            }
+        })
+
+        // Ensure the pool isn't excessively large or small compared to periods needed
+        // This part needs refinement based on how many periods are expected per day vs weekly total
+
+        return pool
+    }
+
+    /**
+     * Shuffles an array in-place using the Fisher-Yates algorithm.
+     */
+    private static shuffleArray<T>(array: T[]): void {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1))
+            ;[array[i], array[j]] = [array[j], array[i]]
+        }
+    }
+
+    /**
+     * Calculates the start time for a period, considering breaks.
      */
     private static calculateStartTime(
-        day: string,
+        day: string, // Keep day for potential future day-specific start times
         periodNumber: number,
         timetable: Timetable,
         periodLength: number,
     ): string {
-        if (periodNumber <= 0) {
-            throw new Error('Invalid period number')
+        if (periodNumber <= 0) throw new Error('Invalid period number')
+
+        // Use a fixed start time for simplicity, e.g., 08:00
+        // Could be made configurable per class/school later
+        const schoolStartTime = '08:00'
+        let currentMinutes = this.timeToMinutes(schoolStartTime)
+        const breakStartMinutes = timetable.breakStartTime
+            ? this.timeToMinutes(timetable.breakStartTime)
+            : null
+        const breakEndMinutes = timetable.breakEndTime
+            ? this.timeToMinutes(timetable.breakEndTime)
+            : null
+        let breakDuration = 0
+
+        if (
+            breakStartMinutes !== null &&
+            breakEndMinutes !== null &&
+            breakEndMinutes > breakStartMinutes
+        ) {
+            breakDuration = breakEndMinutes - breakStartMinutes
+        } else if (breakStartMinutes || breakEndMinutes) {
+            console.warn('Incomplete or invalid break time configuration.')
         }
 
-        let startTime = '08:00' // Default start time
+        for (let p = 1; p < periodNumber; p++) {
+            const periodStartMinutes = currentMinutes
+            const periodEndMinutes = currentMinutes + periodLength
 
-        if (periodNumber > 1) {
-            let minutesToAdd = (periodNumber - 1) * periodLength
-
-            // Adjust for break time if applicable
-            if (timetable.breakStartTime && timetable.breakEndTime) {
-                const [breakStartHour, breakStartMinute] =
-                    timetable.breakStartTime.split(':').map(Number)
-                const [breakEndHour, breakEndMinute] = timetable.breakEndTime
-                    .split(':')
-                    .map(Number)
-
-                const breakDuration =
-                    (breakEndHour - breakStartHour) * 60 +
-                    (breakEndMinute - breakStartMinute)
-
-                if (breakDuration <= 0) {
-                    throw new Error('Invalid break duration')
-                }
-
-                const [startHour, startMinute] = startTime
-                    .split(':')
-                    .map(Number)
-                const currentTimeMinutes =
-                    startHour * 60 + startMinute + minutesToAdd
-                const breakStartTimeMinutes =
-                    breakStartHour * 60 + breakStartMinute
-
-                if (currentTimeMinutes > breakStartTimeMinutes) {
-                    minutesToAdd += breakDuration
-                }
+            // Check if the *start* of the break falls within this period we just added
+            if (
+                breakDuration > 0 &&
+                breakStartMinutes !== null &&
+                breakStartMinutes >= periodStartMinutes &&
+                breakStartMinutes < periodEndMinutes
+            ) {
+                // Period spans the break start time, add break duration *after* this period
+                currentMinutes += periodLength + breakDuration
+            } else {
+                // No break interference in this period
+                currentMinutes += periodLength
             }
-
-            startTime = this.addMinutes(startTime, minutesToAdd)
         }
 
-        return startTime
+        return this.minutesToTime(currentMinutes)
     }
 
     /**
-     * Calculates the end time for a period.
-     * @param startTime - The start time in "HH:MM" format.
-     * @param periodLength - The length of the period in minutes.
-     * @returns The end time in "HH:MM" format.
+     * Calculates the end time for a period based on start time and length.
      */
     private static calculateEndTime(
         startTime: string,
         periodLength: number,
     ): string {
-        if (periodLength <= 0) {
-            throw new Error('Invalid period length')
-        }
-        return this.addMinutes(startTime, periodLength)
+        if (periodLength <= 0) throw new Error('Invalid period length')
+        const startMinutes = this.timeToMinutes(startTime)
+        return this.minutesToTime(startMinutes + periodLength)
     }
 
-    /**
-     * Adds minutes to a given time.
-     * @param time - The time in "HH:MM" format.
-     * @param minutesToAdd - The number of minutes to add.
-     * @returns The new time in "HH:MM" format.
-     */
-    private static addMinutes(time: string, minutesToAdd: number): string {
-        if (minutesToAdd < 0) {
-            throw new Error('Cannot add negative minutes')
-        }
+    /** Converts "HH:MM" to total minutes from midnight. */
+    private static timeToMinutes(time: string): number {
+        const [hours, minutes] = time.split(':').map(Number)
+        if (isNaN(hours) || isNaN(minutes))
+            throw new Error(`Invalid time format: ${time}`)
+        return hours * 60 + minutes
+    }
 
-        let [hours, minutes] = time.split(':').map(Number)
-        minutes += minutesToAdd
-
-        hours += Math.floor(minutes / 60)
-        minutes %= 60
-
-        if (hours >= 24) {
-            throw new Error('Time exceeds 24 hours')
-        }
-
+    /** Converts total minutes from midnight to "HH:MM". */
+    private static minutesToTime(totalMinutes: number): string {
+        if (totalMinutes < 0) throw new Error('Cannot represent negative time')
+        const hours = Math.floor(totalMinutes / 60) % 24 // Handle potential overflow past midnight if needed
+        const minutes = totalMinutes % 60
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
     }
 
+    // --- Fetching Methods ---
+
     /**
      * Fetches the timetable for a specific class and section.
-     * @param classId - The ID of the class.
-     * @param sectionId - The ID of the section.
-     * @returns The timetable with entries.
      */
     static async getTimetable(classId: number, sectionId: number) {
-        if (classId <= 0 || sectionId <= 0) {
-            throw new Error('Invalid class or section ID')
+        if (!classId || classId <= 0 || !sectionId || sectionId <= 0) {
+            throw new Error('Invalid class or section ID provided')
         }
 
         return Timetable.findOne({
@@ -307,107 +762,152 @@ export class TimetableService {
             include: [
                 {
                     model: TimetableEntry,
-                    include: [{ model: Subject }, { model: Teacher }],
+                    as: 'entries', // Make sure alias matches model definition if used
+                    include: [
+                        { model: Subject, as: 'subject' }, // Use aliases if defined
+                        { model: Teacher, as: 'teacher' }, // Use aliases if defined
+                    ],
                 },
+                { model: Class, as: 'class' }, // Use alias
+                { model: Section, as: 'section' }, // Use alias
+            ],
+            // Consistent ordering for display
+            order: [
+                [{ model: TimetableEntry, as: 'entries' }, 'dayOfWeek', 'ASC'],
+                [
+                    Sequelize.literal(`CASE "entries"."dayOfWeek"
+                         WHEN 'Monday' THEN 1
+                         WHEN 'Tuesday' THEN 2
+                         WHEN 'Wednesday' THEN 3
+                         WHEN 'Thursday' THEN 4
+                         WHEN 'Friday' THEN 5
+                         WHEN 'Saturday' THEN 6
+                         WHEN 'Sunday' THEN 7
+                         ELSE 8 END`),
+                    'ASC',
+                ],
+                [
+                    { model: TimetableEntry, as: 'entries' },
+                    'periodNumber',
+                    'ASC',
+                ],
             ],
         })
     }
+
+    /**
+     * Fetches all timetable entries for a specific teacher, ordered by day and period.
+     */
     static async getTeacherTimetable(teacherId: number) {
         if (isNaN(teacherId) || teacherId <= 0) {
-            throw new Error('Invalid teacher ID')
+            throw new Error('Invalid teacher ID provided')
         }
 
-        // Fetch all timetable entries for the teacher
-        const timetableEntries = await TimetableEntry.findAll({
+        return TimetableEntry.findAll({
             where: { teacherId },
             include: [
                 {
                     model: Timetable,
-                    include: [Section, Class], // Include section and class details
+                    as: 'timetable',
+                    include: [
+                        { model: Section, as: 'section' },
+                        { model: Class, as: 'class' },
+                    ],
                 },
-                Subject, // Include subject details
+                { model: Subject, as: 'subject' },
+                { model: Teacher, as: 'teacher' }, // Include teacher details too
+                { model: Section, as: 'section' }, // Direct link from entry if exists
+                { model: Class, as: 'class' }, // Direct link from entry if exists
             ],
             order: [
-                ['dayOfWeek', 'ASC'], // Sort by day of the week
-                ['periodNumber', 'ASC'], // Sort by period number
+                // Custom order for days of the week
+                [
+                    Sequelize.literal(`CASE "dayOfWeek"
+                          WHEN 'Monday' THEN 1
+                          WHEN 'Tuesday' THEN 2
+                          WHEN 'Wednesday' THEN 3
+                          WHEN 'Thursday' THEN 4
+                          WHEN 'Friday' THEN 5
+                          WHEN 'Saturday' THEN 6
+                          WHEN 'Sunday' THEN 7
+                          ELSE 8 END`),
+                    'ASC',
+                ],
+                ['periodNumber', 'ASC'],
             ],
         })
-
-        if (timetableEntries.length === 0) {
-            throw new Error('No timetable entries found for this teacher')
-        }
-
-        return timetableEntries
     }
-    // timetable.service.ts
+
+    /**
+     * Fetches the combined weekly timetable view for a section or teacher.
+     */
     static async getWeeklyTimetable(
-        classId: number,
+        classId?: number, // Make optional if searching only by teacher
         sectionId?: number,
         teacherId?: number,
     ) {
         if (!sectionId && !teacherId) {
-            throw new Error('Specify sectionId or teacherId')
+            throw new Error('Specify at least sectionId or teacherId')
+        }
+        if (sectionId && !classId) {
+            // If sectionId is given, classId is usually implied/required by context
+            // Depending on your data model, you might need to fetch classId from sectionId first,
+            // or require classId to be passed alongside sectionId.
+            // Let's assume classId is required if sectionId is present for filtering.
+            throw new Error(
+                'classId must be provided when sectionId is specified.',
+            )
         }
 
-        // Fetch timetable entries for the section or teacher
-        const whereClause = sectionId
-            ? { classId, sectionId }
-            : { classId, teacherId }
+        const whereClause: {
+            teacherId?: number
+            sectionId?: number
+            classId?: number
+        } = {}
+        if (teacherId) {
+            whereClause.teacherId = teacherId
+            // Optionally add classId if provided, to narrow down teacher's schedule
+            if (classId) {
+                // This assumes TimetableEntry has a direct or indirect classId link.
+                // If not, you might need a subquery or join through Timetable.
+                // whereClause.classId = classId; // Add if direct field exists
+            }
+        } else if (sectionId && classId) {
+            whereClause.sectionId = sectionId
+            whereClause.classId = classId // Assumes direct classId field on TimetableEntry
+        }
 
-        const timetableEntries = await TimetableEntry.findAll({
+        // Verify whereClause is not empty
+        if (Object.keys(whereClause).length === 0) {
+            throw new Error(
+                'Invalid combination of parameters for filtering timetable entries.',
+            )
+        }
+
+        return TimetableEntry.findAll({
             where: whereClause,
             include: [
-                {
-                    model: Timetable,
-                    include: [Section, Class], // Include section and class details
-                },
-                Subject, // Include subject details
-                Teacher, // Include teacher details
+                { model: Subject, as: 'subject' },
+                { model: Teacher, as: 'teacher' },
+                { model: Section, as: 'section' },
+                { model: Class, as: 'class' },
+                { model: Timetable, as: 'timetable' }, // Include timetable details if needed
             ],
             order: [
-                // Sort by day of the week with a custom order (Monday to Friday)
                 [
-                    Sequelize.literal(
-                        `FIELD(dayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')`,
-                    ),
+                    Sequelize.literal(`CASE "dayOfWeek"
+                          WHEN 'Monday' THEN 1
+                          WHEN 'Tuesday' THEN 2
+                          WHEN 'Wednesday' THEN 3
+                          WHEN 'Thursday' THEN 4
+                          WHEN 'Friday' THEN 5
+                          WHEN 'Saturday' THEN 6
+                          WHEN 'Sunday' THEN 7
+                          ELSE 8 END`),
                     'ASC',
                 ],
-                ['periodNumber', 'ASC'], // Sort by period number
+                ['periodNumber', 'ASC'],
             ],
         })
-
-        if (timetableEntries.length === 0) {
-            throw new Error('No timetable entries found')
-        }
-
-        // Group entries by day of the week
-        const weeklyTimetable = timetableEntries.reduce(
-            (acc, entry) => {
-                const day = entry.dayOfWeek
-                if (!acc[day]) {
-                    acc[day] = []
-                }
-                acc[day].push(entry)
-                return acc
-            },
-            {} as Record<string, TimetableEntry[]>,
-        )
-
-        // Ensure the days are in the correct order (Monday to Friday)
-        const orderedTimetable: Record<string, TimetableEntry[]> = {}
-        const daysOfWeek = [
-            'Monday',
-            'Tuesday',
-            'Wednesday',
-            'Thursday',
-            'Friday',
-        ]
-        daysOfWeek.forEach(day => {
-            if (weeklyTimetable[day]) {
-                orderedTimetable[day] = weeklyTimetable[day]
-            }
-        })
-
-        return orderedTimetable
     }
 }

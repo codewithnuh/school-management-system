@@ -25,6 +25,7 @@ import examRoutes from '@/routes/ExamRoutes.js'
 import resultRoutes from '@/routes/ResultRoutes.js'
 import gradeRoutes from '@/routes/GradeRoutes.js'
 import subjectRoutes from '@/routes/SubjectRoutes.js'
+import sectionRoutes from './routes/SectionRoutes.js'
 // import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
@@ -93,6 +94,7 @@ const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/users', userRoutes)
     app.use('/api/v1/teachers', teacherRoutes)
     app.use('/api/v1/classes', classRoutes)
+    app.use('/api/v1/sections', sectionRoutes)
     app.use('/api/v1/timetables', TimeTableRoutes)
     // Exam Routes
     app.use('/api/v1/exams', examRoutes)

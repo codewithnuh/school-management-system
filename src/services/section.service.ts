@@ -1,4 +1,5 @@
 import sequelize from '@/config/database.js'
+import { Class, Timetable, TimetableEntry } from '@/models/index.js'
 import { CreateSectionInput, Section } from '@/models/Section.js'
 import { SectionTeacher } from '@/models/SectionTeacher.js'
 import { Teacher } from '@/models/Teacher.js'
@@ -43,13 +44,17 @@ export class SectionService {
     static async getAllSections(classId: number) {
         return Section.findAll({
             where: { classId },
-            include: [{ model: Teacher, as: 'classTeacher' }],
+            include: [Teacher, Class],
         })
     }
 
     static async getSectionById(id: number) {
         return Section.findByPk(id, {
-            include: [{ model: Teacher, as: 'classTeacher' }],
+            include: [
+                { model: Teacher },
+                { model: Timetable },
+                { model: TimetableEntry },
+            ],
         })
     }
 
