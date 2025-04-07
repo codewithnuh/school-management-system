@@ -98,6 +98,11 @@ export class TimetableService {
                 throw new Error('No sections found for this class')
             }
 
+            // Validate the class has working days defined
+            if (!classData.workingDays || classData.workingDays.length === 0) {
+                throw new Error('No working days defined for this class')
+            }
+
             const timetables = []
 
             // Initialize teacher availability tracking *before* the loop
@@ -263,27 +268,10 @@ export class TimetableService {
         )
 
         // --- Scheduling Logic ---
-        const daysOfWeek: (
-            | 'Monday'
-            | 'Tuesday'
-            | 'Wednesday'
-            | 'Thursday'
-            | 'Friday'
-            | 'Saturday'
-            | 'Sunday'
-        )[] = [
-            'Monday',
-            'Tuesday',
-            'Wednesday',
-            'Thursday',
-            'Friday',
-            'Saturday',
-            'Sunday',
-        ]
-
-        // Filter out days with 0 periods based on overrides or base value
-        const activeDays = daysOfWeek.filter(
+        // Use only the working days from the class model
+        const activeDays = classData.workingDays.filter(
             day =>
+                // Keep only days that have periods (based on overrides or base value)
                 (timetable.periodsPerDayOverrides?.[day] ??
                     timetable.periodsPerDay) > 0,
         )
@@ -762,44 +750,43 @@ export class TimetableService {
             include: [
                 {
                     model: TimetableEntry,
-                    as: 'entries', // Make sure alias matches model definition if used
-                    include: [
-                        { model: Subject, as: 'subject' }, // Use aliases if defined
-                        { model: Teacher, as: 'teacher' }, // Use aliases if defined
-                    ],
+                    include: [Subject, Teacher],
                 },
-                { model: Class, as: 'class' }, // Use alias
-                { model: Section, as: 'section' }, // Use alias
-            ],
-            // Consistent ordering for display
-            order: [
-                [{ model: TimetableEntry, as: 'entries' }, 'dayOfWeek', 'ASC'],
-                [
-                    Sequelize.literal(`CASE "entries"."dayOfWeek"
-                         WHEN 'Monday' THEN 1
-                         WHEN 'Tuesday' THEN 2
-                         WHEN 'Wednesday' THEN 3
-                         WHEN 'Thursday' THEN 4
-                         WHEN 'Friday' THEN 5
-                         WHEN 'Saturday' THEN 6
-                         WHEN 'Sunday' THEN 7
-                         ELSE 8 END`),
-                    'ASC',
-                ],
-                [
-                    { model: TimetableEntry, as: 'entries' },
-                    'periodNumber',
-                    'ASC',
-                ],
+                Section,
+                Class,
+                Teacher,
             ],
         })
     }
 
     /**
-     * Fetches all timetable entries for a specific teacher, ordered by day and period.
+     * Fetches all timetables with entries for a specific class.
+     */
+    static async getTimetablesByClass(classId: number) {
+        if (!classId || classId <= 0) {
+            throw new Error('Invalid class ID provided')
+        }
+
+        return Timetable.findAll({
+            where: { classId },
+            include: [
+                {
+                    model: TimetableEntry,
+                    include: [Subject, Teacher],
+                },
+                Section,
+                Class,
+                Teacher,
+            ],
+        })
+    }
+
+    /**
+     * Fetches all timetable entries for a specific teacher.
+     * This helps a teacher view their schedule across all sections/classes.
      */
     static async getTeacherTimetable(teacherId: number) {
-        if (isNaN(teacherId) || teacherId <= 0) {
+        if (!teacherId || teacherId <= 0) {
             throw new Error('Invalid teacher ID provided')
         }
 
@@ -808,104 +795,14 @@ export class TimetableService {
             include: [
                 {
                     model: Timetable,
-                    as: 'timetable',
-                    include: [
-                        { model: Section, as: 'section' },
-                        { model: Class, as: 'class' },
-                    ],
+                    include: [Section, Teacher],
                 },
-                { model: Subject, as: 'subject' },
-                { model: Teacher, as: 'teacher' }, // Include teacher details too
-                { model: Section, as: 'section' }, // Direct link from entry if exists
-                { model: Class, as: 'class' }, // Direct link from entry if exists
+                Subject,
+                Class,
+                Section,
             ],
             order: [
-                // Custom order for days of the week
-                [
-                    Sequelize.literal(`CASE "dayOfWeek"
-                          WHEN 'Monday' THEN 1
-                          WHEN 'Tuesday' THEN 2
-                          WHEN 'Wednesday' THEN 3
-                          WHEN 'Thursday' THEN 4
-                          WHEN 'Friday' THEN 5
-                          WHEN 'Saturday' THEN 6
-                          WHEN 'Sunday' THEN 7
-                          ELSE 8 END`),
-                    'ASC',
-                ],
-                ['periodNumber', 'ASC'],
-            ],
-        })
-    }
-
-    /**
-     * Fetches the combined weekly timetable view for a section or teacher.
-     */
-    static async getWeeklyTimetable(
-        classId?: number, // Make optional if searching only by teacher
-        sectionId?: number,
-        teacherId?: number,
-    ) {
-        if (!sectionId && !teacherId) {
-            throw new Error('Specify at least sectionId or teacherId')
-        }
-        if (sectionId && !classId) {
-            // If sectionId is given, classId is usually implied/required by context
-            // Depending on your data model, you might need to fetch classId from sectionId first,
-            // or require classId to be passed alongside sectionId.
-            // Let's assume classId is required if sectionId is present for filtering.
-            throw new Error(
-                'classId must be provided when sectionId is specified.',
-            )
-        }
-
-        const whereClause: {
-            teacherId?: number
-            sectionId?: number
-            classId?: number
-        } = {}
-        if (teacherId) {
-            whereClause.teacherId = teacherId
-            // Optionally add classId if provided, to narrow down teacher's schedule
-            if (classId) {
-                // This assumes TimetableEntry has a direct or indirect classId link.
-                // If not, you might need a subquery or join through Timetable.
-                // whereClause.classId = classId; // Add if direct field exists
-            }
-        } else if (sectionId && classId) {
-            whereClause.sectionId = sectionId
-            whereClause.classId = classId // Assumes direct classId field on TimetableEntry
-        }
-
-        // Verify whereClause is not empty
-        if (Object.keys(whereClause).length === 0) {
-            throw new Error(
-                'Invalid combination of parameters for filtering timetable entries.',
-            )
-        }
-
-        return TimetableEntry.findAll({
-            where: whereClause,
-            include: [
-                { model: Subject, as: 'subject' },
-                { model: Teacher, as: 'teacher' },
-                { model: Section, as: 'section' },
-                { model: Class, as: 'class' },
-                { model: Timetable, as: 'timetable' }, // Include timetable details if needed
-            ],
-            order: [
-                [
-                    Sequelize.literal(`CASE "dayOfWeek"
-                          WHEN 'Monday' THEN 1
-                          WHEN 'Tuesday' THEN 2
-                          WHEN 'Wednesday' THEN 3
-                          WHEN 'Thursday' THEN 4
-                          WHEN 'Friday' THEN 5
-                          WHEN 'Saturday' THEN 6
-                          WHEN 'Sunday' THEN 7
-                          ELSE 8 END`),
-                    'ASC',
-                ],
+                ['dayOfWeek', 'ASC'],
                 ['periodNumber', 'ASC'],
             ],
         })

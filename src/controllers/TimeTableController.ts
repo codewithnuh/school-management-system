@@ -92,14 +92,14 @@ export class TimetableController {
             const sectionId = req.params.sectionId
                 ? parseInt(req.params.sectionId, 10)
                 : undefined
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const teacherId = req.params.teacherId
                 ? parseInt(req.params.teacherId, 10)
                 : undefined
 
-            const weeklyTimetable = await TimetableService.getWeeklyTimetable(
+            const weeklyTimetable = await TimetableService.getTimetable(
                 classId,
-                sectionId,
-                teacherId,
+                sectionId!,
             )
 
             res.status(200).json(
