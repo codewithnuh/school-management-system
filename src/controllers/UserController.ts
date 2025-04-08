@@ -51,6 +51,8 @@ class UserController {
         try {
             const userData: UserData = req.body
             userData.isRegistered = false
+            userData.password = undefined
+            userData.isRegistered = false
             const validatedUserData = userSchema.parse(userData)
 
             // Create user in a transaction
@@ -65,6 +67,7 @@ class UserController {
             )
             res.status(response.statusCode).json(response)
         } catch (error) {
+            if (error instanceof Error) logger.error(error.message)
             this.handleError(res, error)
         }
     }
