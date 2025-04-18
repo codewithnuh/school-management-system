@@ -58,6 +58,51 @@ export class SectionService {
         })
     }
 
+    /**
+     * Get all sections by teacher ID and optionally filtered by class ID
+     * @param teacherId - The ID of the teacher
+     * @param classId - Optional: The ID of the class to filter by
+     * @returns Array of Section instances
+     */
+    static async getSectionsByTeacherAndClass(
+        teacherId: number,
+        classId?: number,
+    ) {
+        // Find all section IDs where the teacher teaches
+        const sectionTeachers = await SectionTeacher.findAll({
+            where: { teacherId },
+            attributes: ['sectionId'],
+        })
+
+        const sectionIds = sectionTeachers.map(st => st.sectionId)
+
+        if (sectionIds.length === 0) {
+            return [] // Return empty array if teacher doesn't teach any sections
+        }
+
+        // Build the query
+        const whereClause: any = { id: sectionIds }
+
+        // Add classId filter if provided
+        if (classId) {
+            whereClause.classId = classId
+        }
+
+        // Fetch sections with related models
+        return Section.findAll({
+            where: whereClause,
+            include: [
+                { model: Teacher },
+                { model: Class },
+                {
+                    model: SectionTeacher,
+                    where: { teacherId },
+                    required: false, // Use left join to ensure we get the section even if the relationship might be missing
+                },
+            ],
+        })
+    }
+
     static async updateSection(id: number, input: CreateSectionInput) {
         const transaction = await sequelize.transaction()
         try {

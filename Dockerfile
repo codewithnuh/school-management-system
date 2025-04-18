@@ -1,34 +1,50 @@
-# Use Node.js 20 as the base image
-FROM node:20
+# Build stage
+FROM node:22.14.0 AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Install pnpm globally
+# Set environment variables
+ENV NODE_ENV=production
+
+# Install dependencies
+COPY package*.json pnpm-lock.yaml ./
 RUN npm install -g pnpm
+RUN pnpm install --frozen-lockfile
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies (ensure TypeScript, tsc-alias, and Express types are installed)
-RUN pnpm install --unsafe-perm
-RUN pnpm add -D typescript tsc-alias @types/express
-
-# Copy all files
+# Copy source files
 COPY . .
 
-# Remove .env file if it exists
-RUN rm -f .env
+# Build the application
+RUN pnpm build
 
-# Ensure TypeScript is available
-RUN pnpm exec tsc --version
+# Production stage
+FROM node:22.14.0
 
-# Compile TypeScript and fix paths
-RUN pnpm exec tsc && pnpm exec tsc-alias
+# Set non-root user for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 
+# Set working directory
+WORKDIR /app
 
-# Expose port 3000
+# Set environment variables
+ENV NODE_ENV=production
+
+# Copy only the necessary files from builder stage
+COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+COPY --from=builder --chown=appuser:appgroup /app/package.json ./package.json
+
+# Copy additional necessary files
+COPY --chown=appuser:appgroup .env .env.example ./
+
+# Expose the port
 EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
 # Start the application
 CMD ["node", "dist/app.js"]

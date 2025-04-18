@@ -172,7 +172,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', authWithRBAC(), SubjectController.getAll)
+router.get('/', SubjectController.getAll)
 
 /**
  * @openapi

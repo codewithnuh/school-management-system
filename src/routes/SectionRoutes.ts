@@ -263,5 +263,8 @@ sectionRoutes.put('/:id', SectionController.updateSection)
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 sectionRoutes.delete('/:id', SectionController.deleteSection)
-
+sectionRoutes.get(
+    '/teacher/section/:teacherId/:classId',
+    SectionController.getSectionById,
+)
 export default sectionRoutes

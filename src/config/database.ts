@@ -29,15 +29,19 @@ import {
 } from '@/models/index.js'
 
 config()
+
+// Determine if we need SSL based on environment
+const isProduction = process.env.NODE_ENV === 'production'
+
 const sequelize = new Sequelize(process.env.DATABASE_URI as string, {
     logging: false,
 
-    dialectOptions: {
+    dialectOptions: isProduction ? {
         ssl: {
             require: true,
             rejectUnauthorized: false, // You can adjust this based on your SSL requirements
         },
-    },
+    } : {},
 
     models: [
         Class,

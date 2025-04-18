@@ -6,6 +6,7 @@ import { teacherSchema } from '@/schema/teacher.schema.js'
 import { logger } from '@/middleware/loggin.middleware.js'
 import { Op } from 'sequelize'
 import { processTeacherApplication } from '@/services/application.service.js'
+import { Section } from '@/models/index.js'
 
 class TeacherController {
     /**
@@ -44,16 +45,10 @@ class TeacherController {
 
             // Process file uploads if any
             // const photoPath = req.file?.path // Assuming you're using multer for file uploads
-            const documents = {
-                photo: 'https:google.com',
-                cvPath: 'https:google.com',
-                verificationDocument: 'https:google.com',
-            }
 
             // Create new teacher
             const teacher = await Teacher.create({
                 ...validatedData,
-                ...documents,
                 isVerified: false, // New teachers start unverified
                 role: 'TEACHER',
                 password: undefined,
@@ -117,7 +112,7 @@ class TeacherController {
                 limit,
                 offset,
                 attributes: {
-                    exclude: ['cvPath', 'verificationDocument', 'password'],
+                    exclude: ['password'],
                 },
             })
 
@@ -154,6 +149,7 @@ class TeacherController {
                 attributes: {
                     exclude: ['cvPath', 'verificationDocument'],
                 },
+                include: [Section],
             })
 
             if (!teacher) {

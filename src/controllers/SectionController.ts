@@ -68,6 +68,35 @@ export class SectionController {
             }
         }
     }
+    static async getSectionByClassAndTeacherId(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        try {
+            const teacherId = parseInt(req.params.teacherId, 10)
+            const classId = parseInt(req.params.classId, 10)
+            const section = await SectionService.getSectionsByTeacherAndClass(
+                teacherId,
+                classId,
+            )
+            if (!section) {
+                res.status(404).json(
+                    ResponseUtil.error('Section not found', 404),
+                )
+            }
+            res.status(200).json(
+                ResponseUtil.success(section, 'Section retrieved successfully'),
+            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message || 'Failed to retrieve section',
+                    ),
+                )
+            }
+        }
+    }
 
     static async updateSection(req: Request, res: Response): Promise<void> {
         try {

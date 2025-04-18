@@ -7,10 +7,10 @@ import { seedAdmins } from './admin.seeder.js'
 // import { seedSections } from './section.seeder'
 
 const seed = async () => {
-    await seedTeachers()
     await seedUsers()
     await seedSubjects()
     await seedAdmins()
+    await seedTeachers()
     // await seedClasses()
     // await seedSections()
 }

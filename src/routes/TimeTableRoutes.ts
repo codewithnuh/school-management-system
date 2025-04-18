@@ -170,4 +170,9 @@ router.get(
     TimetableController.getWeeklyTimetable,
 )
 
+router.get(
+    '/teacher/:teacherId',
+    authWithRBAC(['ADMIN', 'TEACHER']),
+    TimetableController.getTeacherTimetable,
+)
 export default router
