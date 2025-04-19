@@ -6,7 +6,7 @@ import { teacherSchema } from '@/schema/teacher.schema.js'
 import { logger } from '@/middleware/loggin.middleware.js'
 import { Op } from 'sequelize'
 import { processTeacherApplication } from '@/services/application.service.js'
-import { Section } from '@/models/index.js'
+import { Class, Section } from '@/models/index.js'
 
 class TeacherController {
     /**
@@ -149,7 +149,12 @@ class TeacherController {
                 attributes: {
                     exclude: ['cvPath', 'verificationDocument'],
                 },
-                include: [Section],
+                include: [
+                    {
+                        model: Section,
+                        include: [Class],
+                    },
+                ],
             })
 
             if (!teacher) {
@@ -168,11 +173,12 @@ class TeacherController {
                 error: error instanceof Error ? error.message : 'Unknown error',
                 teacherId: req.params.id,
             })
-
-            res.status(500).json({
-                success: false,
-                message: 'Internal server error',
-            })
+            if (error instanceof Error) {
+                res.status(500).json({
+                    status: 'error',
+                    message: error.message,
+                })
+            }
         }
     }
 
