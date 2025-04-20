@@ -64,6 +64,7 @@ export const userSchema = z.object({
         .min(13, 'CNIC must be 13 characters')
         .max(13, 'CNIC must be 13 characters'),
     classId: z.number(),
+
     enrollmentDate: z.string(),
     photo: z.string().trim().optional(),
     transportation: z.string().trim().optional(),

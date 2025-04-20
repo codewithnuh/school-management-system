@@ -41,6 +41,7 @@ interface UserData {
     healthInsuranceInfo?: string
     doctorContact?: string
     password?: string
+    sectionId: number | null
 }
 
 class UserController {
@@ -51,13 +52,21 @@ class UserController {
         try {
             const userData: UserData = req.body
             userData.isRegistered = false
-            userData.password = undefined
-            userData.isRegistered = false
+            userData.sectionId = null
             const validatedUserData = userSchema.parse(userData)
 
             // Create user in a transaction
             const user = await User.sequelize?.transaction(async t => {
-                return await User.create(validatedUserData, { transaction: t })
+                return await User.create(
+                    {
+                        ...validatedUserData,
+                        password: await bcrypt.hash(
+                            validatedUserData.password as string,
+                            10,
+                        ),
+                    },
+                    { transaction: t },
+                )
             })
 
             const response = ResponseUtil.success(
@@ -122,7 +131,42 @@ class UserController {
             this.handleError(res, error)
         }
     }
+    public updateUser = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { userId } = req.params
+            if (!userId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'User ID is required',
+                })
+                return
+            }
 
+            const user = await User.findByPk(userId)
+            if (!user) {
+                res.status(404).json({
+                    success: false,
+                    message: 'User not found',
+                })
+                return
+            }
+
+            // Exclude password updates here for security, unless you want to allow it
+            const updateData = { ...req.body }
+            delete updateData.password
+
+            await user.update(updateData)
+
+            res.status(200).json({
+                success: true,
+                message: 'User updated successfully',
+                data: user,
+            })
+        } catch (error) {
+            console.log(error)
+            this.handleError(res, error)
+        }
+    }
     public deleteUser = async (req: Request, res: Response): Promise<void> => {
         try {
             const { userId } = req.params

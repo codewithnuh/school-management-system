@@ -156,7 +156,7 @@ router.post('/', authWithRBAC(['ADMIN']), ClassController.createClass)
 /**
  * @openapi
  * /api/v1/classes:
- *   get:
+ *   get
  *     summary: Get all classes
  *     tags: [Classes]
  *     security:
@@ -177,7 +177,7 @@ router.post('/', authWithRBAC(['ADMIN']), ClassController.createClass)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', authWithRBAC(['ADMIN']), ClassController.getAllClasses)
+router.get('/', ClassController.getAllClasses)
 
 /**
  * @openapi
@@ -250,7 +250,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/:id', authWithRBAC(['ADMIN']), ClassController.updateClass)
+router.put('/:userId', authWithRBAC(['ADMIN']), ClassController.updateClass)
 
 /**
  * @openapi

@@ -166,7 +166,7 @@ router.post(
  */
 router.get(
     '/weekly/:classId/:sectionId',
-    authWithRBAC(['ADMIN']),
+    authWithRBAC(['ADMIN','USER']),
     TimetableController.getWeeklyTimetable,
 )
 
@@ -175,4 +175,5 @@ router.get(
     authWithRBAC(['ADMIN', 'TEACHER']),
     TimetableController.getTeacherTimetable,
 )
+
 export default router

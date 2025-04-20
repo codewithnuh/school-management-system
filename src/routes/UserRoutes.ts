@@ -182,6 +182,7 @@ router.get(
     authWithRBAC(['ADMIN']),
     UserController.getAllVerfiedUsers,
 )
+router.put('/:id', authWithRBAC(['ADMIN']), UserController.updateUser)
 /**
  * @openapi
  * /users/accept-user:
