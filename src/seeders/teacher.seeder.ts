@@ -3,6 +3,7 @@ import { Teacher, Gender, ApplicationStatus } from '@/models/Teacher.js'
 import { Subject } from '@/models/Subject.js'
 import { faker } from '@faker-js/faker' // You'll need to install faker: npm install @faker-js/faker
 import { v4 as uuid } from 'uuid'
+import bcrypt from 'bcryptjs'
 enum EntityType {
     TEACHER = 'TEACHER',
 }
@@ -30,7 +31,7 @@ export const seedTeachers = async () => {
             email: faker.internet.email(),
             phoneNo: faker.phone.number(),
             entityType: EntityType.TEACHER,
-            password: faker.internet.password(), //Insecure - use bcrypt or similar for production
+            password: bcrypt.hashSync('teacher123'), //Insecure - use bcrypt or similar for production
             address: faker.address.streetAddress(),
             cnic: uuid(), //Insecure - use a proper CNIC generation method if possible
             highestQualification: faker.helpers.arrayElement([
@@ -41,7 +42,7 @@ export const seedTeachers = async () => {
             joiningDate: faker.date.past(),
             emergencyContactName: faker.person.fullName(),
             emergencyContactNumber: faker.phone.number(),
-            isVerified: true,
+            isVerified: false,
             applicationStatus: ApplicationStatus.Pending,
             subjectId: subject.id, // Assign each teacher to a subject
         }))

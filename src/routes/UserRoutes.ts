@@ -141,7 +141,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/register', authWithRBAC(['ADMIN']), UserController.createUser)
+router.post('/register', UserController.createUser)
 // In StudentRoutes.ts
 router.get(
     '/applications',

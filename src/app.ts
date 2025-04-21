@@ -26,7 +26,7 @@ import resultRoutes from '@/routes/ResultRoutes.js'
 import gradeRoutes from '@/routes/GradeRoutes.js'
 import subjectRoutes from '@/routes/SubjectRoutes.js'
 import sectionRoutes from './routes/SectionRoutes.js'
-import seed from '@/seeders/index.js'
+// import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
     handleValidationErrors,
@@ -135,10 +135,8 @@ const startServer = async () => {
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
-        // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
-        // await sequelize.sync({ force: true })
-        // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1')
-        await seed()
+
+        // await seed()
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`)
         })

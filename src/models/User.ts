@@ -83,7 +83,7 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     @Column({ type: DataType.STRING })
     currentAddress?: string
 
-    @Column({ type: DataType.VIRTUAL, allowNull: false, unique: true })
+    @Column({ type: DataType.VIRTUAL, allowNull: true, unique: true })
     studentId!: string
 
     @Column({ type: DataType.STRING })
@@ -134,7 +134,7 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     @Column({ type: DataType.STRING, allowNull: false })
     classId!: number
     @ForeignKey(() => Section)
-    @Column({ type: DataType.STRING, allowNull: false })
+    @Column({ type: DataType.INTEGER, allowNull: true })
     sectionId!: number
 
     @Default(UUIDV4)
