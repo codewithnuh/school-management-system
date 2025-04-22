@@ -63,8 +63,8 @@ const configureMiddleware = (app: express.Application) => {
         cors({
             origin: [
                 'https://school-management-system-gray.vercel.app',
-                'http://localhost:3000',
-                ' http://localhost:4173/',
+                'http://localhost:5173',
+                ' http://localhost:4173',
             ], // ✅ no trailing slash
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization'],
