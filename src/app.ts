@@ -51,7 +51,7 @@ declare module 'express' {
 }
 
 const app = express()
-const port = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000
 
 // Combine all middleware in a single function for better organization
 const configureMiddleware = (app: express.Application) => {
@@ -61,7 +61,7 @@ const configureMiddleware = (app: express.Application) => {
     app.use(helmet())
     app.use(
         cors({
-            origin: ['https://school-management-system-gray.vercel.app', '*'], // ✅ no trailing slash
+            origin: ['https://school-management-system-gray.vercel.app'], // ✅ no trailing slash
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization'],
             credentials: true,
@@ -136,8 +136,8 @@ const startServer = async () => {
         deleteExpiredPasswordResetTokens()
 
         // await seed()
-        app.listen(port, () => {
-            console.log(`Server is running on http://localhost:${port}`)
+        app.listen(Number(PORT), '0.0.0.0', () => {
+            console.log(`Server is running on http://localhost:${PORT}`)
         })
     } catch (error) {
         console.error('Unable to connect to the database:', error)
