@@ -133,8 +133,9 @@ class UserController {
     }
     public updateUser = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { userId } = req.params
-            if (!userId) {
+            const { id } = req.params
+            console.log(id)
+            if (!id) {
                 res.status(400).json({
                     success: false,
                     message: 'User ID is required',
@@ -142,7 +143,7 @@ class UserController {
                 return
             }
 
-            const user = await User.findByPk(userId)
+            const user = await User.findByPk(Number(id))
             if (!user) {
                 res.status(404).json({
                     success: false,
