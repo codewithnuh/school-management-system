@@ -61,12 +61,11 @@ const configureMiddleware = (app: express.Application) => {
     app.use(helmet())
     app.use(
         cors({
-            origin: 'https://school-management-system-gray.vercel.app/',
+            origin: 'https://school-management-system-gray.vercel.app', // ✅ no trailing slash
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization'],
-
             credentials: true,
-            maxAge: 86400, // 24 hours
+            maxAge: 86400,
         }),
     )
     app.use(generalLimiter)
