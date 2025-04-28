@@ -1,6 +1,13 @@
 import { DataTypes } from 'sequelize'
-import { Table, Column, Model, DataType } from 'sequelize-typescript'
+import {
+    Table,
+    Column,
+    Model,
+    DataType,
+    ForeignKey,
+} from 'sequelize-typescript'
 import { z } from 'zod'
+import { School } from '@/models/index.js'
 
 export const adminSchema = z.object({
     firstName: z.string(),
@@ -11,6 +18,7 @@ export const adminSchema = z.object({
     password: z.string(),
     role: z.string(),
     isSuperAdmin: z.boolean(),
+    schoolId: z.number().optional(),
     createdAt: z.date().optional(),
     updatedAt: z.date().optional(),
 })
@@ -61,7 +69,8 @@ export class Admin extends Model<AdminAttributes> implements AdminAttributes {
 
     @Column({ type: DataType.STRING, allowNull: false })
     role!: string
-
+    @ForeignKey(() => School)
+    schoolId!: number
     @Column({ type: DataType.BOOLEAN, defaultValue: false, allowNull: false })
     isSuperAdmin!: boolean
 

@@ -1,0 +1,37 @@
+import { Column, DataType, Model, Table } from 'sequelize-typescript'
+import { z } from 'zod'
+export const schoolSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    brandColor: z.string(),
+    description: z.string(),
+    logo: z.string(),
+})
+type SchoolType = z.infer<typeof schoolSchema>
+@Table({ tableName: 'schools', timestamps: true })
+export class School extends Model<SchoolType> {
+    @Column({
+        type: DataType.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    })
+    id!: number
+    @Column({
+        type: DataType.STRING,
+    })
+    name!: string
+    @Column({
+        type: DataType.STRING,
+    })
+    brandColor!: string
+
+    @Column({
+        type: DataType.STRING,
+    })
+    description!: string
+
+    @Column({
+        type: DataType.STRING,
+    })
+    logo!: string
+}

@@ -27,6 +27,7 @@ import {
     Admin,
     Session,
 } from '@/models/index.js'
+import { School } from '@/models/School'
 
 config()
 
@@ -45,14 +46,16 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
     port: DB_PORT,
     dialect: 'mysql',
     logging: false,
-    
-    dialectOptions: isProduction ? {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false, // You can adjust this based on your SSL requirements
-        },
-    } : {},
-    
+
+    dialectOptions: isProduction
+        ? {
+              ssl: {
+                  require: true,
+                  rejectUnauthorized: false, // You can adjust this based on your SSL requirements
+              },
+          }
+        : {},
+
     pool: {
         max: 5,
         min: 0,
@@ -86,6 +89,7 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
         StudentFeeAllocation,
         Parent,
         Admin,
+        School,
     ],
 })
 Section.belongsTo(Teacher, { foreignKey: 'classTeacherId' })
@@ -108,5 +112,8 @@ AcademicYear.hasMany(StudentFeeAllocation, {
 })
 AcademicYear.hasMany(StudentFeeAllocation, {
     foreignKey: 'studentFeeAllocationId',
+})
+School.hasMany(Admin, {
+    foreignKey: 'adminId',
 })
 export default sequelize

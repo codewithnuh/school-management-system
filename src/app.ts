@@ -134,7 +134,7 @@ const startServer = async () => {
         console.log('Database connection established successfully')
         // Configure middleware and routes
         configureMiddleware(app)
-
+        await sequelize.sync({ force: true })
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
