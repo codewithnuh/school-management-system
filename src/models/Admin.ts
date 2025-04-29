@@ -17,7 +17,8 @@ export const adminSchema = z.object({
     phoneNo: z.string(),
     password: z.string(),
     role: z.string(),
-    isSuperAdmin: z.boolean(),
+    isSubscriptionActive: z.boolean().default(false),
+    subscriptionPlan: z.enum(['monthly', 'yearly']),
     schoolId: z.number().optional(),
     createdAt: z.date().optional(),
     updatedAt: z.date().optional(),
@@ -71,9 +72,10 @@ export class Admin extends Model<AdminAttributes> implements AdminAttributes {
     role!: string
     @ForeignKey(() => School)
     schoolId!: number
-    @Column({ type: DataType.BOOLEAN, defaultValue: false, allowNull: false })
-    isSuperAdmin!: boolean
-
+    @Column({ type: DataType.BOOLEAN, defaultValue: false })
+    isSubscriptionActive!: boolean
+    @Column({ type: DataType.ENUM('monthly', 'yearly'), defaultValue: false })
+    subscriptionPlan!: 'monthly' | 'yearly'
     @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
     createdAt?: Date
 
