@@ -41,7 +41,7 @@ export class School extends Model<SchoolType> {
     @Column({
         type: DataType.UUID,
     })
-    adminId!: number
+    adminId!: string
     @Column({
         type: DataType.STRING,
     })

@@ -21,9 +21,11 @@ class SchoolService {
             return error
         }
     }
-    async getSchoolById(id: number) {
+    async getSchoolById(id: number, adminId: string) {
         try {
-            const school = await School.findByPk(id)
+            const school = await School.findOne({
+                where: { id, adminId },
+            })
             return school
         } catch (error) {
             return error
