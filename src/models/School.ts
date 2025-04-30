@@ -8,13 +8,14 @@ import {
 import { z } from 'zod'
 import { Admin } from '@/models/index.js'
 export const schoolSchema = z.object({
-    id: z.number(),
+    id: z.number().optional(),
     name: z.string(),
     brandColor: z.string(),
     description: z.string(),
     logo: z.string(),
+    adminId: z.string(),
 })
-type SchoolType = z.infer<typeof schoolSchema>
+export type SchoolType = z.infer<typeof schoolSchema>
 @Table({ tableName: 'schools', timestamps: true })
 export class School extends Model<SchoolType> {
     @Column({
