@@ -5,7 +5,8 @@ const router = express.Router()
 
 // Login route
 router.post('/login', AuthController.login)
-
+//Signup route
+router.post('/signup', AuthController.signUp)
 // Logout route
 router.post('/logout', AuthController.logout)
 router.get('/session', AuthController.checkSession)

@@ -154,7 +154,30 @@ class AuthService {
 
         return { token, message: 'Login successful', success: true }
     }
-
+    async signUp({
+        firstName,
+        lastName,
+        email,
+        password,
+        role,
+    }: {
+        firstName: string
+        lastName: string
+        email: string
+        password: string
+        role: 'ADMIN'
+    }) {
+        const hashedPassword = await bcrypt.hash(password, 10)
+        const admin = await Admin.create({
+            email: email,
+            password: hashedPassword,
+            firstName: firstName,
+            lastName: lastName,
+            isSubscriptionActive: false,
+            role: role,
+        })
+        return admin
+    }
     /**
      * Logs out a user by destroying the session associated with the given token.
      *

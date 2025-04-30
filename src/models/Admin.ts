@@ -1,25 +1,24 @@
-import { DataTypes } from 'sequelize'
 import {
     Table,
     Column,
     Model,
     DataType,
-    ForeignKey,
+    PrimaryKey,
+    AutoIncrement,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { School } from '@/models/index.js'
+import { DataTypes } from 'sequelize'
 
 export const adminSchema = z.object({
     firstName: z.string(),
     middleName: z.string().optional(),
     lastName: z.string(),
     email: z.string().email(),
-    phoneNo: z.string(),
+    phoneNo: z.string().optional(),
     password: z.string(),
     role: z.string(),
     isSubscriptionActive: z.boolean().default(false),
-    subscriptionPlan: z.enum(['monthly', 'yearly']),
-    schoolId: z.number().optional(),
+    subscriptionPlan: z.enum(['monthly', 'yearly']).optional(),
     createdAt: z.date().optional(),
     updatedAt: z.date().optional(),
 })
@@ -31,20 +30,18 @@ type AdminAttributes = z.infer<typeof adminSchema>
     timestamps: true,
 })
 export class Admin extends Model<AdminAttributes> implements AdminAttributes {
-    @Column({
-        type: DataType.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    })
+    @PrimaryKey
+    @AutoIncrement
+    @Column(DataType.INTEGER)
     id!: number
 
-    @Column({ type: DataType.STRING, allowNull: false })
+    @Column(DataType.STRING)
     firstName!: string
 
-    @Column({ type: DataType.STRING })
+    @Column(DataType.STRING)
     middleName?: string
 
-    @Column({ type: DataType.STRING, allowNull: false })
+    @Column(DataType.STRING)
     lastName!: string
 
     @Column({
@@ -57,25 +54,23 @@ export class Admin extends Model<AdminAttributes> implements AdminAttributes {
 
     @Column({
         type: DataType.STRING,
-        allowNull: false,
+        allowNull: true,
         validate: { isNumeric: true, len: [10, 15] },
     })
-    phoneNo!: string
+    phoneNo?: string
 
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-    })
+    @Column(DataType.STRING)
     password!: string
 
-    @Column({ type: DataType.STRING, allowNull: false })
+    @Column(DataType.STRING)
     role!: string
-    @ForeignKey(() => School)
-    schoolId!: number
+
     @Column({ type: DataType.BOOLEAN, defaultValue: false })
     isSubscriptionActive!: boolean
-    @Column({ type: DataType.ENUM('monthly', 'yearly'), defaultValue: false })
-    subscriptionPlan!: 'monthly' | 'yearly'
+
+    @Column({ type: DataType.ENUM('monthly', 'yearly') })
+    subscriptionPlan?: 'monthly' | 'yearly'
+
     @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
     createdAt?: Date
 

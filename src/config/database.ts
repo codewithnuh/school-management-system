@@ -113,7 +113,5 @@ AcademicYear.hasMany(StudentFeeAllocation, {
 AcademicYear.hasMany(StudentFeeAllocation, {
     foreignKey: 'studentFeeAllocationId',
 })
-School.hasMany(Admin, {
-    foreignKey: 'adminId',
-})
+School.belongsTo(Admin, { foreignKey: 'adminId' })
 export default sequelize

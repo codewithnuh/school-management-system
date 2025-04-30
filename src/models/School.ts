@@ -1,5 +1,12 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript'
+import {
+    Column,
+    DataType,
+    ForeignKey,
+    Model,
+    Table,
+} from 'sequelize-typescript'
 import { z } from 'zod'
+import { Admin } from '@/models/index.js'
 export const schoolSchema = z.object({
     id: z.number(),
     name: z.string(),
@@ -29,7 +36,11 @@ export class School extends Model<SchoolType> {
         type: DataType.STRING,
     })
     description!: string
-
+    @ForeignKey(() => Admin)
+    @Column({
+        type: DataType.INTEGER,
+    })
+    adminId!: number
     @Column({
         type: DataType.STRING,
     })

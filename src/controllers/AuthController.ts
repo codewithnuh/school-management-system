@@ -1,9 +1,16 @@
 import { Request, Response } from 'express'
 import { authService, EntityType } from '@/services/auth.service.js'
 import { ForgotPassword } from '@/services/forgot-password.service.js'
-import { z } from 'zod'
+import { z, ZodError } from 'zod'
 import { ResponseUtil } from '@/utils/response.util.js'
-import { Admin, User, Teacher, Parent, Session } from '@/models/index.js'
+import {
+    Admin,
+    User,
+    Teacher,
+    Parent,
+    Session,
+    adminSchema,
+} from '@/models/index.js'
 import { Op } from 'sequelize'
 
 const loginSchema = z.object({
@@ -107,6 +114,32 @@ export const AuthController = {
                 res.status(500).json(response)
                 console.error(error)
                 return
+            }
+        }
+    },
+    async signUp(req: Request, res: Response): Promise<void> {
+        try {
+            const { firstName, lastName, email, password, role } =
+                adminSchema.parse(req.body)
+
+            await authService.signUp({
+                firstName,
+                lastName,
+                email,
+                password,
+                role: role as 'ADMIN',
+            })
+
+            const response = ResponseUtil.success(
+                'Account created successfully',
+            )
+            res.status(200).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                console.log(error)
+                res.status(400).json('Something went wrong')
+            } else if (error instanceof ZodError) {
+                res.status(400).json('Validation Error')
             }
         }
     },
