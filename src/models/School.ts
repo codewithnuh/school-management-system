@@ -38,7 +38,7 @@ export class School extends Model<SchoolType> {
     description!: string
     @ForeignKey(() => Admin)
     @Column({
-        type: DataType.INTEGER,
+        type: DataType.UUID,
     })
     adminId!: number
     @Column({

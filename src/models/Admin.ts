@@ -4,7 +4,7 @@ import {
     Model,
     DataType,
     PrimaryKey,
-    AutoIncrement,
+    Default,
 } from 'sequelize-typescript'
 import { z } from 'zod'
 import { DataTypes } from 'sequelize'
@@ -31,9 +31,9 @@ type AdminAttributes = z.infer<typeof adminSchema>
 })
 export class Admin extends Model<AdminAttributes> implements AdminAttributes {
     @PrimaryKey
-    @AutoIncrement
-    @Column(DataType.INTEGER)
-    id!: number
+    @Default(DataType.UUIDV4)
+    @Column(DataType.UUID)
+    id!: string
 
     @Column(DataType.STRING)
     firstName!: string
