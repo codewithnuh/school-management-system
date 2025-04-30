@@ -3,7 +3,7 @@ import { ResponseUtil } from '@/utils/response.util'
 import { Request, Response } from 'express'
 
 export class AdminController {
-    async getAllAdmins(req: Request, res: Response): Promise<void> {
+    static async getAllAdmins(req: Request, res: Response): Promise<void> {
         try {
             const admins = await adminUser.getAllAdmins()
             const response = ResponseUtil.success(
@@ -18,12 +18,12 @@ export class AdminController {
             }
         }
     }
-    async getAdminByAdmin(req: Request, res: Response) {
+    static async getAdminByAdmin(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params
             const admin = await adminUser.getAdminById(id)
             if (!admin) {
-                return res.status(404).json({ message: 'Admin not found' })
+                res.status(404).json(ResponseUtil.error('Admin not found', 404))
             }
             const response = ResponseUtil.success(
                 admin,
@@ -33,7 +33,9 @@ export class AdminController {
             res.status(response.statusCode).json(response)
         } catch (error) {
             if (error instanceof Error) {
-                res.status(500).json({ message: error.message })
+                res.status(500).json(
+                    ResponseUtil.error('Internal Server Error', 500),
+                )
             }
         }
     }

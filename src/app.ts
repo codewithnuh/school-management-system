@@ -27,6 +27,7 @@ import gradeRoutes from '@/routes/GradeRoutes.js'
 import subjectRoutes from '@/routes/SubjectRoutes.js'
 import sectionRoutes from '@/routes/SectionRoutes.js'
 import schoolRoutes from '@/routes/SchoolRoutes.js'
+import adminRoutes from '@/routes/Admin.js'
 // import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
@@ -126,6 +127,7 @@ const configureRoutes = (app: express.Application) => {
         res.setHeader('Content-Type', 'application/json')
         res.send(swaggerSpec)
     })
+    app.use('/api/v1/admins', adminRoutes)
 }
 console.log('server....')
 
