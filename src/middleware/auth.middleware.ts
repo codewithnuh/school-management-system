@@ -37,7 +37,7 @@ if (!JWT_SECRET) {
 /**
  * Enumeration of possible roles. Adjust or extend as needed for your application.
  */
-type UserRole = 'ADMIN' | 'TEACHER' | 'USER' | 'PARENT'
+type UserRole = 'ADMIN' | 'TEACHER' | 'USER' | 'PARENT' | 'OWNER'
 
 /**
  * Extended JwtPayload to include ID and role fields for RBAC.

@@ -28,6 +28,7 @@ import subjectRoutes from '@/routes/SubjectRoutes.js'
 import sectionRoutes from '@/routes/SectionRoutes.js'
 import schoolRoutes from '@/routes/SchoolRoutes.js'
 import adminRoutes from '@/routes/Admin.js'
+import testRoutes from '@/routes/test.js'
 // import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
@@ -121,6 +122,7 @@ const configureRoutes = (app: express.Application) => {
     // Grade Routes
     app.use('/api/v1/grades', gradeRoutes)
     app.use('/api/v1/schools', schoolRoutes)
+    app.use('/api/v1/test', testRoutes)
     // app.use('/api/v1/timetable/class', ClassRoutes)
     // Route to access the raw openapi.json file
     app.get('/api/v1/openapi.json', (req, res) => {
@@ -138,7 +140,7 @@ const startServer = async () => {
         console.log('Database connection established successfully')
         // Configure middleware and routes
         configureMiddleware(app)
-        // await sequelize.sync({ force: true })
+        await sequelize.sync({ force: false })
         configureRoutes(app)
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()

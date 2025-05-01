@@ -1,4 +1,4 @@
-import { Admin, Parent, Session, Teacher, User } from '@/models/index.js'
+import { Admin, Owner, Parent, Session, Teacher, User } from '@/models/index.js'
 import jwt, { SignOptions } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { Op } from 'sequelize'
@@ -17,6 +17,7 @@ export enum EntityType {
     TEACHER = 'TEACHER',
     USER = 'USER',
     PARENT = 'PARENT',
+    OWNER = 'OWNER',
 }
 
 /**
@@ -149,11 +150,72 @@ class AuthService {
             token: token,
             expiryDate: expiryDate,
             userAgent: userAgent,
+            isSuperAdmin: false,
             ipAddress: ipAddress,
         })
 
         return { token, message: 'Login successful', success: true }
     }
+    async ownerLogin({
+        email,
+        password,
+        userAgent,
+        ipAddress,
+    }: {
+        email: string
+        password: string
+        userAgent?: string
+        ipAddress?: string
+    }) {
+        const ownerExists = await Owner.findOne({
+            where: {
+                email,
+            },
+        })
+        if (!ownerExists) throw new Error('Email Not found')
+        const passwordMatch = await bcrypt.compare(
+            password,
+            ownerExists.password,
+        )
+        if (!passwordMatch) throw new Error('Wrong password')
+        const activeSession = await Session.findOne({
+            where: {
+                userId: ownerExists.id,
+                entityType: 'OWNER',
+                expiryDate: { [Op.gt]: new Date() },
+            },
+        })
+        if (activeSession) throw new Error('Session already exists')
+        const payload: CurrentUserPayload = {
+            userId: ownerExists.id,
+            entityType: EntityType.OWNER,
+        }
+
+        if (!JWT_SECRET) {
+            throw new Error('JWT_SECRET is not defined')
+        }
+
+        const token = jwt.sign(payload, JWT_SECRET, {
+            expiresIn: JWT_EXPIRY,
+        } as SignOptions)
+
+        const expiryDate = new Date()
+        expiryDate.setHours(expiryDate.getHours() + SESSION_EXPIRY_HOURS)
+
+        await Session.create({
+            userId: ownerExists.id,
+            entityType: 'OWNER',
+            token: token,
+            expiryDate: expiryDate,
+            userAgent: userAgent,
+            isSuperAdmin: true,
+            ipAddress: ipAddress,
+        })
+        return { token, message: 'Login successful', success: true }
+    }
+    // async ownerLogin(email,password){
+
+    // }
     async signUp({
         firstName,
         lastName,

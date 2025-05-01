@@ -5,6 +5,7 @@ const router = express.Router()
 
 // Login route
 router.post('/login', AuthController.login)
+router.post('/owner/login', AuthController.ownerLogin)
 //Signup route
 router.post('/signup', AuthController.signUp)
 // Logout route

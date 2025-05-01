@@ -26,6 +26,7 @@ import {
     Parent,
     Admin,
     Session,
+    Owner,
 } from '@/models/index.js'
 import { School } from '@/models/School'
 
@@ -90,6 +91,7 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
         Parent,
         Admin,
         School,
+        Owner,
     ],
 })
 Section.belongsTo(Teacher, { foreignKey: 'classTeacherId' })

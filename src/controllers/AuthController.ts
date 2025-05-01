@@ -10,6 +10,7 @@ import {
     Parent,
     Session,
     adminSchema,
+    ownerSchema,
 } from '@/models/index.js'
 import { Op } from 'sequelize'
 
@@ -86,6 +87,66 @@ export const AuthController = {
                 userAgent,
                 ipAddress,
             )
+
+            // Set the token as an HTTP-only cookie (adjust secure flag according to your environment)
+            res.cookie('token', token, {
+                httpOnly: true,
+                sameSite: 'none',
+                secure: true,
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            })
+
+            if (!success) {
+                throw new Error(loginMessage)
+            }
+
+            // Return a successful response using the service-provided message
+            const response = ResponseUtil.success(loginMessage)
+            res.status(200).json(response)
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const response = ResponseUtil.error('Validation error', 400)
+                res.status(400).json(response)
+                console.error(error)
+                return
+            }
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(error.message, 400)
+                res.status(500).json(response)
+                console.error(error)
+                return
+            }
+        }
+    },
+    async ownerLogin(req: Request, res: Response): Promise<void> {
+        try {
+            // Validate request payload
+            const validatedData = ownerSchema.parse(req.body)
+            const { email, password } = validatedData
+
+            // Delete any expired sessions securely.
+            // Import Op from sequelize where needed (import { Op } from 'sequelize';)
+            await Session.destroy({
+                where: {
+                    expiryDate: { [Op.lt]: new Date() },
+                },
+            })
+
+            // Get other request parameters
+            const userAgent = req.headers['user-agent']
+            const ipAddress = req.ip
+
+            // Capture both the token and the message returned by authService.login
+            const {
+                token,
+                message: loginMessage,
+                success,
+            } = await authService.ownerLogin({
+                email,
+                password,
+                ipAddress,
+                userAgent,
+            })
 
             // Set the token as an HTTP-only cookie (adjust secure flag according to your environment)
             res.cookie('token', token, {
