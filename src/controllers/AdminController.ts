@@ -1,40 +1,72 @@
-import { adminUser } from '@/services/admin.service.js'
-import { ResponseUtil } from '@/utils/response.util'
+import { adminService } from '@/services/admin.service.js'
+import { ResponseUtil } from '@/utils/response.util.js'
 import { Request, Response } from 'express'
-
 export class AdminController {
     static async getAllAdmins(req: Request, res: Response): Promise<void> {
         try {
-            const admins = await adminUser.getAllAdmins()
+            const allAdmins = await adminService.getAllAdmins()
             const response = ResponseUtil.success(
-                admins,
-                'Admins Fetched Successfully',
+                allAdmins,
+                'Admins Retrieved Successfully',
                 200,
             )
-            res.status(response.statusCode).json(response)
+            res.json(response)
         } catch (error) {
             if (error instanceof Error) {
-                res.status(500).json({ message: error.message })
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message,
+                        400,
+                        'Failed to retrieved admins',
+                    ),
+                )
             }
         }
     }
-    static async getAdminByAdmin(req: Request, res: Response): Promise<void> {
+    static async getAdminById(req: Request, res: Response): Promise<void> {
         try {
-            const { id } = req.params
-            const admin = await adminUser.getAdminById(id)
-            if (!admin) {
-                res.status(404).json(ResponseUtil.error('Admin not found', 404))
-            }
+            const { adminId } = req.params
+            const allAdmins = await adminService.getAdminById(Number(adminId))
             const response = ResponseUtil.success(
-                admin,
-                'Admin Fetched Successfully',
+                allAdmins,
+                'Admins Retrieved Successfully',
                 200,
             )
-            res.status(response.statusCode).json(response)
+            res.json(response)
         } catch (error) {
             if (error instanceof Error) {
-                res.status(500).json(
-                    ResponseUtil.error('Internal Server Error', 500),
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message,
+                        400,
+                        'Failed to retrieved admins',
+                    ),
+                )
+            }
+        }
+    }
+    static async updateAdminById(req: Request, res: Response): Promise<void> {
+        try {
+            const { adminId, isSubscriptionActive, subscriptionPlan } = req.body
+            const updatedAdmin = await adminService.updateAdminById(
+                Number(adminId),
+                isSubscriptionActive,
+                subscriptionPlan,
+            )
+            const response = ResponseUtil.success(
+                updatedAdmin,
+                'Admin updated Successfully',
+                200,
+            )
+            res.json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        error.message,
+                        400,
+                        'Failed to update admin',
+                    ),
                 )
             }
         }

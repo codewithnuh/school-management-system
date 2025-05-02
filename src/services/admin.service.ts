@@ -1,29 +1,51 @@
-import { Admin } from '@/models/index.js'
+import { Admin, School } from '@/models/index.js'
 
-class AdminUser {
+class AdminService {
     async getAllAdmins() {
-        try {
-            return await Admin.findAll({
-                attributes: { exclude: ['password'] },
-            })
-        } catch (error) {
-            return error
-        }
+        const admins = await Admin.findAll({
+            attributes: { exclude: ['password', 'phoneNo'] },
+        })
+        return admins
     }
-    async getAdminById(id: string) {
-        try {
-            return await Admin.findOne({
-                where: {
-                    id,
-                },
-                attributes: {
-                    exclude: ['password'],
-                },
-            })
-        } catch (error) {
-            return error
-        }
+    async getAdminById(id: number) {
+        const admin = await Admin.findOne({
+            where: {
+                id,
+            },
+            attributes: { exclude: ['password', 'phoneNo'] },
+        })
+        return admin
+    }
+    async getAllSchools() {
+        const schools = await School.findAll()
+        return schools
+    }
+    async getSchoolById(id: string) {
+        const school = await School.findByPk(id)
+        return school
+    }
+    async getSchoolByAdminId(adminId: number) {
+        const school = await School.findOne({
+            where: { adminId: adminId },
+        })
+        return school
+    }
+    async updateAdminById(
+        adminId: number,
+        isSubscriptionActive: boolean,
+        subscriptionPlan: 'yearly' | 'monthly',
+    ) {
+        const admin = await Admin.findOne({
+            where: {
+                id: adminId,
+            },
+            attributes: { exclude: ['password', 'phoneNo'] },
+        })
+        const updatedAdmin = admin?.update({
+            isSubscriptionActive,
+            subscriptionPlan,
+        })
+        return updatedAdmin
     }
 }
-
-export const adminUser = new AdminUser()
+export const adminService = new AdminService()
