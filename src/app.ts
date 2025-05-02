@@ -114,7 +114,7 @@ const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/grades', gradeRoutes)
     app.use('/api/v1/schools', schoolRoutes)
     app.use('/api/v1/test', testRoutes)
-    app.use('/api/v1//registration-link', registrationLinksRoutes)
+    app.use('/api/v1/registration-link', registrationLinksRoutes)
     // app.use('/api/v1/timetable/class', ClassRoutes)
     // Route to access the raw openapi.json file
     app.get('/api/v1/openapi.json', (req, res) => {

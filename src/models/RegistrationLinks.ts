@@ -19,7 +19,7 @@ export const registrationLinkSchema = z.object({
     expiresAt: z.coerce.date(), // allows string or Date input and coerces to Date
 })
 type RegistrationLinkInput = z.infer<typeof registrationLinkSchema>
-@Table({ tableName: 'registration_links' })
+@Table({ tableName: 'registration_links', timestamps: true })
 export class RegistrationLink
     extends Model<RegistrationLinkInput>
     implements RegistrationLinkInput
@@ -33,11 +33,11 @@ export class RegistrationLink
     type!: 'TEACHER' | 'STUDENT'
 
     @ForeignKey(() => Admin)
-    @Column
+    @Column(DataType.INTEGER)
     createdBy!: number
 
     @ForeignKey(() => School)
-    @Column
+    @Column(DataType.INTEGER)
     schoolId!: number
 
     @Column(DataType.BOOLEAN)

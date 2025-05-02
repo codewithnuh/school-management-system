@@ -98,7 +98,8 @@ class AuthService {
         })
 
         const user = await userModel.findOne({ where: { email } })
-
+        const userStringify = JSON.parse(JSON.stringify(user))
+        console.log(userStringify)
         if (!user) {
             throw new Error('Invalid credentials')
         }
@@ -114,7 +115,7 @@ class AuthService {
         // Check if an active session already exists for the user with the same entityType
         const activeSession = await Session.findOne({
             where: {
-                userId: user.id,
+                userId: userStringify.id,
                 userAgent,
                 entityType: entityType,
                 expiryDate: { [Op.gt]: new Date() },
@@ -131,7 +132,7 @@ class AuthService {
         }
 
         const payload: CurrentUserPayload = {
-            userId: user.id,
+            userId: userStringify.id,
             entityType: entityType,
         }
 
@@ -230,13 +231,13 @@ class AuthService {
         lastName,
         email,
         password,
-        role,
+        entityType,
     }: {
         firstName: string
         lastName: string
         email: string
         password: string
-        role: 'ADMIN'
+        entityType: 'ADMIN'
     }) {
         const hashedPassword = await bcrypt.hash(password, 10)
         const admin = await Admin.create({
@@ -245,7 +246,7 @@ class AuthService {
             firstName: firstName,
             lastName: lastName,
             isSubscriptionActive: false,
-            role: role,
+            entityType,
         })
         return admin
     }

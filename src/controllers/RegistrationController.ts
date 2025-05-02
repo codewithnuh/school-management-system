@@ -1,10 +1,10 @@
-import { School } from '@/models'
-import { CurrentUserPayload } from '@/services/auth.service'
-import { registrationService } from '@/services/registration.service'
+import { School } from '@/models/index.js'
+import { CurrentUserPayload } from '@/services/auth.service.js'
+import { registrationService } from '@/services/registration.service.js'
 import { Request, Response } from 'express'
 import QRCode from 'qrcode'
 import jwt from 'jsonwebtoken'
-import { ResponseUtil } from '@/utils/response.util'
+import { ResponseUtil } from '@/utils/response.util.js'
 export class RegistrationController {
     static async createTeacherRegistrationLink(req: Request, res: Response) {
         try {
@@ -32,6 +32,120 @@ export class RegistrationController {
             const response = ResponseUtil.success(
                 link,
                 'Teacher Registration Link Created',
+                201,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.message,
+                    500,
+                    'Error Creating Registration Link',
+                )
+                res.status(response.statusCode).json(response)
+            }
+        }
+    }
+    static async updateTeacherRegistrationLink(req: Request, res: Response) {
+        try {
+            const token = req.cookies.token
+            if (!token) throw new Error('Token Missing')
+            const decodedToken = jwt.verify(
+                token,
+                process.env.JWT_SECRET!,
+            ) as CurrentUserPayload
+            const adminId = decodedToken.userId
+            const school = await School.findOne({
+                where: {
+                    adminId,
+                },
+            })
+            if (!school) throw new Error('School Does not exists')
+            const generateLink = await registrationService.generateLink({
+                createdBy: adminId,
+                isActive: true,
+                schoolId: school!.id,
+                type: 'TEACHER',
+                expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 2 days
+            })
+            const link = `${process.env.FRONTEND_URL}/register/${generateLink.id}`
+            const response = ResponseUtil.success(
+                link,
+                'Teacher Registration Link Created',
+                201,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.message,
+                    500,
+                    'Error Creating Registration Link',
+                )
+                res.status(response.statusCode).json(response)
+            }
+        }
+    }
+    static async deleteTeacherRegistrationLink(req: Request, res: Response) {
+        try {
+            const token = req.cookies.token
+            if (!token) throw new Error('Token Missing')
+            const decodedToken = jwt.verify(
+                token,
+                process.env.JWT_SECRET!,
+            ) as CurrentUserPayload
+            const adminId = decodedToken.userId
+            const school = await School.findOne({
+                where: {
+                    adminId,
+                },
+            })
+            if (!school) throw new Error('School Does not exists')
+            await registrationService.deleteLink({
+                createdBy: adminId,
+                schoolId: school!.id,
+                type: 'TEACHER',
+            })
+            const response = ResponseUtil.success(
+                null,
+                'Link deleted successfully',
+                201,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.message,
+                    500,
+                    'Error Creating Registration Link',
+                )
+                res.status(response.statusCode).json(response)
+            }
+        }
+    }
+    static async deleteStudentRegistrationLink(req: Request, res: Response) {
+        try {
+            const token = req.cookies.token
+            if (!token) throw new Error('Token Missing')
+            const decodedToken = jwt.verify(
+                token,
+                process.env.JWT_SECRET!,
+            ) as CurrentUserPayload
+            const adminId = decodedToken.userId
+            const school = await School.findOne({
+                where: {
+                    adminId,
+                },
+            })
+            if (!school) throw new Error('School Does not exists')
+            await registrationService.deleteLink({
+                createdBy: adminId,
+                schoolId: school!.id,
+                type: 'STUDENT',
+            })
+            const response = ResponseUtil.success(
+                null,
+                'Link deleted successfully',
                 201,
             )
             res.status(response.statusCode).json(response)

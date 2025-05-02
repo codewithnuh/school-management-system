@@ -4,12 +4,11 @@ import { RegistrationController } from '@/controllers/RegistrationController.js'
 const router = Router()
 
 // Protect routes with middleware if needed
-router.post(
-    '/registration-link/teacher',
-    RegistrationController.createTeacherRegistrationLink,
-)
+router.post('/teacher', RegistrationController.createTeacherRegistrationLink)
 
 router.get('/teacher', RegistrationController.getTeacherRegistrationLinks)
+router.delete('/teacher', RegistrationController.deleteTeacherRegistrationLink)
+router.delete('/student', RegistrationController.deleteTeacherRegistrationLink)
 
 router.post('/student', RegistrationController.createStudentRegistrationLink)
 

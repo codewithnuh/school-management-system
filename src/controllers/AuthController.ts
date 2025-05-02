@@ -97,7 +97,7 @@ export const AuthController = {
             res.cookie('token', token, {
                 httpOnly: true,
                 sameSite: 'none',
-                secure: true,
+                secure: false,
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
@@ -157,7 +157,7 @@ export const AuthController = {
             res.cookie('token', token, {
                 httpOnly: true,
                 sameSite: 'none',
-                secure: true,
+                secure: false,
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             })
 
@@ -185,7 +185,7 @@ export const AuthController = {
     },
     async signUp(req: Request, res: Response): Promise<void> {
         try {
-            const { firstName, lastName, email, password, role } =
+            const { firstName, lastName, email, password, entityType } =
                 adminSchema.parse(req.body)
 
             await authService.signUp({
@@ -193,7 +193,7 @@ export const AuthController = {
                 lastName,
                 email,
                 password,
-                role: role as 'ADMIN',
+                entityType,
             })
 
             const response = ResponseUtil.success(
@@ -203,9 +203,11 @@ export const AuthController = {
         } catch (error) {
             if (error instanceof Error) {
                 console.log(error)
-                res.status(400).json('Something went wrong')
+                res.status(400).json(ResponseUtil.error(error.message, 400))
             } else if (error instanceof ZodError) {
-                res.status(400).json('Validation Error')
+                res.status(400).json(
+                    ResponseUtil.error('Validation Error', 400),
+                )
             }
         }
     },
@@ -226,6 +228,7 @@ export const AuthController = {
             ) as CurrentUserPayload
             const userId = decodedToken.userId
             const entityType = decodedToken.entityType
+
             if (!isSessionExists) {
                 res.status(404).json(
                     ResponseUtil.error('Session does not exist', 404),
@@ -241,6 +244,7 @@ export const AuthController = {
             const response = ResponseUtil.success('Logout successful')
             res.status(200).json(response)
         } catch (error) {
+            console.log(error)
             if (error instanceof Error) {
                 const response = ResponseUtil.error(error.message, 400)
                 res.status(400).json(response)
@@ -248,20 +252,35 @@ export const AuthController = {
         }
     },
     async logoutFromAllSessions(req: Request, res: Response): Promise<void> {
-        const token = req.cookies.token
-        const decodedToken = jwt.verify(
-            token,
-            process.env.JWT_SECRET as string,
-        ) as CurrentUserPayload
-        const userId = decodedToken.userId
-        const entityType = decodedToken.entityType
-        await Session.destroy({
-            where: {
-                userId,
-                entityType,
-            },
-        })
-        res.clearCookie('token')
+        try {
+            const token = req.cookies.token
+
+            const decodedToken = jwt.verify(
+                token,
+                process.env.JWT_SECRET as string,
+            ) as CurrentUserPayload
+            console.log(decodedToken)
+            const userId = decodedToken.userId
+            const entityType = decodedToken.entityType
+            await Session.destroy({
+                where: {
+                    userId,
+                    entityType,
+                },
+            })
+            res.clearCookie('token')
+            res.status(200).json(
+                ResponseUtil.success(
+                    'Logout successful from all sessions',
+                    'Something went wrong',
+                ),
+            )
+        } catch (error) {
+            console.log(error)
+            if (error instanceof Error) {
+                res.status(400).json(ResponseUtil.error('Logout failed', 400))
+            }
+        }
         // const session=await Session.findAll({where:toke})
     },
     /**

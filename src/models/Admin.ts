@@ -4,20 +4,19 @@ import {
     Model,
     DataType,
     PrimaryKey,
-    Default,
+    AutoIncrement,
 } from 'sequelize-typescript'
 import { z } from 'zod'
-import { DataTypes } from 'sequelize'
 
 export const adminSchema = z.object({
-    id: z.string().optional(),
+    id: z.number().optional(),
     firstName: z.string(),
     middleName: z.string().optional(),
     lastName: z.string(),
     email: z.string().email(),
     phoneNo: z.string().optional(),
     password: z.string(),
-    role: z.string(),
+    entityType: z.enum(['ADMIN']).default('ADMIN'),
     isSubscriptionActive: z.boolean().default(false),
     subscriptionPlan: z.enum(['monthly', 'yearly']).optional(),
     createdAt: z.date().optional(),
@@ -32,9 +31,9 @@ type AdminAttributes = z.infer<typeof adminSchema>
 })
 export class Admin extends Model<AdminAttributes> implements AdminAttributes {
     @PrimaryKey
-    @Default(DataType.UUIDV4)
-    @Column(DataType.UUID)
-    id!: string
+    @AutoIncrement
+    @Column(DataType.INTEGER)
+    id!: number
 
     @Column(DataType.STRING)
     firstName!: string
@@ -64,7 +63,7 @@ export class Admin extends Model<AdminAttributes> implements AdminAttributes {
     password!: string
 
     @Column(DataType.STRING)
-    role!: string
+    entityType!: 'ADMIN'
 
     @Column({ type: DataType.BOOLEAN, defaultValue: false })
     isSubscriptionActive!: boolean
@@ -72,9 +71,9 @@ export class Admin extends Model<AdminAttributes> implements AdminAttributes {
     @Column({ type: DataType.ENUM('monthly', 'yearly') })
     subscriptionPlan?: 'monthly' | 'yearly'
 
-    @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
+    @Column({ type: DataType.DATE, defaultValue: DataType.NOW() })
     createdAt?: Date
 
-    @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
+    @Column({ type: DataType.DATE, defaultValue: DataType.NOW() })
     updatedAt?: Date
 }

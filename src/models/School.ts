@@ -13,7 +13,7 @@ export const schoolSchema = z.object({
     brandColor: z.string(),
     description: z.string(),
     logo: z.string(),
-    adminId: z.string(),
+    adminId: z.number(),
 })
 export type SchoolType = z.infer<typeof schoolSchema>
 @Table({ tableName: 'schools', timestamps: true })
@@ -39,9 +39,9 @@ export class School extends Model<SchoolType> {
     description!: string
     @ForeignKey(() => Admin)
     @Column({
-        type: DataType.UUID,
+        type: DataType.INTEGER,
     })
-    adminId!: string
+    adminId!: number
     @Column({
         type: DataType.STRING,
     })

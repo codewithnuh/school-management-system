@@ -23,6 +23,26 @@ class RegistrationService {
         })
         return newLink
     }
+    async deleteLink({
+        type,
+        createdBy,
+        schoolId,
+    }: {
+        type: 'TEACHER' | 'STUDENT'
+        createdBy: number
+        schoolId: number
+    }) {
+        const link = await RegistrationLink.findOne({
+            where: {
+                type,
+                createdBy,
+                schoolId,
+            },
+        })
+
+        if (!link) throw new Error('No link found')
+        await link.destroy()
+    }
     async getTeacherLinks({
         type,
         adminId,
