@@ -10,7 +10,6 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import process from 'process'
 import helmet from 'helmet'
-import { createRouteHandler } from 'uploadthing/express'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import { generalLimiter } from './middleware/rateLimit.middleware.js'
@@ -29,13 +28,13 @@ import sectionRoutes from '@/routes/SectionRoutes.js'
 import schoolRoutes from '@/routes/SchoolRoutes.js'
 import adminRoutes from '@/routes/Admin.js'
 import testRoutes from '@/routes/test.js'
+import registrationLinksRoutes from '@/routes/registrationLinksRoutes.js'
 // import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
     handleValidationErrors,
     errorHandler,
 } from './middleware/error.middleware.js'
-import { uploadRouter } from './config/uploadthing.js'
 // import seed from './seeders/index.js'
 
 // Define User interface
@@ -104,14 +103,6 @@ const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/timetables', TimeTableRoutes)
     // Exam Routes
     app.use('/api/v1/exams', examRoutes)
-    // Uploadthing routes
-    app.use(
-        '/api/v1/uploadthing',
-        createRouteHandler({
-            router: uploadRouter,
-            config: { token: process.env.UPLOADTHING_TOKEN },
-        }),
-    )
     // Result Routes
     app.use('/api/v1/results', resultRoutes)
     app.use('/api/v1/subjects', subjectRoutes)
@@ -123,6 +114,7 @@ const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/grades', gradeRoutes)
     app.use('/api/v1/schools', schoolRoutes)
     app.use('/api/v1/test', testRoutes)
+    app.use('/api/v1//registration-link', registrationLinksRoutes)
     // app.use('/api/v1/timetable/class', ClassRoutes)
     // Route to access the raw openapi.json file
     app.get('/api/v1/openapi.json', (req, res) => {

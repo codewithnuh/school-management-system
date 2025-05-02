@@ -23,7 +23,7 @@ export enum EntityType {
 /**
  * Interface representing the payload for the current user in the JWT.
  */
-interface CurrentUserPayload {
+export interface CurrentUserPayload {
     userId: number
     entityType: EntityType
 }
@@ -92,6 +92,7 @@ class AuthService {
         // First, delete all expired sessions
         await Session.destroy({
             where: {
+                userAgent,
                 expiryDate: { [Op.lte]: new Date() },
             },
         })
@@ -114,6 +115,7 @@ class AuthService {
         const activeSession = await Session.findOne({
             where: {
                 userId: user.id,
+                userAgent,
                 entityType: entityType,
                 expiryDate: { [Op.gt]: new Date() },
             },
@@ -182,6 +184,7 @@ class AuthService {
             where: {
                 userId: ownerExists.id,
                 entityType: 'OWNER',
+                userAgent,
                 expiryDate: { [Op.gt]: new Date() },
             },
         })
@@ -194,6 +197,12 @@ class AuthService {
         if (!JWT_SECRET) {
             throw new Error('JWT_SECRET is not defined')
         }
+        await Session.destroy({
+            where: {
+                userAgent,
+                expiryDate: { [Op.lte]: new Date() },
+            },
+        })
 
         const token = jwt.sign(payload, JWT_SECRET, {
             expiresIn: JWT_EXPIRY,
@@ -250,8 +259,15 @@ class AuthService {
      * const authService = new AuthService();
      * await authService.logout('user-token');
      */
-    async logout(token: string): Promise<void> {
-        await Session.destroy({ where: { token } })
+    async logout(
+        token: string,
+        userId: number,
+        entityType: EntityType,
+        userAgent: string,
+    ): Promise<void> {
+        await Session.destroy({
+            where: { token, userAgent, userId, entityType },
+        })
     }
 
     /**

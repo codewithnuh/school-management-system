@@ -46,12 +46,6 @@ export class Session extends Model<SessionZod> implements SessionZod {
         unique: true,
     })
     token!: string
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-        unique: true,
-    })
-    refreshToken!: string
 
     @Column({
         type: DataType.DATE,

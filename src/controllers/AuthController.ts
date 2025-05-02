@@ -1,7 +1,12 @@
 import { Request, Response } from 'express'
-import { authService, EntityType } from '@/services/auth.service.js'
+import {
+    authService,
+    CurrentUserPayload,
+    EntityType,
+} from '@/services/auth.service.js'
 import { ForgotPassword } from '@/services/forgot-password.service.js'
 import { z, ZodError } from 'zod'
+import jwt from 'jsonwebtoken'
 import { ResponseUtil } from '@/utils/response.util.js'
 import {
     Admin,
@@ -211,16 +216,28 @@ export const AuthController = {
     async logout(req: Request, res: Response): Promise<void> {
         try {
             const token = req.cookies.token
+            const userAgent = req.headers['user-agent']
             const isSessionExists = await Session.findOne({
-                where: { token },
+                where: { token, userAgent },
             })
+            const decodedToken = jwt.verify(
+                token,
+                process.env.JWT_SECRET as string,
+            ) as CurrentUserPayload
+            const userId = decodedToken.userId
+            const entityType = decodedToken.entityType
             if (!isSessionExists) {
                 res.status(404).json(
                     ResponseUtil.error('Session does not exist', 404),
                 )
                 return
             }
-            await authService.logout(token)
+            await authService.logout(
+                token,
+                userId,
+                entityType,
+                userAgent as string,
+            )
             const response = ResponseUtil.success('Logout successful')
             res.status(200).json(response)
         } catch (error) {
@@ -230,7 +247,23 @@ export const AuthController = {
             }
         }
     },
-
+    async logoutFromAllSessions(req: Request, res: Response): Promise<void> {
+        const token = req.cookies.token
+        const decodedToken = jwt.verify(
+            token,
+            process.env.JWT_SECRET as string,
+        ) as CurrentUserPayload
+        const userId = decodedToken.userId
+        const entityType = decodedToken.entityType
+        await Session.destroy({
+            where: {
+                userId,
+                entityType,
+            },
+        })
+        res.clearCookie('token')
+        // const session=await Session.findAll({where:toke})
+    },
     /**
      * Initiates the forgot password process.
      */
