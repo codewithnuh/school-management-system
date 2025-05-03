@@ -7,7 +7,7 @@ import { logger } from '@/middleware/loggin.middleware.js'
 import { Op } from 'sequelize'
 import { processTeacherApplication } from '@/services/application.service.js'
 import { Class, Section } from '@/models/index.js'
-
+import bcrypt from 'bcryptjs'
 class TeacherController {
     /**
      * Register a new teacher
@@ -47,11 +47,15 @@ class TeacherController {
             // const photoPath = req.file?.path // Assuming you're using multer for file uploads
 
             // Create new teacher
+            const hashedPassword = await bcrypt.hash(
+                validatedData.password!,
+                10,
+            )
             const teacher = await Teacher.create({
                 ...validatedData,
                 isVerified: false, // New teachers start unverified
                 role: 'TEACHER',
-                password: undefined,
+                password: hashedPassword,
                 subjectId: validatedData.subjectId, // Include subjectId
             })
 
@@ -64,7 +68,7 @@ class TeacherController {
             })
 
             const response = ResponseUtil.success(
-                teacherData,
+                { ...teacherData, password: null },
                 'Teacher registered successfully',
                 201,
             )

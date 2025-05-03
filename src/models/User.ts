@@ -50,7 +50,8 @@ export class User extends Model<UserAttributes> implements UserAttributes {
 
     @Column({ type: DataType.STRING })
     nationality?: string
-
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    schoolId!: number
     @Column({
         type: DataType.STRING,
         unique: true,

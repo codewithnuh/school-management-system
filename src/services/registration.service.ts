@@ -90,6 +90,26 @@ class RegistrationService {
         if (!studentLinks) return []
         return studentLinks
     }
+    async getTeacherLinkById(id: string) {
+        const teacherLink = await RegistrationLink.findOne({
+            where: {
+                id,
+            },
+            attributes: { exclude: ['adminId'] },
+        })
+        if (!teacherLink) throw new Error('No teacher Link found')
+        return teacherLink
+    }
+    async getStudentLinkById(id: string) {
+        const studentLink = await RegistrationLink.findOne({
+            where: {
+                id: id,
+            },
+            attributes: { exclude: ['adminId'] },
+        })
+        if (!studentLink) throw new Error('No teacher Link found')
+        return studentLink
+    }
 }
 
 export const registrationService = new RegistrationService()

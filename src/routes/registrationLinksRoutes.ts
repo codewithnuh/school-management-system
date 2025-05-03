@@ -7,8 +7,16 @@ const router = Router()
 router.post('/teacher', RegistrationController.createTeacherRegistrationLink)
 
 router.get('/teacher', RegistrationController.getTeacherRegistrationLinks)
+router.get(
+    '/teacher/:id',
+    RegistrationController.getTeacherRegistrationLinkWithId,
+)
 router.delete('/teacher', RegistrationController.deleteTeacherRegistrationLink)
 router.delete('/student', RegistrationController.deleteTeacherRegistrationLink)
+router.get(
+    '/student/:id',
+    RegistrationController.getStudentRegistrationLinkWithId,
+)
 
 router.post('/student', RegistrationController.createStudentRegistrationLink)
 

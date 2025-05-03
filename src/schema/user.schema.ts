@@ -5,6 +5,7 @@ export const userSchema = z.object({
     firstName: z.string().trim().min(1, 'First name is required'),
     middleName: z.string().trim().optional(),
     lastName: z.string().trim().min(1, 'Last name is required'),
+    schoolId: z.number(),
     dateOfBirth: z.string(),
     gender: z.enum(['Male', 'Female', 'Other']),
     placeOfBirth: z.string().optional(),

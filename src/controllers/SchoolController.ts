@@ -17,8 +17,8 @@ export class SchoolController {
         res.status(response.statusCode).json(response)
     }
     static async getSchoolById(req: Request, res: Response): Promise<void> {
-        const { id, adminId } = req.params
-        const school = await schoolService.getSchoolById(Number(id), adminId)
+        const { id } = req.params
+        const school = await schoolService.getSchoolById(Number(id))
         if (!school) {
             const response = ResponseUtil.error(
                 'School not found',

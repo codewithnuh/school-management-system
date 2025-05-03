@@ -67,7 +67,8 @@ export class Teacher
         allowNull: false,
     })
     gender!: Gender
-
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    schoolId!: number
     @Column({ type: DataType.STRING })
     nationality?: string
 

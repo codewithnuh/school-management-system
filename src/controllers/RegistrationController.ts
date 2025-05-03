@@ -178,7 +178,7 @@ export class RegistrationController {
                 type: 'STUDENT',
                 expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // Link expires in 48 hours
             })
-            const link = `${process.env.FRONTEND_URL}/register/${generateLink.id}`
+            const link = `${process.env.FRONTEND_URL}/student/register/${generateLink.id}`
             const response = ResponseUtil.success(
                 link,
                 'Student Registration Link Created',
@@ -243,6 +243,51 @@ export class RegistrationController {
                 'Error Getting Teacher Registration Links',
             )
             res.status(response.statusCode).json(response)
+        }
+    }
+    static async getTeacherRegistrationLinkWithId(req: Request, res: Response) {
+        const { id } = req.params
+        try {
+            const teacherLink = await registrationService.getTeacherLinkById(id)
+            if (!teacherLink)
+                throw new Error('There is no teacher link found with this id')
+            const response = ResponseUtil.success(
+                teacherLink,
+                'Teacher Link retrieved successfully ',
+                200,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    'Failed to retrieve teacher link information ',
+                    400,
+                )
+                res.status(response.statusCode).json(response)
+            }
+        }
+    }
+    static async getStudentRegistrationLinkWithId(req: Request, res: Response) {
+        const { id } = req.params
+
+        try {
+            const studentLink = await registrationService.getStudentLinkById(id)
+            if (!studentLink) throw new Error('No link with this Id found')
+            const response = ResponseUtil.success(
+                studentLink,
+                'Student Link retrieved successfully ',
+                200,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            console.log(error)
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    'Failed to retrieve student link information ',
+                    400,
+                )
+                res.status(response.statusCode).json(response)
+            }
         }
     }
 
