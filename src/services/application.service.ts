@@ -28,7 +28,8 @@ export const transporter = nodemailer.createTransport({
 })
 
 // Email template function with improved styling
-type ApplicationStatus = 'Accepted' | 'Rejected' | 'Interview'
+type ApplicationStatus = 'Accepted' | 'Rejected' | 'Interview' | 'Sent'
+
 type UserType = 'student' | 'teacher'
 
 interface EmailContent {
@@ -92,6 +93,18 @@ const getEmailContent = (
                     <p style="margin: 0;"><strong>Tip:</strong> Review your application and prepare any relevant documents or portfolios that showcase your skills and experience.</p>
                 </div>
                 <p style="margin-top: 20px; font-style: italic; color: #666;">We look forward to meeting you and learning more about your qualifications!</p>`,
+        },
+        Sent: {
+            title: 'Application Sent',
+            content: `
+                <div style="background-color: #f0fff0; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; font-weight: bold;">Congratulations! Your ${userType} application has been sent.</p>
+                </div>
+                <p style="margin-bottom: 15px;">You will be Informed you about your application in few days:</p>
+                <ul style="margin-bottom: 20px; padding-left: 20px;">
+                    <li>Our HR team will review your application and give updates about the application to you.</li>
+                </ul>
+                <p style="margin-top: 20px; font-style: italic; color: #666;">We look forward to review you application.</p>`,
         },
     }
 
@@ -356,6 +369,11 @@ const STATUS_EMAIL_CONFIG: Record<ApplicationStatus, EmailConfig> = {
         subject: 'School Management System - Interview Invitation',
         template: (name: string) =>
             createEmailTemplate(name, 'Interview', 'teacher'), // You might want to create a separate template for interview
+    },
+    Sent: {
+        subject: 'School Management System - Application Sent',
+        template: (name: string) =>
+            createEmailTemplate(name, 'Sent', 'teacher'),
     },
 }
 

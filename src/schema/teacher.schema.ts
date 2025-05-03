@@ -42,6 +42,6 @@ export const teacherSchema = z.object({
     cvPath: z.string().trim().optional(), // Path or URL to CV
 
     applicationStatus: z
-        .enum(['Pending', 'Interview', 'Accepted', 'Rejected'])
+        .enum(['Pending', 'Interview', 'Accepted', 'Rejected', 'Sent'])
         .optional(),
 })

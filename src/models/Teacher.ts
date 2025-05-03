@@ -26,6 +26,7 @@ export enum ApplicationStatus {
     Interview = 'Interview',
     Accepted = 'Accepted',
     Rejected = 'Rejected',
+    Sent = 'Sent',
 }
 
 export type TeacherAttributes = z.infer<typeof teacherSchema> & {
@@ -76,7 +77,7 @@ export class Teacher
     @Column({
         type: DataType.STRING,
         allowNull: false,
-        unique: true,
+        // unique: true,
         validate: { isEmail: true },
     })
     email!: string
