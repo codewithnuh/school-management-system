@@ -78,7 +78,6 @@ export class FeePayment
     @Column({
         type: DataType.STRING,
         allowNull: false,
-        unique: true,
     })
     receiptNumber!: string
 

@@ -1,28 +1,51 @@
 import { Router } from 'express'
 import { RegistrationController } from '@/controllers/RegistrationController.js'
+import authWithRBAC from '@/middleware/auth.middleware'
 
 const router = Router()
 
 // Protect routes with middleware if needed
-router.post('/teacher', RegistrationController.createTeacherRegistrationLink)
+router.post(
+    '/teacher',
+    authWithRBAC(['ADMIN']),
+    RegistrationController.createTeacherRegistrationLink,
+)
 
-router.get('/teacher', RegistrationController.getTeacherRegistrationLinks)
+router.get(
+    '/teacher',
+    authWithRBAC(['ADMIN']),
+    RegistrationController.getTeacherRegistrationLinks,
+)
 router.get(
     '/teacher/:id',
+    authWithRBAC(['ADMIN']),
     RegistrationController.getTeacherRegistrationLinkWithId,
 )
-router.delete('/teacher', RegistrationController.deleteTeacherRegistrationLink)
-router.delete('/student', RegistrationController.deleteTeacherRegistrationLink)
+router.delete(
+    '/teacher',
+    authWithRBAC(['ADMIN']),
+    RegistrationController.deleteTeacherRegistrationLink,
+)
+router.delete(
+    '/student',
+    authWithRBAC(['ADMIN']),
+    RegistrationController.deleteTeacherRegistrationLink,
+)
 router.get(
     '/student/:id',
+    authWithRBAC(['ADMIN']),
     RegistrationController.getStudentRegistrationLinkWithId,
 )
 
-router.post('/student', RegistrationController.createStudentRegistrationLink)
+router.post(
+    '/student',
+    authWithRBAC(['ADMIN']),
+    RegistrationController.createStudentRegistrationLink,
+)
 
 router.get(
     '/student',
-
+    authWithRBAC(['ADMIN']),
     RegistrationController.getStudentRegistrationLinks,
 )
 

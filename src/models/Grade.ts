@@ -38,7 +38,6 @@ export class Grade extends Model<GradeAttributes> implements GradeAttributes {
     @Column({
         type: DataType.STRING(10),
         allowNull: false,
-        unique: true, // Ensure grade names are unique (e.g., only one 'A+')
     })
     gradeName!: string
 

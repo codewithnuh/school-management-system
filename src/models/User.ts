@@ -54,7 +54,6 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     schoolId!: number
     @Column({
         type: DataType.STRING,
-        unique: true,
         allowNull: false,
         validate: { isEmail: true },
     })
@@ -84,7 +83,7 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     @Column({ type: DataType.STRING })
     currentAddress?: string
 
-    @Column({ type: DataType.VIRTUAL, allowNull: true, unique: true })
+    @Column({ type: DataType.VIRTUAL, allowNull: true })
     studentId!: string
 
     @Column({ type: DataType.STRING })

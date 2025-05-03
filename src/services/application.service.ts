@@ -46,65 +46,65 @@ const getEmailContent = (
         Accepted: {
             title: 'Welcome to School Management System',
             content: `
-                <div style="background-color: #f0f8ff; border-left: 4px solid #007bff; padding: 15px; margin-bottom: 20px;">
+                <div style="background-color: #e7f7ff; border-left: 6px solid #007bff; padding: 20px; margin-bottom: 20px; font-size: 16px; color: #333;">
                     <p style="margin: 0; font-weight: bold;">Congratulations! Your ${userType} account has been created successfully.</p>
                 </div>
-                <p style="margin-bottom: 15px;">To complete your registration, please set up your password using the secure link below:</p> 
+                <p style="margin-bottom: 20px; font-size: 16px; color: #555;">To complete your registration, please set up your password using the secure link below:</p> 
                 <div style="text-align: center; margin: 25px 0;">
                     <a href="${resetLink}" 
-                       style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background-color 0.3s ease;">
-                        Set Password
+                       style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; transition: background-color 0.3s ease;">
+                       Login
                     </a>
                 </div>
-                <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px;">
+                <div style="background-color: #fff3cd; border-left: 6px solid #ffc107; padding: 20px; margin-top: 20px; font-size: 14px; color: #555;">
                     <p style="margin: 0;"><strong>Important:</strong> This link will expire in 1 hour for security reasons.</p>
                 </div>
-                <p style="margin-top: 20px; font-style: italic; color: #666;">If you didn't request this account creation, please ignore this email or contact our support team.</p>`,
+                <p style="margin-top: 20px; font-size: 14px; font-style: italic; color: #666;">If you did not request this account creation, please ignore this email or contact our support team.</p>`,
         },
         Rejected: {
             title: 'Account Application Status',
             content: `
-                <div style="background-color: #fff5f5; border-left: 4px solid #dc3545; padding: 15px; margin-bottom: 20px;">
+                <div style="background-color: #fcebea; border-left: 6px solid #dc3545; padding: 20px; margin-bottom: 20px; font-size: 16px; color: #333;">
                     <p style="margin: 0; font-weight: bold;">We regret to inform you that your ${userType} account application has not been approved at this time.</p>
                 </div>
-                <p style="margin-bottom: 15px;">We appreciate your interest in joining our school management system. While we're unable to approve your application at this moment, we encourage you to:</p>
-                <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <p style="margin-bottom: 20px; font-size: 16px; color: #555;">We appreciate your interest in joining our school management system. While we're unable to approve your application at this moment, we encourage you to:</p>
+                <ul style="margin-bottom: 20px; padding-left: 20px; font-size: 14px; color: #555;">
                     <li>Review our application criteria</li>
                     <li>Consider reapplying after gaining more experience or qualifications</li>
                     <li>Reach out to our support team for more detailed feedback</li>
                 </ul>
-                <div style="background-color: #e9ecef; border-left: 4px solid #6c757d; padding: 15px;">
+                <div style="background-color: #f1f1f1; border-left: 6px solid #6c757d; padding: 20px; font-size: 14px; color: #555;">
                     <p style="margin: 0;">If you believe this decision was made in error or would like more information, please don't hesitate to contact our support team.</p>
                 </div>`,
         },
         Interview: {
             title: 'Interview Invitation',
             content: `
-                <div style="background-color: #f0fff0; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px;">
+                <div style="background-color: #e8f9e8; border-left: 6px solid #28a745; padding: 20px; margin-bottom: 20px; font-size: 16px; color: #333;">
                     <p style="margin: 0; font-weight: bold;">Congratulations! Your ${userType} application has been shortlisted for an interview.</p>
                 </div>
-                <p style="margin-bottom: 15px;">We're excited to move forward with your application. Here's what you need to know:</p>
-                <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <p style="margin-bottom: 20px; font-size: 16px; color: #555;">We're excited to move forward with your application. Here's what you need to know:</p>
+                <ul style="margin-bottom: 20px; padding-left: 20px; font-size: 14px; color: #555;">
                     <li>Our HR team will contact you shortly with the interview details and schedule.</li>
                     <li>The interview may be conducted in person or via video conference.</li>
                     <li>Please ensure your contact information is up to date in your application profile.</li>
                 </ul>
-                <div style="background-color: #e9ecef; border-left: 4px solid #17a2b8; padding: 15px;">
+                <div style="background-color: #f1f1f1; border-left: 6px solid #17a2b8; padding: 20px; font-size: 14px; color: #555;">
                     <p style="margin: 0;"><strong>Tip:</strong> Review your application and prepare any relevant documents or portfolios that showcase your skills and experience.</p>
                 </div>
-                <p style="margin-top: 20px; font-style: italic; color: #666;">We look forward to meeting you and learning more about your qualifications!</p>`,
+                <p style="margin-top: 20px; font-size: 14px; font-style: italic; color: #666;">We look forward to meeting you and learning more about your qualifications!</p>`,
         },
         Sent: {
             title: 'Application Sent',
             content: `
-                <div style="background-color: #f0fff0; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px;">
+                <div style="background-color: #e8f9e8; border-left: 6px solid #28a745; padding: 20px; margin-bottom: 20px; font-size: 16px; color: #333;">
                     <p style="margin: 0; font-weight: bold;">Congratulations! Your ${userType} application has been sent.</p>
                 </div>
-                <p style="margin-bottom: 15px;">You will be Informed you about your application in few days:</p>
-                <ul style="margin-bottom: 20px; padding-left: 20px;">
-                    <li>Our HR team will review your application and give updates about the application to you.</li>
+                <p style="margin-bottom: 20px; font-size: 16px; color: #555;">You will be notified about your application status in the next few days:</p>
+                <ul style="margin-bottom: 20px; padding-left: 20px; font-size: 14px; color: #555;">
+                    <li>Our HR team will review your application and provide updates.</li>
                 </ul>
-                <p style="margin-top: 20px; font-style: italic; color: #666;">We look forward to review you application.</p>`,
+                <p style="margin-top: 20px; font-size: 14px; font-style: italic; color: #666;">We look forward to reviewing your application.</p>`,
         },
     }
 

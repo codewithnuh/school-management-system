@@ -47,7 +47,7 @@ export class PasswordResetToken
         autoIncrement: true,
     })
     id?: number
-    @Column({ type: DataType.STRING(100), allowNull: false, unique: true })
+    @Column({ type: DataType.STRING(100), allowNull: false })
     token!: string
     @Column({ type: DataType.INTEGER, allowNull: false })
     entityId!: number
