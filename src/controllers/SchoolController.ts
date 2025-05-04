@@ -33,4 +33,24 @@ export class SchoolController {
         )
         res.status(response.statusCode).json(response)
     }
+    static async getSchoolByAdminId(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        const { adminId } = req.params
+        const school = await schoolService.getSchoolById(Number(adminId))
+        if (!school) {
+            const response = ResponseUtil.error(
+                'School not found',
+                404,
+                'School not found',
+            )
+            res.status(response.statusCode).json(response)
+        }
+        const response = ResponseUtil.success(
+            school,
+            'School retrieved successfully',
+        )
+        res.status(response.statusCode).json(response)
+    }
 }

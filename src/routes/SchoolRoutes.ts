@@ -4,7 +4,12 @@ import express from 'express'
 
 const router = express.Router()
 
-router.post('/', authWithRBAC(['OWNER']), SchoolController.createSchool)
+router.post('/', authWithRBAC(['ADMIN'], true), SchoolController.createSchool)
 // CORRECTED ROUTE DEFINITION:
 router.get('/:id', authWithRBAC(['OWNER']), SchoolController.getSchoolById)
+router.get(
+    '/:adminId',
+    authWithRBAC(['ADMIN']),
+    SchoolController.getSchoolByAdminId,
+)
 export default router

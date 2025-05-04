@@ -31,6 +31,16 @@ class SchoolService {
             return error
         }
     }
+    async getSchoolByAdminId(adminId: number) {
+        try {
+            const school = await School.findOne({
+                where: { adminId },
+            })
+            return school
+        } catch (error) {
+            return error
+        }
+    }
     async getAllSchools() {
         try {
             const schools = await School.findAll()

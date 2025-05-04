@@ -202,7 +202,6 @@ export const AuthController = {
             res.status(200).json(response)
         } catch (error) {
             if (error instanceof Error) {
-                console.log(error)
                 res.status(400).json(ResponseUtil.error(error.message, 400))
             } else if (error instanceof ZodError) {
                 res.status(400).json(

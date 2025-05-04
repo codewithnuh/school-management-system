@@ -194,6 +194,7 @@ class TeacherController {
         res: Response,
     ): Promise<void> => {
         const teacherId = req.query.id
+
         console.log(teacherId)
         if (teacherId === undefined || isNaN(Number(teacherId))) {
             res.status(400).json({ error: 'Invalid or missing teacher ID' })

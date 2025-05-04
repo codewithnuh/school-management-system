@@ -64,8 +64,8 @@ const configureMiddleware = (app: express.Application) => {
     app.use(
         cors({
             origin: [
-                'https://school-management-system-gray.vercel.app',
-                'https://smartcampus-management.netlify.app',
+                // 'https://school-management-system-gray.vercel.app',
+                // 'https://smartcampus-management.netlify.app',
                 'http://localhost:5173',
             ], // ✅ no trailing slash
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

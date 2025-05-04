@@ -8,7 +8,7 @@ router.post('/login', AuthController.login)
 router.post('/logout-all-sessions', AuthController.logoutFromAllSessions)
 router.post('/owner/login', AuthController.ownerLogin)
 //Signup route
-router.post('/signup', AuthController.signUp)
+router.post('/sign-up', AuthController.signUp)
 // Logout route
 router.post('/logout', AuthController.logout)
 router.get('/session', AuthController.checkSession)

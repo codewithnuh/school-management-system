@@ -46,7 +46,7 @@ export class Admin extends Model<AdminAttributes> implements AdminAttributes {
 
     @Column({
         type: DataType.STRING,
-        unique: true,
+
         allowNull: false,
         validate: { isEmail: true },
     })

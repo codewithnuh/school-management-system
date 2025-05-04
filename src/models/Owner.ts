@@ -7,7 +7,6 @@ import {
     Default,
     CreatedAt,
     UpdatedAt,
-    Unique,
     AutoIncrement,
 } from 'sequelize-typescript'
 import { z } from 'zod'
@@ -34,7 +33,6 @@ export class Owner extends Model<OwnerAttributes> implements OwnerAttributes {
     @Column(DataType.INTEGER)
     id!: number
 
-    @Unique
     @Column({
         type: DataType.STRING,
         allowNull: false,
