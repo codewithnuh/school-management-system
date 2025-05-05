@@ -71,4 +71,32 @@ export class AdminController {
             }
         }
     }
+    static async verifyAdminSubscriptionByAdminId(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        try {
+            const { adminId } = req.params
+            if (!adminId) throw new Error('Please provide admin id')
+            const subscriptionStatus =
+                await adminService.verifyAdminSubscriptionByAdminId(
+                    Number(adminId),
+                )
+            const response = ResponseUtil.success(
+                { isSubscriptionActive: subscriptionStatus },
+                'Successfully verified',
+                200,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    'Failed to verify',
+                    400,
+                    'Failed to verify subscription status',
+                )
+                res.status(response.statusCode).json(response)
+            }
+        }
+    }
 }

@@ -47,5 +47,15 @@ class AdminService {
         })
         return updatedAdmin
     }
+    async verifyAdminSubscriptionByAdminId(adminId: number) {
+        const admin = await Admin.findOne({
+            where: {
+                id: adminId,
+            },
+        })
+        if (!admin) throw new Error('No admin found with this id')
+        const isSubscriptionActive = admin?.isSubscriptionActive
+        return isSubscriptionActive
+    }
 }
 export const adminService = new AdminService()

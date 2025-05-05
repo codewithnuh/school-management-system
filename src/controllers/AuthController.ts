@@ -43,43 +43,42 @@ export const AuthController = {
      */
     async login(req: Request, res: Response): Promise<void> {
         try {
-            // Validate request payload
+            // Step 1: Validate incoming data
             const validatedData = loginSchema.parse(req.body)
             const { email, password, entityType } = validatedData
 
-            // Determine the model to use based on the entity type
-            let userModel
-            switch (entityType) {
-                case 'ADMIN':
-                    userModel = Admin
-                    break
-                case 'TEACHER':
-                    userModel = Teacher
-                    break
-                case 'USER':
-                    userModel = User
-                    break
-                case 'PARENT':
-                    userModel = Parent
-                    break
-                default:
-                    res.status(400).json({ message: 'Invalid entity type' })
-                    return
+            // Step 2: Determine user model based on entityType
+            const userModels: Record<
+                string,
+                typeof Admin | typeof Teacher | typeof User | typeof Parent
+            > = {
+                ADMIN: Admin,
+                TEACHER: Teacher,
+                USER: User,
+                PARENT: Parent,
             }
 
-            // Delete any expired sessions securely.
-            // Import Op from sequelize where needed (import { Op } from 'sequelize';)
+            const userModel = userModels[entityType]
+            if (!userModel) {
+                res.status(400).json({ message: 'Invalid entity type' })
+                return
+            }
+
+            // Step 3: Clear expired sessions
             await Session.destroy({
                 where: {
                     expiryDate: { [Op.lt]: new Date() },
                 },
             })
 
-            // Get other request parameters
-            const userAgent = req.headers['user-agent']
-            const ipAddress = req.ip
+            // Step 4: Prepare metadata
+            const userAgent = req.headers['user-agent'] || 'unknown'
+            const ipAddress =
+                req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+                req.socket.remoteAddress ||
+                ''
 
-            // Capture both the token and the message returned by authService.login
+            // Step 5: Attempt login
             const {
                 token,
                 message: loginMessage,
@@ -93,34 +92,38 @@ export const AuthController = {
                 ipAddress,
             )
 
-            // Set the token as an HTTP-only cookie (adjust secure flag according to your environment)
-            res.cookie('token', token, {
-                httpOnly: true,
-                sameSite: 'none',
-                secure: false,
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            })
-
             if (!success) {
                 throw new Error(loginMessage)
             }
 
-            // Return a successful response using the service-provided message
+            // Step 6: Set secure HTTP-only cookie (configured per environment)
+            const isProduction = process.env.NODE_ENV === 'production'
+
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: isProduction, // must be true in production (over HTTPS)
+                sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-site cookies
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                path: '/', // Optional: restrict path
+            })
+
+            // Step 7: Send successful response
             const response = ResponseUtil.success(loginMessage)
             res.status(200).json(response)
         } catch (error) {
+            console.error('Login error:', error)
+
             if (error instanceof z.ZodError) {
-                const response = ResponseUtil.error('Validation error', 400)
+                const response = ResponseUtil.error('Validation failed', 400)
                 res.status(400).json(response)
-                console.error(error)
                 return
             }
-            if (error instanceof Error) {
-                const response = ResponseUtil.error(error.message, 400)
-                res.status(500).json(response)
-                console.error(error)
-                return
-            }
+
+            const response = ResponseUtil.error(
+                error instanceof Error ? error.message : 'Something went wrong',
+                500,
+            )
+            res.status(500).json(response)
         }
     },
     async ownerLogin(req: Request, res: Response): Promise<void> {
