@@ -43,7 +43,6 @@ export class Session extends Model<SessionZod> implements SessionZod {
     @Column({
         type: DataType.STRING(512),
         allowNull: false,
-        unique: true,
     })
     token!: string
 

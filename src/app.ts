@@ -29,7 +29,7 @@ import schoolRoutes from '@/routes/SchoolRoutes.js'
 import adminRoutes from '@/routes/Admin.js'
 import testRoutes from '@/routes/test.js'
 import registrationLinksRoutes from '@/routes/registrationLinksRoutes.js'
-// import seed from '@/seeders/index.js'
+import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
     handleValidationErrors,
@@ -138,7 +138,7 @@ const startServer = async () => {
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
 
-        // await seed()
+        await seed()
         app.listen(Number(PORT), '0.0.0.0', () => {
             console.log(`Server is running on http://localhost:${PORT}`)
         })

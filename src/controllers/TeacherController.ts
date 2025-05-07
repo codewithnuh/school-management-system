@@ -1,329 +1,226 @@
-// controllers/teacher.controller.ts
-import { ResponseUtil } from '@/utils/response.util.js'
+// controllers/TeacherController.ts
 import { Request, Response } from 'express'
-import { Teacher } from '@/models/Teacher.js'
-import { teacherSchema } from '@/schema/teacher.schema.js'
-import { logger } from '@/middleware/loggin.middleware.js'
-import { Op } from 'sequelize'
-import { processTeacherApplication } from '@/services/application.service.js'
-import { Class, Section } from '@/models/index.js'
-import bcrypt from 'bcryptjs'
-class TeacherController {
+import { teacherService } from '@/services/teacher.service.js'
+import { ResponseUtil } from '@/utils/response.util.js'
+import { ApplicationStatus } from '@/models/Teacher.js'
+
+export class TeacherController {
     /**
      * Register a new teacher
      */
-    public registerTeacher = async (
-        req: Request,
-        res: Response,
-    ): Promise<void> => {
+    static async registerTeacher(req: Request, res: Response): Promise<void> {
         try {
-            // Validate request body against schema
-            const validatedData = teacherSchema.parse(req.body)
-
-            // Check if teacher already exists with same email or CNIC
-            const existingTeacher = await Teacher.findOne({
-                where: {
-                    [Op.or]: [
-                        { email: validatedData.email },
-                        { cnic: validatedData.cnic },
-                    ],
-                },
-            })
-
-            if (existingTeacher) {
-                logger.warn('Teacher registration failed - duplicate entry', {
-                    email: validatedData.email,
-                    cnic: validatedData.cnic,
-                })
-                const response = ResponseUtil.error(
-                    'Teacher already exists',
-                    409,
-                )
-                res.status(response.statusCode).json(response)
-                return
-            }
-
-            // Process file uploads if any
-            // const photoPath = req.file?.path // Assuming you're using multer for file uploads
-
-            // Create new teacher
-            const hashedPassword = await bcrypt.hash(
-                validatedData.password!,
-                10,
+            const teacher = await teacherService.registerTeacher(req.body)
+            res.status(201).json(
+                ResponseUtil.success(
+                    teacher,
+                    'Teacher registered successfully',
+                    201,
+                ),
             )
-            const teacher = await Teacher.create({
-                ...validatedData,
-                isVerified: false, // New teachers start unverified
-                role: 'TEACHER',
-                password: hashedPassword,
-                subjectId: validatedData.subjectId, // Include subjectId
-            })
-
-            // Remove sensitive information before sending response
-            const teacherData = teacher.toJSON()
-
-            logger.info('New teacher registered successfully', {
-                teacherId: teacher.id,
-                email: teacher.email,
-            })
-
-            const response = ResponseUtil.success(
-                { ...teacherData, password: null },
-                'Teacher registered successfully',
-                201,
-            )
-            res.status(response.statusCode).json(response)
-            return
         } catch (error) {
-            logger.error('Teacher registration failed', {
-                error: error instanceof Error ? error.message : 'Unknown error',
-                stack: error instanceof Error ? error.stack : undefined,
-            })
-
-            if (error instanceof Error) {
-                if (error.name === 'ZodError') {
-                    res.status(400).json({
-                        success: false,
-                        message: 'Validation failed',
-                        errors: 'Invalid data', // Send message instead of stack trace
-                    })
-                }
-
-                res.status(400).json({
-                    success: false,
-                    message: 'Failed to register teacher',
-                })
-                return
-            }
-
-            res.status(500).json({
-                success: false,
-                message: 'Internal server error',
-            })
-            return
+            res.status(400).json(
+                ResponseUtil.error(
+                    error instanceof Error
+                        ? error.message
+                        : 'Registration failed',
+                    400,
+                ),
+            )
         }
     }
+
     /**
-     * Get all teachers with pagination
+     * Get all teachers with pagination, sorting, filtering
      */
-    public getTeachers = async (req: Request, res: Response): Promise<void> => {
+    static async getTeachers(req: Request, res: Response): Promise<void> {
         try {
-            const page = parseInt(req.query.page as string) || 1
-            const limit = parseInt(req.query.limit as string) || 10
-            const offset = (page - 1) * limit
+            const query = req.query
+            const teachers = await teacherService.getTeachers(query)
 
-            const teachers = await Teacher.findAndCountAll({
-                limit,
-                offset,
-                attributes: {
-                    exclude: ['password'],
-                },
-            })
-
-            const response = ResponseUtil.success({
-                teachers: teachers.rows,
-                total: teachers.count,
-                currentPage: page,
-                totalPages: Math.ceil(teachers.count / limit),
-            })
-            res.status(response.statusCode).json(response)
-            return
+            res.status(200).json(
+                ResponseUtil.success(
+                    teachers,
+                    'Teachers retrieved successfully',
+                ),
+            )
         } catch (error) {
-            logger.error('Error fetching teachers', {
-                error: error instanceof Error ? error.message : 'Unknown error',
-            })
-
-            const response = ResponseUtil.error('Internal server error', 500)
-            res.status(response.statusCode).json(response)
-            return
+            if (error instanceof Error)
+                res.status(500).json(
+                    ResponseUtil.error('Failed to fetch teachers', 500),
+                )
         }
     }
 
     /**
      * Get teacher by ID
      */
-    public getTeacherById = async (
-        req: Request,
-        res: Response,
-    ): Promise<void> => {
+    static async getTeacherById(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params
-
-            const teacher = await Teacher.findByPk(id, {
-                attributes: {
-                    exclude: ['cvPath', 'verificationDocument'],
-                },
-                include: [
-                    {
-                        model: Section,
-                        include: [Class],
-                    },
-                ],
-            })
+            const teacher = await teacherService.getTeacherById(id)
 
             if (!teacher) {
-                res.status(404).json({
-                    status: 'error',
-                    message: 'Teacher not found',
-                })
+                res.status(404).json(
+                    ResponseUtil.error('Teacher not found', 404),
+                )
+                return
             }
 
-            res.status(200).json({
-                success: true,
-                data: teacher,
-            })
+            res.status(200).json(
+                ResponseUtil.success(teacher, 'Teacher retrieved successfully'),
+            )
         } catch (error) {
-            logger.error('Error fetching teacher', {
-                error: error instanceof Error ? error.message : 'Unknown error',
-                teacherId: req.params.id,
-            })
-            if (error instanceof Error) {
-                res.status(500).json({
-                    status: 'error',
-                    message: error.message,
-                })
-            }
+            if (error instanceof Error)
+                res.status(500).json(
+                    ResponseUtil.error('Error fetching teacher', 500),
+                )
         }
     }
 
     /**
-     * Update teacher verification status
+     * Accept teacher application
      */
-    public acceptTeacherApplication = async (
+    static async acceptTeacherApplication(
         req: Request,
         res: Response,
-    ): Promise<void> => {
-        const teacherId = req.query.id
-
-        console.log(teacherId)
-        if (teacherId === undefined || isNaN(Number(teacherId))) {
-            res.status(400).json({ error: 'Invalid or missing teacher ID' })
-            return
-        }
-
+    ): Promise<void> {
         try {
-            const numericTeacherId = Number(teacherId)
-            await processTeacherApplication(numericTeacherId, 'Accepted')
-
-            res.status(200).json({
-                success: true,
-                message: 'Teacher registered successfully',
-            })
-        } catch (error) {
-            if (error instanceof Error) {
-                res.status(400).json({
-                    success: false,
-                    message: error.message,
-                    stack: error.message,
-                })
+            const teacherId = parseInt(req.query.id as string, 10)
+            if (isNaN(teacherId)) {
+                res.status(400).json(
+                    ResponseUtil.error('Invalid teacher ID', 400),
+                )
+                return
             }
-        }
-    }
 
-    public rejectTeacherApplication = async (
-        req: Request,
-        res: Response,
-    ): Promise<void> => {
-        const teacherId = req.query.id
-        if (teacherId === undefined || isNaN(Number(teacherId))) {
-            res.status(400).json({ error: 'Invalid or missing teacher ID' })
-            return
-        }
-
-        try {
-            const numericTeacherId = Number(teacherId)
-            await processTeacherApplication(numericTeacherId, 'Rejected')
-
-            res.status(200).json({
-                success: true,
-                message: 'Teacher application rejected successfully',
-            })
-        } catch (error) {
-            if (error instanceof Error) {
-                res.status(400).json({
-                    success: false,
-                    message: error.message,
-                    stack: error.message,
-                })
-            }
-        }
-    }
-
-    public interviewTeacherApplicant = async (
-        req: Request,
-        res: Response,
-    ): Promise<void> => {
-        const teacherId = req.query.id
-        if (teacherId === undefined || isNaN(Number(teacherId))) {
-            res.status(400).json({ error: 'Invalid or missing teacher ID' })
-            return
-        }
-
-        try {
-            const numericTeacherId = Number(teacherId)
-            await processTeacherApplication(numericTeacherId, 'Interview')
-
-            res.status(200).json({
-                success: true,
-                message: 'Teacher selected for interview successfully',
-            })
-        } catch (error) {
-            if (error instanceof Error) {
-                res.status(400).json({
-                    success: false,
-                    message: error.message,
-                    stack: error.message,
-                })
-            }
-        }
-    }
-    /**
-     * Get all teachers who are not registered yet (pending applications)
-     */
-    public getUnregisteredTeachers = async (
-        req: Request,
-        res: Response,
-    ): Promise<void> => {
-        try {
-            const page = parseInt(req.query.page as string) || 1
-            const limit = parseInt(req.query.limit as string) || 10
-            const offset = (page - 1) * limit
-
-            const unregisteredTeachers = await Teacher.findAndCountAll({
-                where: {
-                    isVerified: false,
-                    applicationStatus: {
-                        [Op.in]: ['Pending', 'Interview'],
-                    },
-                },
-                limit,
-                offset,
-                attributes: {
-                    exclude: ['cvPath', 'verificationDocument', 'password'],
-                },
-                order: [['createdAt', 'DESC']], // Most recent applications first
-            })
-
-            const response = ResponseUtil.paginated(
-                unregisteredTeachers.rows,
-                unregisteredTeachers.count,
-                page,
-                limit,
-                'Unregistered teachers retrieved successfully',
+            const updatedTeacher = await teacherService.processApplication(
+                teacherId,
+                ApplicationStatus.Accepted,
             )
 
-            res.status(response.statusCode).json(response)
-            return
+            res.status(200).json(
+                ResponseUtil.success(
+                    updatedTeacher,
+                    'Teacher accepted successfully',
+                ),
+            )
         } catch (error) {
-            logger.error('Error fetching unregistered teachers', {
-                error: error instanceof Error ? error.message : 'Unknown error',
-            })
+            res.status(400).json(
+                ResponseUtil.error(
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to accept teacher',
+                    400,
+                ),
+            )
+        }
+    }
 
-            const response = ResponseUtil.error('Internal server error', 500)
-            res.status(response.statusCode).json(response)
-            return
+    /**
+     * Reject teacher application
+     */
+    static async rejectTeacherApplication(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        try {
+            const teacherId = parseInt(req.query.id as string, 10)
+            if (isNaN(teacherId)) {
+                res.status(400).json(
+                    ResponseUtil.error('Invalid teacher ID', 400),
+                )
+                return
+            }
+
+            const updatedTeacher = await teacherService.processApplication(
+                teacherId,
+                ApplicationStatus.Rejected,
+            )
+
+            res.status(200).json(
+                ResponseUtil.success(
+                    updatedTeacher,
+                    'Teacher rejected successfully',
+                ),
+            )
+        } catch (error) {
+            res.status(400).json(
+                ResponseUtil.error(
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to reject teacher',
+                    400,
+                ),
+            )
+        }
+    }
+
+    /**
+     * Select teacher for interview
+     */
+    static async interviewTeacherApplication(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        try {
+            const teacherId = parseInt(req.query.id as string, 10)
+            if (isNaN(teacherId)) {
+                res.status(400).json(
+                    ResponseUtil.error('Invalid teacher ID', 400),
+                )
+                return
+            }
+
+            const updatedTeacher = await teacherService.processApplication(
+                teacherId,
+                ApplicationStatus.Interview,
+            )
+
+            res.status(200).json(
+                ResponseUtil.success(
+                    updatedTeacher,
+                    'Teacher selected for interview',
+                ),
+            )
+        } catch (error) {
+            res.status(400).json(
+                ResponseUtil.error(
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to select for interview',
+                    400,
+                ),
+            )
+        }
+    }
+
+    /**
+     * Get unregistered teachers (Pending or Interview status)
+     */
+    static async getUnregisteredTeachers(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        try {
+            const teachers = await teacherService.getUnregisteredTeachers(
+                req.query,
+            )
+
+            res.status(200).json(
+                ResponseUtil.success(
+                    teachers,
+                    'Unregistered teachers retrieved successfully',
+                ),
+            )
+        } catch (error) {
+            if (error instanceof Error)
+                res.status(500).json(
+                    ResponseUtil.error(
+                        'Failed to retrieve unregistered teachers',
+                        500,
+                    ),
+                )
         }
     }
 }
-
-export default new TeacherController()

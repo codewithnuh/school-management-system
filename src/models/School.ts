@@ -51,7 +51,6 @@ export class School extends Model<SchoolType> {
     logo!: string
     @Column({
         type: DataType.STRING,
-        unique: true,
     })
     code!: string
     // Auto-generate unique code before school is created

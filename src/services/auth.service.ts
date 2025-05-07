@@ -240,6 +240,13 @@ class AuthService {
         entityType: 'ADMIN'
     }) {
         const hashedPassword = await bcrypt.hash(password, 10)
+        const isAdminExists = await Admin.findOne({
+            where: {
+                email,
+            },
+        })
+        if (isAdminExists)
+            throw new Error('A account already exists with this email')
         const admin = await Admin.create({
             email: email,
             password: hashedPassword,

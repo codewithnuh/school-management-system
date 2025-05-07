@@ -6,7 +6,7 @@ const router = express.Router()
 
 router.post('/', authWithRBAC(['ADMIN'], true), SchoolController.createSchool)
 // CORRECTED ROUTE DEFINITION:
-router.get('/:id', authWithRBAC(['OWNER']), SchoolController.getSchoolById)
+// router.get('/:id', authWithRBAC(['OWNER']), SchoolController.getSchoolById)
 router.get(
     '/:adminId',
     authWithRBAC(['ADMIN']),

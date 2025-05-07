@@ -1,5 +1,5 @@
 import express from 'express'
-import TeacherController from '@/controllers/TeacherController.js'
+import { TeacherController } from '@/controllers/TeacherController'
 import authenticate from '@/middleware/auth.middleware.js'
 
 const router = express.Router()
@@ -257,7 +257,7 @@ router.post(
     '/interview',
     authenticate(['ADMIN']),
 
-    TeacherController.interviewTeacherApplicant,
+    TeacherController.interviewTeacherApplication,
 )
 router.get(
     '/applications',

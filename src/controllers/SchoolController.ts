@@ -38,7 +38,7 @@ export class SchoolController {
         res: Response,
     ): Promise<void> {
         const { adminId } = req.params
-        const school = await schoolService.getSchoolById(Number(adminId))
+        const school = await schoolService.getSchoolByAdminId(Number(adminId))
         if (!school) {
             const response = ResponseUtil.error(
                 'School not found',
