@@ -3,6 +3,7 @@ import { Request, Response } from 'express'
 import { teacherService } from '@/services/teacher.service.js'
 import { ResponseUtil } from '@/utils/response.util.js'
 import { ApplicationStatus } from '@/models/Teacher.js'
+import { teacherSchema } from '@/schema/teacher.schema'
 
 export class TeacherController {
     /**
@@ -11,6 +12,31 @@ export class TeacherController {
     static async registerTeacher(req: Request, res: Response): Promise<void> {
         try {
             const teacher = await teacherService.registerTeacher(req.body)
+            res.status(201).json(
+                ResponseUtil.success(
+                    teacher,
+                    'Teacher registered successfully',
+                    201,
+                ),
+            )
+        } catch (error) {
+            res.status(400).json(
+                ResponseUtil.error(
+                    error instanceof Error
+                        ? error.message
+                        : 'Registration failed',
+                    400,
+                ),
+            )
+        }
+    }
+    static async createTeacher(req: Request, res: Response): Promise<void> {
+        try {
+            const validatedData = teacherSchema.parse(req.body)
+            const teacher = await teacherService.registerTeacher({
+                ...validatedData,
+                role: 'TEACHER',
+            })
             res.status(201).json(
                 ResponseUtil.success(
                     teacher,

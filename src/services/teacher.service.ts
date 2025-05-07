@@ -56,6 +56,50 @@ class TeacherService {
             throw error
         }
     }
+    async createTeacher(data: TeacherAttributes) {
+        try {
+            // Check if teacher already exists
+            const existingTeacher = await Teacher.findOne({
+                where: {
+                    [Op.or]: [{ email: data.email }, { cnic: data.cnic }],
+                },
+            })
+
+            if (existingTeacher) {
+                throw new Error(
+                    'Teacher with this email or CNIC already exists',
+                )
+            }
+
+            // Hash password
+            const hashedPassword = await bcrypt.hash(
+                data.password as string,
+                10,
+            )
+
+            // Create teacher
+            const teacher = await Teacher.create({
+                ...data, // Ensure schoolId is included
+                password: hashedPassword,
+                isVerified: true,
+                role: 'TEACHER',
+                applicationStatus: 'Accepted',
+            })
+
+            logger.info('New teacher registered successfully', {
+                teacherId: teacher.id,
+                email: teacher.email,
+            })
+
+            return teacher
+        } catch (error) {
+            logger.error('Teacher registration failed', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined,
+            })
+            throw error
+        }
+    }
 
     /**
      * Get all teachers with pagination, sorting, filtering
