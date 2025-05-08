@@ -21,6 +21,7 @@ export class RegistrationController {
                 },
             })
             if (!school) throw new Error('School Does not exists')
+
             const generateLink = await registrationService.generateLink({
                 createdBy: adminId,
                 isActive: true,
@@ -245,10 +246,20 @@ export class RegistrationController {
             res.status(response.statusCode).json(response)
         }
     }
-    static async getTeacherRegistrationLinkWithId(req: Request, res: Response) {
-        const { id } = req.params
+    static async getTeacherRegistrationLinkByAdminId(
+        req: Request,
+        res: Response,
+    ) {
+        const cookie = req.cookies.token
+        if (!cookie) throw new Error('Token Missing')
+        const decodedToken = jwt.verify(
+            cookie,
+            process.env.JWT_SECRET!,
+        ) as CurrentUserPayload
+        const adminId = decodedToken.userId
         try {
-            const teacherLink = await registrationService.getTeacherLinkById(id)
+            const teacherLink =
+                await registrationService.getTeacherLinkById(adminId)
             if (!teacherLink)
                 throw new Error('There is no teacher link found with this id')
             const response = ResponseUtil.success(
@@ -258,6 +269,7 @@ export class RegistrationController {
             )
             res.status(response.statusCode).json(response)
         } catch (error) {
+            console.log(`[DEBUG:RegistrationLInk] :[${error}]`)
             if (error instanceof Error) {
                 const response = ResponseUtil.error(
                     'Failed to retrieve teacher link information ',

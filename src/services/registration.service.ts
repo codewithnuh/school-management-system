@@ -14,6 +14,13 @@ class RegistrationService {
         isActive: boolean
         expiresAt?: Date
     }) {
+        const existedLink = await RegistrationLink.findOne({
+            where: {
+                createdBy,
+            },
+        })
+        if (existedLink)
+            throw new Error('Please delete the previous link to create new one')
         const newLink = await RegistrationLink.create({
             type,
             createdBy,
@@ -23,6 +30,7 @@ class RegistrationService {
         })
         return newLink
     }
+
     async deleteLink({
         type,
         createdBy,
@@ -90,10 +98,10 @@ class RegistrationService {
         if (!studentLinks) return []
         return studentLinks
     }
-    async getTeacherLinkById(id: string) {
+    async getTeacherLinkById(adminId: number) {
         const teacherLink = await RegistrationLink.findOne({
             where: {
-                id,
+                createdBy: adminId,
             },
             attributes: { exclude: ['adminId'] },
         })

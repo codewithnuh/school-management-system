@@ -17,9 +17,9 @@ router.get(
     RegistrationController.getTeacherRegistrationLinks,
 )
 router.get(
-    '/teacher/:id',
+    '/teacher',
     authWithRBAC(['ADMIN']),
-    RegistrationController.getTeacherRegistrationLinkWithId,
+    RegistrationController.getTeacherRegistrationLinkByAdminId,
 )
 router.delete(
     '/teacher',
