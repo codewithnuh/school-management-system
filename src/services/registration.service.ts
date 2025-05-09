@@ -84,20 +84,21 @@ class RegistrationService {
         adminId: number
         schoolId: number
     }) {
-        const studentLinks = await RegistrationLink.findAll({
-            where: {
-                type: type,
-                schoolId: schoolId,
-                createdBy: adminId,
-                isActive: true,
-                expiresAt: {
-                    [Op.gt]: new Date(),
+        return (
+            (await RegistrationLink.findAll({
+                where: {
+                    type,
+                    schoolId,
+                    createdBy: adminId,
+                    isActive: true,
+                    expiresAt: {
+                        [Op.gt]: new Date(),
+                    },
                 },
-            },
-        })
-        if (!studentLinks) return []
-        return studentLinks
+            })) || []
+        )
     }
+
     async getTeacherLinkById(adminId: number) {
         const teacherLink = await RegistrationLink.findOne({
             where: {
