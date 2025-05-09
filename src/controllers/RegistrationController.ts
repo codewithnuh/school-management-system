@@ -5,6 +5,7 @@ import { Request, Response } from 'express'
 import QRCode from 'qrcode'
 import jwt from 'jsonwebtoken'
 import { ResponseUtil } from '@/utils/response.util.js'
+
 export class RegistrationController {
     static async createTeacherRegistrationLink(req: Request, res: Response) {
         try {
@@ -37,6 +38,7 @@ export class RegistrationController {
             )
             res.status(response.statusCode).json(response)
         } catch (error) {
+            console.log(error)
             if (error instanceof Error) {
                 const response = ResponseUtil.error(
                     error.message,
@@ -217,9 +219,6 @@ export class RegistrationController {
                 type: 'TEACHER',
             })
 
-            if (!teacherLinks || teacherLinks.length === 0)
-                throw new Error('No Teacher Registration Links Found')
-
             const enrichedLinks = await Promise.all(
                 teacherLinks.map(async link => {
                     const fullLink = `${process.env.FRONTEND_URL}/register/${link.id}`
@@ -235,6 +234,51 @@ export class RegistrationController {
             const response = ResponseUtil.success(
                 enrichedLinks,
                 'Teacher Registration Links with QR Codes',
+                200,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            const response = ResponseUtil.error(
+                error instanceof Error ? error.message : 'Unknown error',
+                500,
+                'Error Getting Teacher Registration Links',
+            )
+            res.status(response.statusCode).json(response)
+        }
+    }
+    static async getStudentRegistrationLinks(req: Request, res: Response) {
+        try {
+            const cookie = req.cookies.token
+            if (!cookie) throw new Error('Token Missing')
+            const decodedToken = jwt.verify(
+                cookie,
+                process.env.JWT_SECRET!,
+            ) as CurrentUserPayload
+            const adminId = decodedToken.userId
+            const school = await School.findOne({ where: { adminId } })
+            if (!school) throw new Error('School Does not exists')
+
+            const teacherLinks = await registrationService.getStudentLinks({
+                adminId,
+                schoolId: school!.id,
+                type: 'STUDENT',
+            })
+
+            const enrichedLinks = await Promise.all(
+                teacherLinks.map(async link => {
+                    const fullLink = `${process.env.FRONTEND_URL}/register/${link.id}`
+                    const qrCode = await QRCode.toDataURL(fullLink)
+                    return {
+                        ...link.toJSON(),
+                        url: fullLink,
+                        qrCode, // base64 QR image string
+                    }
+                }),
+            )
+
+            const response = ResponseUtil.success(
+                enrichedLinks,
+                'Student Registration Links with QR Codes',
                 200,
             )
             res.status(response.statusCode).json(response)
@@ -301,81 +345,6 @@ export class RegistrationController {
                 )
                 res.status(response.statusCode).json(response)
             }
-        }
-    }
-
-    static async getStudentRegistrationLinks(
-        req: Request,
-        res: Response,
-    ): Promise<void> {
-        try {
-            const token = req.cookies.token
-            if (!token) {
-                res.status(401).json(
-                    ResponseUtil.error('Authentication token is missing', 401),
-                )
-            }
-
-            const decodedToken = jwt.verify(
-                token,
-                process.env.JWT_SECRET!,
-            ) as CurrentUserPayload
-
-            const adminId = decodedToken.userId
-
-            const school = await School.findOne({ where: { adminId } })
-            if (!school) {
-                res.status(404).json(
-                    ResponseUtil.error('Associated school not found', 404),
-                )
-            }
-
-            const studentLinks = await registrationService.getStudentLinks({
-                adminId,
-                schoolId: school!.id,
-                type: 'STUDENT',
-            })
-
-            if (!studentLinks.length) {
-                res.status(200).json(
-                    ResponseUtil.success(
-                        [],
-                        'No student registration links found',
-                        200,
-                    ),
-                )
-            }
-
-            const enrichedLinks = await Promise.all(
-                studentLinks.map(async link => {
-                    const fullLink = `${process.env.FRONTEND_URL}/register/${link.id}`
-                    const qrCode = await QRCode.toDataURL(fullLink)
-                    res.status(200).json({
-                        ...link.toJSON(),
-                        url: fullLink,
-                        qrCode,
-                    })
-                }),
-            )
-
-            res.status(200).json(
-                ResponseUtil.success(
-                    enrichedLinks,
-                    'Student registration links with QR codes',
-                    200,
-                ),
-            )
-        } catch (error) {
-            console.error('Error fetching student registration links:', error)
-            res.status(500).json(
-                ResponseUtil.error(
-                    error instanceof Error
-                        ? error.message
-                        : 'Internal Server Error',
-                    500,
-                    'Failed to retrieve student registration links',
-                ),
-            )
         }
     }
 }

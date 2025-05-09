@@ -29,7 +29,7 @@ router.delete(
 router.delete(
     '/student',
     authWithRBAC(['ADMIN']),
-    RegistrationController.deleteTeacherRegistrationLink,
+    RegistrationController.deleteStudentRegistrationLink,
 )
 router.get(
     '/student/:id',

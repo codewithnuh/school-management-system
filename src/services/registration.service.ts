@@ -17,6 +17,7 @@ class RegistrationService {
         const existedLink = await RegistrationLink.findOne({
             where: {
                 createdBy,
+                type,
             },
         })
         if (existedLink)
