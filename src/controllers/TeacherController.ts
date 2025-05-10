@@ -4,6 +4,7 @@ import { teacherService } from '@/services/teacher.service.js'
 import { ResponseUtil } from '@/utils/response.util.js'
 import { ApplicationStatus } from '@/models/Teacher.js'
 import { teacherSchema } from '@/schema/teacher.schema'
+import { ZodError } from 'zod'
 
 export class TeacherController {
     /**
@@ -45,6 +46,15 @@ export class TeacherController {
                 ),
             )
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json(
+                    ResponseUtil.error(
+                        'Validation Error',
+                        400,
+                        'Failed to validate input',
+                    ),
+                )
+            }
             res.status(400).json(
                 ResponseUtil.error(
                     error instanceof Error

@@ -42,9 +42,10 @@ export const seedTeachers = async () => {
             joiningDate: faker.date.past(),
             emergencyContactName: faker.person.fullName(),
             emergencyContactNumber: faker.phone.number(),
-            isVerified: false,
-            applicationStatus: ApplicationStatus.Pending,
+            isVerified: true,
+            applicationStatus: ApplicationStatus.Accepted,
             subjectId: subject.id, // Assign each teacher to a subject
+            schoolId: 8,
         }))
 
         await Teacher.bulkCreate(teachers, { ignoreDuplicates: true })
