@@ -83,6 +83,7 @@ const configureMiddleware = (app: express.Application) => {
     // Request parsing middleware
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
+
     app.use(cookieParser())
     // Logging middleware
     app.use(requestLogger)
