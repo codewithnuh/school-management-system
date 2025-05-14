@@ -30,7 +30,7 @@ export class RegistrationController {
                 type: 'TEACHER',
                 expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 2 days
             })
-            const link = `${process.env.FRONTEND_URL}/register/${generateLink.id}`
+            const link = `${process.env.FRONTEND_URL}/register/teacher?registrationLinkId=${generateLink.id}`
             const response = ResponseUtil.success(
                 link,
                 'Teacher Registration Link Created',
@@ -181,7 +181,7 @@ export class RegistrationController {
                 type: 'STUDENT',
                 expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // Link expires in 48 hours
             })
-            const link = `${process.env.FRONTEND_URL}/student/register/${generateLink.id}`
+            const link = `${process.env.FRONTEND_URL}/register/student?registrationLinkId=${generateLink.id}`
             const response = ResponseUtil.success(
                 link,
                 'Student Registration Link Created',
@@ -221,7 +221,7 @@ export class RegistrationController {
 
             const enrichedLinks = await Promise.all(
                 teacherLinks.map(async link => {
-                    const fullLink = `${process.env.FRONTEND_URL}/register/${link.id}`
+                    const fullLink = `${process.env.FRONTEND_URL}/register/teacher?registrationLinkId=${link.id}`
                     const qrCode = await QRCode.toDataURL(fullLink)
                     return {
                         ...link.toJSON(),
@@ -266,7 +266,7 @@ export class RegistrationController {
 
             const enrichedLinks = await Promise.all(
                 teacherLinks.map(async link => {
-                    const fullLink = `${process.env.FRONTEND_URL}/register/${link.id}`
+                    const fullLink = `${process.env.FRONTEND_URL}/register/student?registrationLinkId=${link.id}`
                     const qrCode = await QRCode.toDataURL(fullLink)
                     return {
                         ...link.toJSON(),
@@ -291,20 +291,10 @@ export class RegistrationController {
             res.status(response.statusCode).json(response)
         }
     }
-    static async getTeacherRegistrationLinkByAdminId(
-        req: Request,
-        res: Response,
-    ) {
-        const cookie = req.cookies.token
-        if (!cookie) throw new Error('Token Missing')
-        const decodedToken = jwt.verify(
-            cookie,
-            process.env.JWT_SECRET!,
-        ) as CurrentUserPayload
-        const adminId = decodedToken.userId
+    static async getTeacherRegistrationLinkById(req: Request, res: Response) {
+        const { id } = req.params
         try {
-            const teacherLink =
-                await registrationService.getTeacherLinkById(adminId)
+            const teacherLink = await registrationService.getTeacherLinkById(id)
             if (!teacherLink)
                 throw new Error('There is no teacher link found with this id')
             const response = ResponseUtil.success(

@@ -100,10 +100,10 @@ class RegistrationService {
         )
     }
 
-    async getTeacherLinkById(adminId: number) {
+    async getTeacherLinkById(id: string) {
         const teacherLink = await RegistrationLink.findOne({
             where: {
-                createdBy: adminId,
+                id,
             },
             attributes: { exclude: ['adminId'] },
         })

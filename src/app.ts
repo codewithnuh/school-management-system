@@ -2,6 +2,8 @@ import express from 'express'
 import sequelize from '@/config/database.js'
 import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from '@/config/swagger.js'
+import { createRouteHandler } from 'uploadthing/express'
+import { uploadRouter } from '@/config/uploadthing.js'
 import userRoutes from '@/routes/UserRoutes.js'
 import teacherRoutes from '@/routes/TeacherRoutes.js'
 import feeRoutes from '@/routes/FeeRoutes.js'
@@ -70,7 +72,13 @@ const configureMiddleware = (app: express.Application) => {
                 'http://localhost:3000',
             ], // ✅ no trailing slash
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
+            allowedHeaders: [
+                'Content-Type',
+                'Authorization',
+                'x-uploadthing-package',
+                'x-uploadthing-rpc-id',
+                'x-uploadthing-version',
+            ],
             credentials: true,
             maxAge: 86400,
         }),
@@ -90,6 +98,21 @@ const configureMiddleware = (app: express.Application) => {
 
     // Performance middleware
     app.use(compression())
+
+    // UploadThing route handler
+    app.use(
+        '/api/v1/uploadthing',
+        createRouteHandler({
+            router: uploadRouter,
+            config: {
+                // Use your environment variable here
+                token: process.env.UPLOADTHING_TOKEN,
+
+                // Optional: Add custom error handling
+                // Removed invalid callbackHandler property
+            },
+        }),
+    )
 
     app.use(handleInvalidJSON as express.ErrorRequestHandler)
     app.use(handleValidationErrors as express.ErrorRequestHandler)

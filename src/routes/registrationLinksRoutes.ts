@@ -17,10 +17,11 @@ router.get(
     RegistrationController.getTeacherRegistrationLinks,
 )
 router.get(
-    '/teacher',
+    '/teacher/:id',
     authWithRBAC(['ADMIN']),
-    RegistrationController.getTeacherRegistrationLinkByAdminId,
+    RegistrationController.getTeacherRegistrationLinkById,
 )
+
 router.delete(
     '/teacher',
     authWithRBAC(['ADMIN']),
@@ -36,7 +37,7 @@ router.get(
     authWithRBAC(['ADMIN']),
     RegistrationController.getStudentRegistrationLinkWithId,
 )
-
+//registration-link/teacher/${id}
 router.post(
     '/student',
     authWithRBAC(['ADMIN']),

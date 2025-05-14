@@ -5,6 +5,11 @@ import express from 'express'
 const router = express.Router()
 
 router.post('/', authWithRBAC(['ADMIN'], true), SchoolController.createSchool)
+router.get(
+    '/schoolId/:id',
+    authWithRBAC(['ADMIN']),
+    SchoolController.getSchoolById,
+)
 // CORRECTED ROUTE DEFINITION:
 // router.get('/:id', authWithRBAC(['OWNER']), SchoolController.getSchoolById)
 router.get(
