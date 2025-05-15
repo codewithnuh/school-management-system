@@ -107,6 +107,7 @@ Exam.hasMany(Class, { foreignKey: 'classId' })
 Exam.hasMany(Section, { foreignKey: 'sectionId' })
 Section.belongsTo(Exam, { foreignKey: 'examId' })
 Class.hasMany(User, { foreignKey: 'studentId' })
+Class.belongsTo(School, { foreignKey: 'schoolId' })
 FeePayment.belongsTo(StudentFeeAllocation, {
     foreignKey: 'studentFeeAllocationId',
 })

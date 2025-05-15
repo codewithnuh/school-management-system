@@ -61,8 +61,8 @@ export class ClassService {
         }
     }
 
-    static async getAllClasses() {
-        return Class.findAll({ include: [Section] }) // Include sections in the result
+    static async getAllClasses(schoolId: number) {
+        return Class.findAll({ where: { schoolId }, include: [Section] }) // Include sections in the result
     }
 
     static async getClassById(id: number) {

@@ -10,6 +10,7 @@ export const CreateClassSchema = z.object({
     maxStudents: z.number().min(1, 'Max students must be at least 1'),
     periodsPerDay: z.number().min(1).max(10),
     periodLength: z.number().min(30).max(60),
+    schoolId: z.number(),
     workingDays: z
         .array(
             z.enum([
@@ -90,7 +91,11 @@ export class Class extends Model<CreateClassInput> {
         allowNull: false,
     })
     subjectIds!: number[]
-
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
+    schoolId!: number
     @HasMany(() => Section)
     sections!: Section[]
 

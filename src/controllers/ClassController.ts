@@ -26,8 +26,10 @@ export class ClassController {
 
     static async getAllClasses(req: Request, res: Response): Promise<void> {
         try {
-            console.log('[DEBUG:CLASSES: Route is working')
-            const classes = await ClassService.getAllClasses()
+            const { schoolId } = req.query
+            const classes = await ClassService.getAllClasses(
+                parseInt(schoolId as string),
+            )
             res.status(200).json(
                 ResponseUtil.success(classes, 'Classes retrieved successfully'),
             )
