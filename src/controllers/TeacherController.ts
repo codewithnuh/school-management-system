@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import { teacherService } from '@/services/teacher.service.js'
 import { ResponseUtil } from '@/utils/response.util.js'
 import { ApplicationStatus } from '@/models/Teacher.js'
-import { teacherSchema } from '@/schema/teacher.schema'
+import { teacherSchema } from '@/schema/teacher.schema.js'
 import { ZodError } from 'zod'
 
 export class TeacherController {

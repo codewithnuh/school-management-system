@@ -1,4 +1,4 @@
-import { Admin, School } from '@/models/index.js'
+import { Admin } from '@/models/index.js'
 
 class AdminService {
     async getAllAdmins() {
@@ -16,20 +16,7 @@ class AdminService {
         })
         return admin
     }
-    async getAllSchools() {
-        const schools = await School.findAll()
-        return schools
-    }
-    async getSchoolById(id: string) {
-        const school = await School.findByPk(id)
-        return school
-    }
-    async getSchoolByAdminId(adminId: number) {
-        const school = await School.findOne({
-            where: { adminId: adminId },
-        })
-        return school
-    }
+
     async updateAdminById(
         adminId: number,
         isSubscriptionActive: boolean,

@@ -24,6 +24,7 @@ export const seedUsers = async () => {
                     enrollmentDate: '2025-01-30',
                     isRegistered: true,
                     studentId: '123456',
+                    schoolId: 6,
                     entityType: 'STUDENT',
                 },
                 {
@@ -46,6 +47,7 @@ export const seedUsers = async () => {
                     studentId: '123457',
                     entityType: 'STUDENT',
                     isRegistered: true,
+                    schoolId: 7,
                 },
             ],
             { ignoreDuplicates: true },

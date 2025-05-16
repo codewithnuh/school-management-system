@@ -29,9 +29,8 @@ import subjectRoutes from '@/routes/SubjectRoutes.js'
 import sectionRoutes from '@/routes/SectionRoutes.js'
 import schoolRoutes from '@/routes/SchoolRoutes.js'
 import adminRoutes from '@/routes/Admin.js'
-import testRoutes from '@/routes/test.js'
 import registrationLinksRoutes from '@/routes/registrationLinksRoutes.js'
-import seed from '@/seeders/index.js'
+// import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
     handleValidationErrors,
@@ -138,7 +137,6 @@ const configureRoutes = (app: express.Application) => {
     // Grade Routes
     app.use('/api/v1/grades', gradeRoutes)
     app.use('/api/v1/schools', schoolRoutes)
-    app.use('/api/v1/test', testRoutes)
     app.use('/api/v1/registration-link', registrationLinksRoutes)
     // app.use('/api/v1/timetable/class', ClassRoutes)
     // Route to access the raw openapi.json file
@@ -162,7 +160,7 @@ const startServer = async () => {
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
 
-        await seed()
+        // await seed()
         app.listen(Number(PORT), '0.0.0.0', () => {
             console.log(`Server is running on http://localhost:${PORT}`)
         })

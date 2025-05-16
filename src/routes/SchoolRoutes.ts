@@ -1,5 +1,5 @@
 import { SchoolController } from '@/controllers/SchoolController.js'
-import authWithRBAC from '@/middleware/auth.middleware'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 import express from 'express'
 
 const router = express.Router()

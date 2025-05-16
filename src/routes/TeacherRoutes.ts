@@ -1,5 +1,5 @@
 import express from 'express'
-import { TeacherController } from '@/controllers/TeacherController'
+import { TeacherController } from '@/controllers/TeacherController.js'
 import authenticate from '@/middleware/auth.middleware.js'
 
 const router = express.Router()

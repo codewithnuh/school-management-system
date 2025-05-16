@@ -28,8 +28,9 @@ import {
     Session,
     Owner,
     RegistrationLink,
+    School
 } from '@/models/index.js'
-import { School } from '@/models/School'
+
 
 config()
 

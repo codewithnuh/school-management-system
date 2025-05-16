@@ -18,10 +18,16 @@ class RegistrationService {
             where: {
                 createdBy,
                 type,
+                expiresAt,
             },
         })
-        if (existedLink)
-            throw new Error('Please delete the previous link to create new one')
+
+        if ((existedLink?.expiresAt ?? new Date(0)) < new Date()) {
+            existedLink?.destroy()
+        } else if (existedLink?.expiresAt ?? new Date(0) < new Date()) {
+            throw new Error('Link already created')
+        }
+
         const newLink = await RegistrationLink.create({
             type,
             createdBy,

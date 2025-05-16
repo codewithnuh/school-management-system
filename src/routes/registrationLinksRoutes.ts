@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { RegistrationController } from '@/controllers/RegistrationController.js'
-import authWithRBAC from '@/middleware/auth.middleware'
+import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const router = Router()
 

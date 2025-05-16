@@ -15,8 +15,8 @@ export const seedAdmins = async () => {
                     email: 'nuh25792@gmail.com',
                     phoneNo: '1234567890',
                     password: hashedPassword, // Use the hashed password
-                    role: 'ADMIN',
-                    isSuperAdmin: true,
+                    entityType: 'ADMIN',
+                    isSubscriptionActive: false,
                 },
             ],
             { ignoreDuplicates: true },
