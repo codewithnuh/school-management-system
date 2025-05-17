@@ -7,6 +7,8 @@ export const userSchema = z.object({
     lastName: z.string().trim().min(1, 'Last name is required'),
     schoolId: z.number(),
     dateOfBirth: z.string(),
+    schoolCode: z.string(),
+
     gender: z.enum(['Male', 'Female', 'Other']),
     placeOfBirth: z.string().optional(),
     nationality: z.string().optional(),

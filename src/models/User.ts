@@ -35,10 +35,12 @@ export class User extends Model<UserAttributes> implements UserAttributes {
 
     @Column({ type: DataType.STRING, allowNull: false })
     lastName!: string
-
+    @Column({ type: DataType.STRING })
+    schoolCode!: string
     @Column({ type: DataType.STRING, allowNull: false })
     dateOfBirth!: string
-
+    @Column({ type: DataType.INTEGER })
+    schoolId!: number
     @Column({
         type: DataType.ENUM('Male', 'Female', 'Other'),
         allowNull: false,
@@ -51,7 +53,6 @@ export class User extends Model<UserAttributes> implements UserAttributes {
     @Column({ type: DataType.STRING })
     nationality?: string
     @Column({ type: DataType.INTEGER, allowNull: false })
-    schoolId!: number
     @Column({
         type: DataType.STRING,
         allowNull: false,
@@ -88,7 +89,7 @@ export class User extends Model<UserAttributes> implements UserAttributes {
 
     @Column({ type: DataType.STRING })
     previousSchool?: string
-
+    @Column({ type: DataType.STRING })
     @Column({ type: DataType.STRING })
     previousGrade?: string
 

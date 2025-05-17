@@ -5,6 +5,8 @@ const router = express.Router()
 
 // Login route
 router.post('/login', AuthController.login)
+router.post('/login/student', AuthController.studentLogin)
+router.post('/login/teacher', AuthController.teacherLogin)
 router.post('/logout-all-sessions', AuthController.logoutFromAllSessions)
 router.post('/owner/login', AuthController.ownerLogin)
 //Signup route

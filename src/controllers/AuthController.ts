@@ -22,6 +22,7 @@ import { Op } from 'sequelize'
 const loginSchema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
+    schoolCode: z.string().optional(),
     entityType: z.enum(['ADMIN', 'TEACHER', 'USER', 'PARENT']),
 })
 
@@ -126,6 +127,143 @@ export const AuthController = {
             res.status(500).json(response)
         }
     },
+    async studentLogin(req: Request, res: Response): Promise<void> {
+        try {
+            // Step 1: Validate incoming data
+            const validatedData = loginSchema.parse(req.body)
+            const { email, password, schoolCode } = validatedData
+
+            // Step 3: Clear expired sessions
+            await Session.destroy({
+                where: {
+                    expiryDate: { [Op.lt]: new Date() },
+                },
+            })
+
+            // Step 4: Prepare metadata
+            const userAgent = req.headers['user-agent'] || 'unknown'
+            const ipAddress =
+                req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+                req.socket.remoteAddress ||
+                ''
+
+            // Step 5: Attempt login
+            const {
+                token,
+                message: loginMessage,
+                success,
+            } = await authService.userLogin({
+                email,
+                entityType: EntityType.USER,
+                ipAddress,
+                password,
+                schoolCode: schoolCode!,
+                userAgent,
+            })
+
+            if (!success) {
+                throw new Error(loginMessage)
+            }
+
+            // Step 6: Set secure HTTP-only cookie (configured per environment)
+            const isProduction = process.env.NODE_ENV === 'production'
+
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: isProduction, // must be true in production (over HTTPS)
+                sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-site cookies
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                path: '/', // Optional: restrict path
+            })
+
+            // Step 7: Send successful response
+            const response = ResponseUtil.success(loginMessage)
+            res.status(200).json(response)
+        } catch (error) {
+            console.error('Login error:', error)
+
+            if (error instanceof z.ZodError) {
+                const response = ResponseUtil.error('Validation failed', 400)
+                res.status(400).json(response)
+                return
+            }
+
+            const response = ResponseUtil.error(
+                error instanceof Error ? error.message : 'Something went wrong',
+                500,
+            )
+            res.status(500).json(response)
+        }
+    },
+    async teacherLogin(req: Request, res: Response): Promise<void> {
+        try {
+            // Step 1: Validate incoming data
+            const validatedData = loginSchema.parse(req.body)
+            const { email, password, schoolCode } = validatedData
+
+            // Step 3: Clear expired sessions
+            await Session.destroy({
+                where: {
+                    expiryDate: { [Op.lt]: new Date() },
+                },
+            })
+
+            // Step 4: Prepare metadata
+            const userAgent = req.headers['user-agent'] || 'unknown'
+            const ipAddress =
+                req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+                req.socket.remoteAddress ||
+                ''
+
+            // Step 5: Attempt login
+            const {
+                token,
+                message: loginMessage,
+                success,
+            } = await authService.userLogin({
+                email,
+                entityType: EntityType.TEACHER,
+                ipAddress,
+                password,
+                schoolCode: schoolCode!,
+                userAgent,
+            })
+
+            if (!success) {
+                throw new Error(loginMessage)
+            }
+
+            // Step 6: Set secure HTTP-only cookie (configured per environment)
+            const isProduction = process.env.NODE_ENV === 'production'
+
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: isProduction, // must be true in production (over HTTPS)
+                sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-site cookies
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                path: '/', // Optional: restrict path
+            })
+
+            // Step 7: Send successful response
+            const response = ResponseUtil.success(loginMessage)
+            res.status(200).json(response)
+        } catch (error) {
+            console.error('Login error:', error)
+
+            if (error instanceof z.ZodError) {
+                const response = ResponseUtil.error('Validation failed', 400)
+                res.status(400).json(response)
+                return
+            }
+
+            const response = ResponseUtil.error(
+                error instanceof Error ? error.message : 'Something went wrong',
+                500,
+            )
+            res.status(500).json(response)
+        }
+    },
+
     async ownerLogin(req: Request, res: Response): Promise<void> {
         try {
             // Validate request payload

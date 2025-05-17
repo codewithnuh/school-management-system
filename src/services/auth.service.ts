@@ -1,4 +1,12 @@
-import { Admin, Owner, Parent, Session, Teacher, User } from '@/models/index.js'
+import {
+    Admin,
+    Owner,
+    Parent,
+    School,
+    Session,
+    Teacher,
+    User,
+} from '@/models/index.js'
 import jwt, { SignOptions } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { Op } from 'sequelize'
@@ -149,6 +157,170 @@ class AuthService {
 
         await Session.create({
             userId: user.id,
+            entityType: entityType,
+            token: token,
+            expiryDate: expiryDate,
+            userAgent: userAgent,
+            isSuperAdmin: false,
+            ipAddress: ipAddress,
+        })
+
+        return { token, message: 'Login successful', success: true }
+    }
+    async userLogin({
+        entityType,
+        email,
+        password,
+        schoolCode,
+        userAgent,
+        ipAddress,
+    }: {
+        entityType: EntityType
+        email: string
+        password: string
+        schoolCode: string
+        userAgent: string
+        ipAddress: string
+    }) {
+        const school = await School.findOne({
+            where: {
+                code: schoolCode,
+            },
+        })
+        if (!school) throw new Error('Invalid Credentials')
+        const isUserExists = await User.findOne({
+            where: {
+                email,
+                schoolId: school.id,
+                entityType,
+            },
+        })
+        if (!isUserExists) throw new Error('No account existed with this email')
+        const passwordMatch = await bcrypt.compare(
+            password,
+            isUserExists.password,
+        )
+        if (!passwordMatch) throw new Error('Invalid Credentials')
+        // Check if an active session already exists for the user with the same entityType
+        const activeSession = await Session.findOne({
+            where: {
+                userId: isUserExists.id,
+                userAgent,
+                entityType: entityType,
+                expiryDate: { [Op.gt]: new Date() },
+            },
+        })
+
+        if (activeSession) {
+            // Return existing session token if active session is found
+            return {
+                success: false,
+                token: activeSession.token,
+                message: 'Session already exists',
+            }
+        }
+
+        const payload: CurrentUserPayload = {
+            userId: isUserExists.id,
+            entityType: entityType,
+        }
+
+        if (!JWT_SECRET) {
+            throw new Error('JWT_SECRET is not defined')
+        }
+
+        const token = jwt.sign(payload, JWT_SECRET, {
+            expiresIn: JWT_EXPIRY,
+        } as SignOptions)
+
+        const expiryDate = new Date()
+        expiryDate.setHours(expiryDate.getHours() + SESSION_EXPIRY_HOURS)
+
+        await Session.create({
+            userId: isUserExists.id,
+            entityType: entityType,
+            token: token,
+            expiryDate: expiryDate,
+            userAgent: userAgent,
+            isSuperAdmin: false,
+            ipAddress: ipAddress,
+        })
+
+        return { token, message: 'Login successful', success: true }
+    }
+    async teacherLogin({
+        entityType,
+        email,
+        password,
+        schoolCode,
+        userAgent,
+        ipAddress,
+    }: {
+        entityType: EntityType
+        email: string
+        password: string
+        schoolCode: string
+        userAgent: string
+        ipAddress: string
+    }) {
+        const school = await School.findOne({
+            where: {
+                code: schoolCode,
+            },
+        })
+        if (!school) throw new Error('Invalid Credentials')
+        const isTeacherExists = await Teacher.findOne({
+            where: {
+                email,
+                schoolId: school.id,
+                entityType,
+            },
+        })
+        if (!isTeacherExists)
+            throw new Error('No account existed with this email')
+
+        const passwordMatch = await bcrypt.compare(
+            password,
+            isTeacherExists.password!,
+        )
+        if (!passwordMatch) throw new Error('Invalid Credentials')
+        // Check if an active session already exists for the user with the same entityType
+        const activeSession = await Session.findOne({
+            where: {
+                userId: isTeacherExists.id,
+                userAgent,
+                entityType: entityType,
+                expiryDate: { [Op.gt]: new Date() },
+            },
+        })
+
+        if (activeSession) {
+            // Return existing session token if active session is found
+            return {
+                success: false,
+                token: activeSession.token,
+                message: 'Session already exists',
+            }
+        }
+
+        const payload: CurrentUserPayload = {
+            userId: isTeacherExists.id,
+            entityType: entityType,
+        }
+
+        if (!JWT_SECRET) {
+            throw new Error('JWT_SECRET is not defined')
+        }
+
+        const token = jwt.sign(payload, JWT_SECRET, {
+            expiresIn: JWT_EXPIRY,
+        } as SignOptions)
+
+        const expiryDate = new Date()
+        expiryDate.setHours(expiryDate.getHours() + SESSION_EXPIRY_HOURS)
+
+        await Session.create({
+            userId: isTeacherExists.id,
             entityType: entityType,
             token: token,
             expiryDate: expiryDate,
