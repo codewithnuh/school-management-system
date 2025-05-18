@@ -14,8 +14,10 @@ import process from 'process'
 import helmet from 'helmet'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
-import { generalLimiter } from './middleware/rateLimit.middleware.js'
-import { requestLogger } from './middleware/loggin.middleware.js'
+import { generalLimiter } from '@/middleware/rateLimit.middleware.js'
+import { requestLogger } from '@/middleware/loggin.middleware.js'
+import { rateLimit } from 'express-rate-limit'
+import { slowDown } from 'express-slow-down'
 import {
     deleteExpiredPasswordResetTokens,
     deleteExpiredSessions,
@@ -35,7 +37,7 @@ import {
     handleInvalidJSON,
     handleValidationErrors,
     errorHandler,
-} from './middleware/error.middleware.js'
+} from '@/middleware/error.middleware.js'
 // import seed from './seeders/index.js'
 
 // Define User interface
@@ -117,7 +119,23 @@ const configureMiddleware = (app: express.Application) => {
     app.use(handleValidationErrors as express.ErrorRequestHandler)
     app.use(errorHandler)
 }
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 50, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+    standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    // store: ... , // Redis, Memcached, etc. See below.
+})
+const speedLimiter = slowDown({
+    windowMs: 10 * 60 * 1000,
+    delayAfter: 10,
+    delayMs: () => 2000,
+})
 
+app.use(speedLimiter)
+
+// Apply the rate limiting middleware to all requests.
+app.use(limiter)
 // Configure routes
 const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/users', userRoutes)

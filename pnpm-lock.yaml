@@ -44,6 +44,9 @@ importers:
       express-rate-limit:
         specifier: ^7.5.0
         version: 7.5.0(express@5.0.1)
+      express-slow-down:
+        specifier: ^2.1.0
+        version: 2.1.0(express@5.0.1)
       helmet:
         specifier: ^8.0.0
         version: 8.0.0
@@ -1579,6 +1582,12 @@ packages:
     engines: {node: '>= 16'}
     peerDependencies:
       express: ^4.11 || 5 || ^5.0.0-beta.1
+
+  express-slow-down@2.1.0:
+    resolution: {integrity: sha512-tQ/ItTDbGfo+fLS+jxu19vgYOgZk7wyOakuAsnzl8f7HmxG3ynWAoo136+oqB+rqHCk3QyM6VoXL03qA5a4gVQ==}
+    engines: {node: '>= 16'}
+    peerDependencies:
+      express: 4 || 5 || ^5.0.0-beta.1
 
   express@5.0.1:
     resolution: {integrity: sha512-ORF7g6qGnD+YtUG9yx4DFoqCShNMmUKiXuT5oWMHiOvt/4WFbHC6yCwQMTSBMno7AqntNCAzzcnnjowRkTL9eQ==}
@@ -4713,6 +4722,11 @@ snapshots:
   express-rate-limit@7.5.0(express@5.0.1):
     dependencies:
       express: 5.0.1
+
+  express-slow-down@2.1.0(express@5.0.1):
+    dependencies:
+      express: 5.0.1
+      express-rate-limit: 7.5.0(express@5.0.1)
 
   express@5.0.1:
     dependencies:
