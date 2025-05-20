@@ -131,6 +131,30 @@ class UserController {
             this.handleError(res, error)
         }
     }
+    public getAllUsersCount = async (
+        req: Request,
+        res: Response,
+    ): Promise<void> => {
+        try {
+            const users = await User.findAll()
+            const count = users.length
+            const response = ResponseUtil.success(
+                count,
+                'Successfully retrieved users count',
+                200,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    'Failed to retrieve teachers count',
+                    400,
+                    'Failed to retrieve student teachers',
+                )
+                res.status(response.statusCode).json(response)
+            }
+        }
+    }
     public updateUser = async (req: Request, res: Response): Promise<void> => {
         try {
             const { id } = req.params

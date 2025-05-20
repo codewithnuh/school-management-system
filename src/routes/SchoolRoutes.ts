@@ -17,4 +17,5 @@ router.get(
     authWithRBAC(['ADMIN']),
     SchoolController.getSchoolByAdminId,
 )
+router.get('/count/schools-count', SchoolController.getAllSchoolsCount)
 export default router

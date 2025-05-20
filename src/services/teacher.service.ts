@@ -100,7 +100,11 @@ class TeacherService {
             throw error
         }
     }
-
+    async getTeachersCount() {
+        const teachers = await Teacher.findAll()
+        const count = teachers.length
+        return count
+    }
     /**
      * Get all teachers with pagination, sorting, filtering
      */

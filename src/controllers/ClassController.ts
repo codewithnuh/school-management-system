@@ -30,6 +30,30 @@ export class ClassController {
             const classes = await ClassService.getAllClasses(
                 parseInt(schoolId as string),
             )
+
+            res.status(200).json(
+                ResponseUtil.success(
+                    [...classes, { count: classes.length }],
+                    'Classes retrieved successfully',
+                ),
+            )
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(500).json(
+                    ResponseUtil.error(
+                        error?.message || 'Failed to retrieve classes',
+                    ),
+                )
+            }
+        }
+    }
+    static async getAllClassesCount(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        try {
+            const classes = await ClassService.getAllClassesCount()
+
             res.status(200).json(
                 ResponseUtil.success(classes, 'Classes retrieved successfully'),
             )

@@ -87,6 +87,26 @@ export class TeacherController {
                 )
         }
     }
+    static async getTeachersCount(req: Request, res: Response): Promise<void> {
+        try {
+            const data = await teacherService.getTeachersCount()
+            const response = ResponseUtil.success(
+                data,
+                'Successfully Teachers Count Retrieved',
+                200,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.message,
+                    400,
+                    'Failed to reterieve Teachers Count',
+                )
+                res.status(response.statusCode).json(response)
+            }
+        }
+    }
 
     /**
      * Get teacher by ID

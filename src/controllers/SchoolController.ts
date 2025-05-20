@@ -16,6 +16,28 @@ export class SchoolController {
         )
         res.status(response.statusCode).json(response)
     }
+    static async getAllSchoolsCount(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        try {
+            const count = await schoolService.getAllSchoolsCount()
+            const response = ResponseUtil.success(
+                count,
+                'Successfully retrieved Schools Count',
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.message,
+                    400,
+                    'Failed to retrieved schools count',
+                )
+                res.status(response.statusCode).json(response)
+            }
+        }
+    }
     static async getSchoolById(req: Request, res: Response): Promise<void> {
         const { id } = req.params
         const school = await schoolService.getSchoolById(Number(id))

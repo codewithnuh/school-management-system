@@ -259,6 +259,7 @@ router.post(
 
     TeacherController.interviewTeacherApplication,
 )
+router.get('/teachers-count', TeacherController.getTeachersCount)
 router.post('/', authenticate(['ADMIN']), TeacherController.createTeacher)
 router.get(
     '/applications',

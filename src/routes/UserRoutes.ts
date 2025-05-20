@@ -1,7 +1,6 @@
 import express from 'express'
 import UserController from '@/controllers/UserController.js'
 import authWithRBAC from '@/middleware/auth.middleware.js'
-
 const router = express.Router()
 
 /**
@@ -148,6 +147,7 @@ router.get(
     authWithRBAC(['ADMIN']),
     UserController.getUnregisteredStudents,
 )
+router.get('/users-count', UserController.getAllUsersCount)
 /**
  * @openapi
  * /users:

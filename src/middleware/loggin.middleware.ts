@@ -37,10 +37,10 @@ export const logger = winston.createLogger({
     format: combine(timestamp(), format.json()),
     transports: logTransports,
     exceptionHandlers: [
-        new winston.transports.File({ filename: 'logs/exceptions.log' }),
+        new winston.transports.File({ filename: 'src/logs/exceptions.log' }),
     ],
     rejectionHandlers: [
-        new winston.transports.File({ filename: 'logs/rejections.log' }),
+        new winston.transports.File({ filename: 'src/logs/rejections.log' }),
     ],
 })
 

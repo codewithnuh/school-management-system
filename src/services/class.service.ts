@@ -64,6 +64,11 @@ export class ClassService {
     static async getAllClasses(schoolId: number) {
         return Class.findAll({ where: { schoolId }, include: [Section] }) // Include sections in the result
     }
+    static async getAllClassesCount() {
+        const classes = await Class.findAll()
+        const count = classes.length
+        return count
+    }
 
     static async getClassById(id: number) {
         return Class.findByPk(id, { include: [Section] })

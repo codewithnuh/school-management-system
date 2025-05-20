@@ -49,6 +49,11 @@ class SchoolService {
             return error
         }
     }
+    async getAllSchoolsCount() {
+        const schools = await School.findAll()
+        const count = schools.length
+        return count
+    }
     async updateSchool(id: number, data: SchoolType) {
         try {
             await School.update(data, {
