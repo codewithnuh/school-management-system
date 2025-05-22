@@ -1,5 +1,5 @@
 # ---------- builder stage ----------
-FROM node:22.15.1 AS builder
+FROM node:22.15.1-bookworm-slim AS builder
 
 # make a directory inside the container
 WORKDIR /app
@@ -18,7 +18,7 @@ RUN pnpm add -D typescript tsc-alias
 COPY . .
 RUN pnpm build
 # ---------- runner stage ----------
-FROM node:22.15.1 AS runner
+FROM node:22.15.1-bookworm-slim AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production
