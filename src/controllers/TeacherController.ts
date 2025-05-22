@@ -65,7 +65,56 @@ export class TeacherController {
             )
         }
     }
+    static async updateTeacher(req: Request, res: Response): Promise<void> {
+        try {
+            const { teacherId } = req.query
+            if (!teacherId) {
+                throw new Error('Please provide teacher id') // Corrected check
+            }
 
+            const validatedData = req.body
+            await teacherService.updateTeacherById(
+                parseInt(teacherId as string, 10),
+                {
+                    ...validatedData,
+                    role: 'TEACHER',
+                },
+            )
+            const response = ResponseUtil.success(
+                [],
+                'Successfully Teacher Updated',
+                200,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof ZodError) {
+                const response = ResponseUtil.error(
+                    'Validation Error', // More descriptive error name
+                    400,
+                    error.errors.map(err => err.message).join(', '), // More detailed error message
+                )
+                res.status(response.statusCode).json(response)
+                return // Important: return after sending response
+            } else if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.name,
+                    400,
+                    error.message,
+                )
+                res.status(response.statusCode).json(response)
+                return // Important: return after sending response
+            } else {
+                // Handle unexpected errors more gracefully
+                const response = ResponseUtil.error(
+                    'Update Failed', // Generic error message
+                    500, // Server error status code
+                    'An unexpected error occurred while updating the teacher.',
+                )
+                res.status(response.statusCode).json(response)
+                return // Important: return after sending response
+            }
+        }
+    }
     /**
      * Get all teachers with pagination, sorting, filtering
      */
@@ -131,6 +180,29 @@ export class TeacherController {
                 res.status(500).json(
                     ResponseUtil.error('Error fetching teacher', 500),
                 )
+        }
+    }
+    static async getTeachersBySchoolId(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params
+            const teachers = await teacherService.getAllTeachersBySchoolId(
+                parseInt(schoolId, 10),
+            )
+            const response = ResponseUtil.success(
+                teachers,
+                'Successfully retrieve teachers',
+                200,
+            )
+            res.status(response.statusCode).json(response)
+        } catch (error) {
+            if (error instanceof Error) {
+                const response = ResponseUtil.error(
+                    error.message,
+                    400,
+                    'Failed to retrieve teachers',
+                )
+                res.status(response.statusCode).json(response)
+            }
         }
     }
 

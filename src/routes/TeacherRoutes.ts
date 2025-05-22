@@ -120,7 +120,7 @@ const router = express.Router()
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/', authenticate(['ADMIN']), TeacherController.getTeachers)
-
+router.put('/', authenticate(['ADMIN']), TeacherController.updateTeacher)
 /**
  * @openapi
  * /teachers/{id}:

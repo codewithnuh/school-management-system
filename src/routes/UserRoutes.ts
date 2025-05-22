@@ -1,6 +1,9 @@
 import express from 'express'
 import UserController from '@/controllers/UserController.js'
 import authWithRBAC from '@/middleware/auth.middleware.js'
+// Ensure registrationLimiter is imported
+import { registrationLimiter } from '@/middleware/rateLimit.middleware.js'
+
 const router = express.Router()
 
 /**
@@ -140,7 +143,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/register', UserController.createUser)
+router.post('/register', registrationLimiter, UserController.createUser) // registrationLimiter is correctly applied
 // In StudentRoutes.ts
 router.get(
     '/applications',

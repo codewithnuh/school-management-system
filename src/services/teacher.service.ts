@@ -100,6 +100,14 @@ class TeacherService {
             throw error
         }
     }
+    async getAllTeachersBySchoolId(schoolId: number) {
+        const teachers = await Teacher.findAll({
+            where: {
+                schoolId,
+            },
+        })
+        return teachers
+    }
     async getTeachersCount() {
         const teachers = await Teacher.findAll()
         const count = teachers.length
@@ -187,6 +195,16 @@ class TeacherService {
             },
             order: [['createdAt', 'DESC']],
         })
+    }
+    async updateTeacherById(teacherId: number, data: TeacherAttributes) {
+        const teacher = await Teacher.findOne({
+            where: {
+                id: teacherId,
+            },
+        })
+        if (!teacher) throw new Error('No Teacher Found')
+        const updatedTeacher = await teacher.update({ ...data })
+        return updatedTeacher
     }
 }
 

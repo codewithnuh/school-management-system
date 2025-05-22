@@ -47,11 +47,13 @@ export class AdminController {
     }
     static async updateAdminById(req: Request, res: Response): Promise<void> {
         try {
-            const { adminId, isSubscriptionActive, subscriptionPlan } = req.body
+            const { adminId } = req.query
+            const { isSubscriptionActive, subscriptionPlan } = req.body
+            if (!adminId) throw new Error('Please provide admin id')
             const updatedAdmin = await adminService.updateAdminById(
                 Number(adminId),
-                isSubscriptionActive,
-                subscriptionPlan,
+                Boolean(isSubscriptionActive),
+                subscriptionPlan as 'yearly' | 'monthly',
             )
             const response = ResponseUtil.success(
                 updatedAdmin,
