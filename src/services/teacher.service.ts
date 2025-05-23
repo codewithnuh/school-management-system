@@ -142,6 +142,7 @@ class TeacherService {
             attributes: {
                 exclude: ['password'],
             },
+
             order: [[sortBy, sortOrder]],
         })
     }

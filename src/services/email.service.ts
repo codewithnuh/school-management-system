@@ -1,3 +1,4 @@
+import { EntityType } from '@/models'
 import nodemailer from 'nodemailer'
 
 import process from 'process'
@@ -26,18 +27,18 @@ export const transporter = nodemailer.createTransport({
     service: 'gmail',
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT || '587'),
-    secure: process.env.EMAIL_PORT === '465',
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_APP_PASSWORD,
     },
     tls: {
-        rejectUnauthorized: true,
+        rejectUnauthorized: false,
     },
     pool: true, // use pooled connections
     maxConnections: 5, // limit concurrent connections
     maxMessages: 100, // limit messages per connection
-    connectionTimeout: 3000, // 3 seconds
+    connectionTimeout: 10000, // 3 seconds
     greetingTimeout: 3000,
     socketTimeout: 3000,
 })
@@ -46,7 +47,7 @@ const emailHTML = ({
     name,
     OTP,
 }: {
-    entityType: 'STUDENT' | 'TEACHER' | 'PARENT' | 'ADMIN'
+    entityType: EntityType
     name: string
     OTP: string
 }) => {
@@ -162,7 +163,7 @@ export const sendOtp = async ({
 }: {
     entityEmail: string
     entityFirstName: string
-    entityType: 'STUDENT' | 'TEACHER' | 'PARENT' | 'ADMIN'
+    entityType: EntityType
     OTP: string
 }) => {
     const mailOptions = {

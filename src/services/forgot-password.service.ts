@@ -1,5 +1,5 @@
 import { Op } from 'sequelize'
-import { User, Teacher, Admin, OTP, Parent } from '@/models/index.js'
+import { User, Teacher, Admin, OTP, Parent, Owner } from '@/models/index.js'
 import { sendOtp } from '@/services/email.service.js'
 import bcrypt from 'bcryptjs'
 
@@ -30,7 +30,7 @@ export class ForgotPassword {
         email,
     }: {
         email: string
-        entityType: 'STUDENT' | 'ADMIN' | 'TEACHER' | 'PARENT'
+        entityType: 'STUDENT' | 'ADMIN' | 'TEACHER' | 'PARENT' | 'OWNER'
     }): Promise<{
         id: number
         entityType: string
@@ -52,6 +52,9 @@ export class ForgotPassword {
             case 'PARENT':
                 entity = await Parent.findOne({ where: { email } })
                 break
+            case 'OWNER':
+                entity = await Owner.findOne({ where: { email } })
+                break
             default:
                 break
         }
@@ -69,7 +72,8 @@ export class ForgotPassword {
         // Send the OTP via email.
         await sendOtp({
             entityEmail: entity.email,
-            entityFirstName: entity.firstName,
+            entityFirstName:
+                'firstName' in entity ? entity.firstName : entity.fullName,
             entityType,
             OTP: otpRecord.otp,
         })
