@@ -153,6 +153,12 @@ export class ForgotPassword {
                 await parent.update({ password: hashedNewPassword })
                 break
             }
+            case 'OWNER': {
+                const owner = await Owner.findByPk(personId)
+                if (!owner) throw new Error('Owner not found')
+                await owner.update({ password: hashedNewPassword })
+                break
+            }
             default:
                 throw new Error('Invalid entity type')
         }

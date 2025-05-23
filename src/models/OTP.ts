@@ -47,7 +47,7 @@ export class OTP extends Model<OTPAttributes> implements OTPAttributes {
     public entityId!: number
 
     @Column({
-        type: DataType.ENUM('ADMIN', 'TEACHER', 'STUDENT', 'PARENT'),
+        type: DataType.ENUM('ADMIN', 'TEACHER', 'STUDENT', 'PARENT', 'OWNER'),
         allowNull: false,
     })
     public entityType!: EntityType

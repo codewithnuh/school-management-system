@@ -438,6 +438,7 @@ export const AuthController = {
             const response = ResponseUtil.success(result.message)
             res.status(200).json(response)
         } catch (error) {
+            console.log(`DEBUG [AUTH] RESET PASSWORD : ${error}`)
             if (error instanceof z.ZodError) {
                 const response = ResponseUtil.error('Validation error', 400)
                 res.status(400).json(response)
