@@ -28,9 +28,8 @@ import {
     Session,
     Owner,
     RegistrationLink,
-    School
+    School,
 } from '@/models/index.js'
-
 
 config()
 
@@ -119,5 +118,6 @@ AcademicYear.hasMany(StudentFeeAllocation, {
 AcademicYear.hasMany(StudentFeeAllocation, {
     foreignKey: 'studentFeeAllocationId',
 })
+School.hasMany(Subject, { foreignKey: 'schoolId' })
 School.belongsTo(Admin, { foreignKey: 'adminId' })
 export default sequelize

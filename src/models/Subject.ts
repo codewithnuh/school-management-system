@@ -17,6 +17,7 @@ export const SubjectSchema = z.object({
         .min(1, 'Subject name cannot be empty')
         .max(100, 'Subject name cannot exceed 100 characters'),
     description: z.string().optional().nullable(),
+    schoolId: z.number(),
 })
 
 // Type inference from Zod schema
@@ -46,7 +47,11 @@ export class Subject extends Model<SubjectAttributes> {
         allowNull: false,
     })
     name!: string
-
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: true,
+    })
+    schoolId!: number
     @Column({
         type: DataType.TEXT,
         allowNull: true,

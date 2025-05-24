@@ -32,7 +32,7 @@ import sectionRoutes from '@/routes/SectionRoutes.js'
 import schoolRoutes from '@/routes/SchoolRoutes.js'
 import adminRoutes from '@/routes/Admin.js'
 import registrationLinksRoutes from '@/routes/registrationLinksRoutes.js'
-// import seed from '@/seeders/index.js'
+import seed from '@/seeders/index.js'
 import {
     handleInvalidJSON,
     handleValidationErrors,
@@ -119,13 +119,13 @@ const configureMiddleware = (app: express.Application) => {
     app.use(handleValidationErrors as express.ErrorRequestHandler)
     app.use(errorHandler)
 }
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 50, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-    standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-    // store: ... , // Redis, Memcached, etc. See below.
-})
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     limit: 50, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+//     standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+//     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+//     // store: ... , // Redis, Memcached, etc. See below.
+// })
 const speedLimiter = slowDown({
     windowMs: 10 * 60 * 1000,
     delayAfter: 10,
@@ -135,7 +135,7 @@ const speedLimiter = slowDown({
 app.use(speedLimiter)
 
 // Apply the rate limiting middleware to all requests.
-app.use(limiter)
+// app.use(limiter)
 // Configure routes
 const configureRoutes = (app: express.Application) => {
     app.use('/api/v1/users', userRoutes)
@@ -178,7 +178,7 @@ const startServer = async () => {
         deleteExpiredSessions()
         deleteExpiredPasswordResetTokens()
 
-        // await seed()
+        await seed()
         app.listen(Number(PORT), '0.0.0.0', () => {
             console.log(`Server is running on http://localhost:${PORT}`)
         })

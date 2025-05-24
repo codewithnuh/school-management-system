@@ -54,8 +54,12 @@ export class SubjectController {
      * Get all subjects.
      */
     public static async getAll(req: Request, res: Response) {
+        const { schoolId } = req.query
+        if (!schoolId) throw new Error('Please provide schoolId')
         try {
-            const subjects = await SubjectService.getAllSubjects()
+            const subjects = await SubjectService.getAllSubjects(
+                parseInt(schoolId as string, 10),
+            )
             const response = ResponseUtil.success(
                 subjects,
                 'Subjects retrieved successfully',
@@ -106,9 +110,12 @@ export class SubjectController {
      */
     public static async delete(req: Request, res: Response) {
         try {
-            const { id } = req.params
+            const { id, schoolId } = req.query
+            if (!id || !schoolId)
+                throw new Error('Please provide id and schoolId')
             const deletedSubject = await SubjectService.deleteSubject(
                 Number(id),
+                Number(schoolId),
             )
             const response = ResponseUtil.success(
                 deletedSubject,
@@ -117,6 +124,7 @@ export class SubjectController {
             )
             res.status(response.statusCode).json(response)
         } catch (error) {
+            console.log(`[DEBUG]: SUBJECT DELETION Error ${error}`)
             const response = ResponseUtil.error(
                 error instanceof Error
                     ? error.message

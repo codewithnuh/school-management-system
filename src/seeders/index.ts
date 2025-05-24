@@ -9,7 +9,7 @@ import { seedOwner } from './owner.seeder.js'
 
 const seed = async () => {
     // await seedUsers()
-    await seedSubjects()
+    // await seedSubjects()
     // await seedAdmins()
     // await seedTeachers()
     // await seedOwner()

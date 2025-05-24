@@ -255,6 +255,6 @@ router.put('/:id', authWithRBAC(['ADMIN']), SubjectController.update)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', authWithRBAC(['ADMIN']), SubjectController.delete)
+router.delete('/', authWithRBAC(['ADMIN']), SubjectController.delete)
 
 export default router

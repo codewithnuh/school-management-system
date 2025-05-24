@@ -20,32 +20,38 @@ export const seedTeachers = async () => {
         // Create teachers dynamically
         const teachers = subjects.map(subject => ({
             firstName: faker.name.firstName(),
+            middleName: faker.name.middleName(),
             lastName: faker.name.lastName(),
             dateOfBirth: faker.date.past(),
-            role: EntityType.TEACHER,
             gender: faker.helpers.arrayElement([
                 Gender.Male,
                 Gender.Female,
                 Gender.Other,
             ]),
+            nationality: faker.address.country(),
             email: faker.internet.email(),
             phoneNo: faker.phone.number(),
             entityType: EntityType.TEACHER,
             password: bcrypt.hashSync('teacher123'), //Insecure - use bcrypt or similar for production
             address: faker.address.streetAddress(),
-            cnic: uuid(), //Insecure - use a proper CNIC generation method if possible
+            currentAddress: faker.address.streetAddress(),
+            cnic: faker.string.numeric(13), // Ensure CNIC is 13 digits
             highestQualification: faker.helpers.arrayElement([
                 'Bachelors',
                 'Masters',
                 'PhD',
             ]),
+            specialization: faker.lorem.word(),
+            experienceYears: faker.number.int({ min: 1, max: 10 }),
             joiningDate: faker.date.past(),
+            photo: faker.image.avatar(),
             emergencyContactName: faker.person.fullName(),
             emergencyContactNumber: faker.phone.number(),
             isVerified: true,
             applicationStatus: ApplicationStatus.Accepted,
             subjectId: subject.id, // Assign each teacher to a subject
-            schoolId: 8,
+            schoolId: 1,
+            role: EntityType.TEACHER,
         }))
 
         await Teacher.bulkCreate(teachers, { ignoreDuplicates: true })

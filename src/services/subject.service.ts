@@ -44,8 +44,12 @@ export class SubjectService {
      * Retrieves all subjects.
      * @returns A list of all subjects.
      */
-    public static async getAllSubjects() {
-        const subjects = await Subject.findAll()
+    public static async getAllSubjects(schoolId: number) {
+        const subjects = await Subject.findAll({
+            where: {
+                schoolId,
+            },
+        })
         return subjects
     }
 
@@ -94,8 +98,13 @@ export class SubjectService {
      * @returns The deleted subject.
      * @throws Error if the subject is not found.
      */
-    public static async deleteSubject(id: number) {
-        const subject = await Subject.findByPk(id)
+    public static async deleteSubject(id: number, schoolId: number) {
+        const subject = await Subject.findOne({
+            where: {
+                id,
+                schoolId,
+            },
+        })
         if (!subject) {
             throw new Error('Subject not found')
         }
