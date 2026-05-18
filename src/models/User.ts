@@ -1,182 +1,122 @@
-import { userSchema } from '@/schema/user.schema.js'
-import { DataTypes, UUIDV4 } from 'sequelize'
-import {
-    Table,
-    Column,
-    Model,
-    DataType,
-    Default,
-    ForeignKey,
-    HasMany,
-    BelongsTo,
-} from 'sequelize-typescript'
+import { Table, Column, Model, DataType, HasOne, BelongsTo, CreatedAt, UpdatedAt } from 'sequelize-typescript'
 import { z } from 'zod'
-import { Class, Parent, Section, StudentExam } from '@/models/index.js'
 
-type UserAttributes = z.infer<typeof userSchema>
+export const UserSchema = z.object({
+  id: z.number().optional(),
+  email: z.string().email('Invalid email address'),
+  passwordHash: z.string().nullable().optional(),
+  role: z.enum(['ADMIN', 'TEACHER', 'STUDENT', 'PARENT']),
+  schoolId: z.number(),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  phone: z.string().optional(),
+  avatar: z.string().url().optional(),
+  isActive: z.boolean().default(true),
+  isVerified: z.boolean().default(false),
+  lastLoginAt: z.date().optional().nullable(),
+})
+
+export type UserAttributes = z.infer<typeof UserSchema> & {
+  id: number
+  createdAt: Date
+  updatedAt: Date
+}
 
 @Table({
-    tableName: 'users',
-    timestamps: true,
+  tableName: 'users',
+  timestamps: true,
+  underscored: true,
 })
 export class User extends Model<UserAttributes> implements UserAttributes {
-    @Column({
-        type: DataType.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    })
-    id!: number
+  @Column({
+    type: DataType.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  })
+  id!: number
 
-    @Column({ type: DataType.STRING, allowNull: false })
-    firstName!: string
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    unique: true,
+    validate: { isEmail: true },
+  })
+  email!: string
 
-    @Column({ type: DataType.STRING })
-    middleName?: string
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: 'password_hash',
+  })
+  passwordHash!: string | null
 
-    @Column({ type: DataType.STRING, allowNull: false })
-    lastName!: string
-    @Column({ type: DataType.STRING })
-    schoolCode!: string
-    @Column({ type: DataType.STRING, allowNull: false })
-    dateOfBirth!: string
-    @Column({ type: DataType.INTEGER })
-    schoolId!: number
-    @Column({
-        type: DataType.ENUM('Male', 'Female', 'Other'),
-        allowNull: false,
-    })
-    gender!: 'Male' | 'Female' | 'Other'
+  @Column({
+    type: DataType.ENUM('ADMIN', 'TEACHER', 'STUDENT', 'PARENT'),
+    allowNull: false,
+  })
+  role!: 'ADMIN' | 'TEACHER' | 'STUDENT' | 'PARENT'
 
-    @Column({ type: DataType.STRING })
-    placeOfBirth?: string
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    field: 'school_id',
+  })
+  schoolId!: number
 
-    @Column({ type: DataType.STRING })
-    nationality?: string
-    @Column({ type: DataType.INTEGER, allowNull: false })
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-        validate: { isEmail: true },
-    })
-    email!: string
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    field: 'first_name',
+  })
+  firstName!: string
 
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-        validate: { isNumeric: true, len: [10, 15] },
-    })
-    phoneNo!: string
-    @Column({ type: DataType.ENUM('STUDENT'), defaultValue: 'STUDENT' })
-    entityType!: 'STUDENT'
-    @Column({ type: DataType.STRING, allowNull: false })
-    emergencyContactName!: string
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    field: 'last_name',
+  })
+  lastName!: string
 
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-        validate: { isNumeric: true, len: [10, 15] },
-    })
-    emergencyContactNumber!: string
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  phone!: string | null
 
-    @Column({ type: DataType.STRING, allowNull: false })
-    address!: string
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  avatar!: string | null
 
-    @Column({ type: DataType.STRING })
-    currentAddress?: string
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+    field: 'is_active',
+  })
+  isActive!: boolean
 
-    @Column({ type: DataType.VIRTUAL, allowNull: true })
-    studentId!: string
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+    field: 'is_verified',
+  })
+  isVerified!: boolean
 
-    @Column({ type: DataType.STRING })
-    previousSchool?: string
-    @Column({ type: DataType.STRING })
-    @Column({ type: DataType.STRING })
-    previousGrade?: string
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+    field: 'last_login_at',
+  })
+  lastLoginAt!: Date | null
 
-    @Column({ type: DataType.STRING })
-    previousMarks?: string
+  @CreatedAt
+  @Column({ field: 'created_at' })
+  createdAt!: Date
 
-    @Column({ type: DataType.BOOLEAN, defaultValue: false, allowNull: true })
-    isRegistered!: boolean
-    @Column({
-        type: DataTypes.STRING,
-        allowNull: true,
-    })
-    password!: string
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-    })
-    guardianName!: string
+  @UpdatedAt
+  @Column({ field: 'updated_at' })
+  updatedAt!: Date
 
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-        validate: { isNumeric: true, len: [13, 13] },
-    })
-    guardianCNIC!: string
-
-    @Column({
-        type: DataType.STRING,
-        validate: { isNumeric: true, len: [10, 15] },
-    })
-    guardianPhone?: string
-
-    @Column({ type: DataType.STRING, validate: { isEmail: true } })
-    guardianEmail?: string
-
-    @Column({
-        type: DataType.STRING,
-        allowNull: false,
-        validate: { isNumeric: true, len: [13, 13] },
-    })
-    CNIC!: string
-    @ForeignKey(() => Class)
-    @Column({ type: DataType.STRING, allowNull: false })
-    classId!: number
-    @ForeignKey(() => Section)
-    @Column({ type: DataType.INTEGER, allowNull: true })
-    sectionId!: number
-
-    @Default(UUIDV4)
-    @Column({ type: DataType.UUID, allowNull: true })
-    uuid?: string
-
-    @Column({ type: DataType.STRING, allowNull: false })
-    enrollmentDate!: string
-
-    @Column({ type: DataType.STRING })
-    photo?: string
-
-    @Column({ type: DataType.STRING })
-    transportation?: string
-
-    @Column({ type: DataType.STRING })
-    extracurriculars?: string
-
-    @Column({ type: DataType.STRING })
-    medicalConditions?: string
-
-    @Column({ type: DataType.STRING })
-    allergies?: string
-
-    @Column({ type: DataType.STRING })
-    healthInsuranceInfo?: string
-
-    @Column({ type: DataType.STRING })
-    doctorContact?: string
-    @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
-    createdAt?: Date
-    @Column({ type: DataType.DATE, defaultValue: DataTypes.NOW() })
-    updatedAt?: Date
-    @HasMany(() => StudentExam)
-    studentExams!: StudentExam[]
-    @ForeignKey(() => Parent)
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: true,
-    })
-    parentId?: number
-    @BelongsTo(() => Parent)
-    parent?: Parent
+  // Associations will be defined in index.ts
 }
