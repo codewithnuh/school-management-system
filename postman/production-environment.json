@@ -1,0 +1,16 @@
+{
+  "name": "Production",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.school-management.com/api",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

@@ -5,16 +5,16 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node  dist/app.js",
+        "start": "node dist/app.js",
         "format:check": "prettier --check .",
         "format:write": "prettier --write .",
-        "dev": "tsx  --watch src/app.ts",
-        "build": "pnpm exec tsc  && tsc-alias",
+        "dev": "tsx --watch src/app.ts",
+        "build": "pnpm exec tsc && tsc-alias",
         "lint:check": "eslint .",
         "lint:fix": "eslint --fix .",
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-        "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-        "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+        "test": "vitest run",
+        "test:watch": "vitest watch",
+        "test:coverage": "vitest run --coverage"
     },
     "keywords": [],
     "author": "",
@@ -78,6 +78,7 @@
         "@types/swagger-jsdoc": "^6.0.4",
         "@types/swagger-ui-express": "^4.1.8",
         "@types/useragent": "^2.3.4",
+        "@vitest/coverage-v8": "^3.0.0",
         "eslint": "^9.27.0",
         "eslint-config-prettier": "^10.1.5",
         "globals": "^15.15.0",
@@ -89,7 +90,8 @@
         "ts-node": "^10.9.2",
         "tsc-alias": "^1.8.16",
         "tsx": "^4.19.4",
-        "typescript-eslint": "^8.32.1"
+        "typescript-eslint": "^8.32.1",
+        "vitest": "^3.0.0"
     },
     "packageManager": "pnpm@10.3.0+sha1.6981f53a2d726323a7fd5f4ca5107102338511c8"
 }
