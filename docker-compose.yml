@@ -1,31 +1,163 @@
-services:
-    db:
-        image: mysql:8.0
-        container_name: school_db
-        restart: unless-stopped
-        env_file:
-            - .env
-        ports:
-            - '3306:3307'
-        volumes:
-            - db_data:/var/lib/mysql
+version: '3.8'
 
-    app:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: school_app
-        restart: unless-stopped
-        ports:
-            - '4000:4000'
-        env_file:
-            - .env
-        depends_on:
-            - db
-        volumes:
-            - ./:/app # mount code for dev hot‐reload
-            - /app/node_modules # prevent overwriting container’s modules
-        command: node dist/app.js # for production you can remove volumes and use default CMD
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: school_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: school_management
+      POSTGRES_USER: school_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password_123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - school_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U school_admin -d school_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: school_redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_password_123}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - school_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: school_app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: school_management
+      DB_USER: school_admin
+      DB_PASSWORD: ${DB_PASSWORD:-secure_password_123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password_123}
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key_here}
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - school_network
+    volumes:
+      - ./logs:/app/logs
+    command: sh -c "node dist/app.js"
+
+  # Development App (optional)
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: school_app_dev
+    profiles:
+      - development
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: school_management
+      DB_USER: school_admin
+      DB_PASSWORD: ${DB_PASSWORD:-secure_password_123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password_123}
+      JWT_SECRET: dev_secret_key
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - school_network
+    command: ["pnpm", "run", "dev"]
+
+  # Test Runner
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: school_test
+    profiles:
+      - test
+    environment:
+      NODE_ENV: test
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: school_management_test
+      DB_USER: school_admin
+      DB_PASSWORD: ${DB_PASSWORD:-secure_password_123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password_123}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - school_network
+    command: ["pnpm", "run", "test"]
+
+  # Database Migration Runner
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: school_migrate
+    profiles:
+      - migration
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: school_management
+      DB_USER: school_admin
+      DB_PASSWORD: ${DB_PASSWORD:-secure_password_123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - school_network
+    command: ["pnpm", "run", "migrate"]
+
+networks:
+  school_network:
+    driver: bridge
 
 volumes:
-    db_data:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
