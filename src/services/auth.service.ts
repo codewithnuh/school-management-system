@@ -9,8 +9,8 @@ import {
 } from '@/models/index.js'
 import jwt, { SignOptions } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import { Op } from 'sequelize'
 import process from 'process'
+import { sessionStore } from '@/services/session-store.service.js'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d'
@@ -98,16 +98,10 @@ class AuthService {
         ipAddress?: string,
     ): Promise<LoginResponse> {
         // First, delete all expired sessions
-        await Session.destroy({
-            where: {
-                userAgent,
-                expiryDate: { [Op.lte]: new Date() },
-            },
-        })
+        await sessionStore.clearExpiredSessions()
 
         const user = await userModel.findOne({ where: { email } })
         const userStringify = JSON.parse(JSON.stringify(user))
-        console.log(userStringify)
         if (!user) {
             throw new Error('Invalid credentials')
         }
@@ -121,14 +115,7 @@ class AuthService {
         }
 
         // Check if an active session already exists for the user with the same entityType
-        const activeSession = await Session.findOne({
-            where: {
-                userId: userStringify.id,
-                userAgent,
-                entityType: entityType,
-                expiryDate: { [Op.gt]: new Date() },
-            },
-        })
+        const activeSession = await sessionStore.findActiveSession(userStringify.id, entityType, userAgent)
 
         if (activeSession) {
             // Return existing session token if active session is found
@@ -155,7 +142,7 @@ class AuthService {
         const expiryDate = new Date()
         expiryDate.setHours(expiryDate.getHours() + SESSION_EXPIRY_HOURS)
 
-        await Session.create({
+        await sessionStore.create({
             userId: user.id,
             entityType: entityType,
             token: token,
@@ -202,14 +189,7 @@ class AuthService {
         )
         if (!passwordMatch) throw new Error('Invalid Credentials')
         // Check if an active session already exists for the user with the same entityType
-        const activeSession = await Session.findOne({
-            where: {
-                userId: isUserExists.id,
-                userAgent,
-                entityType: entityType,
-                expiryDate: { [Op.gt]: new Date() },
-            },
-        })
+        const activeSession = await sessionStore.findActiveSession(isUserExists.id, entityType, userAgent)
 
         if (activeSession) {
             // Return existing session token if active session is found
@@ -236,7 +216,7 @@ class AuthService {
         const expiryDate = new Date()
         expiryDate.setHours(expiryDate.getHours() + SESSION_EXPIRY_HOURS)
 
-        await Session.create({
+        await sessionStore.create({
             userId: isUserExists.id,
             entityType: entityType,
             token: token,
@@ -285,14 +265,7 @@ class AuthService {
         )
         if (!passwordMatch) throw new Error('Invalid Credentials')
         // Check if an active session already exists for the user with the same entityType
-        const activeSession = await Session.findOne({
-            where: {
-                userId: isTeacherExists.id,
-                userAgent,
-                entityType: entityType,
-                expiryDate: { [Op.gt]: new Date() },
-            },
-        })
+        const activeSession = await sessionStore.findActiveSession(isTeacherExists.id, entityType, userAgent)
 
         if (activeSession) {
             // Return existing session token if active session is found
@@ -319,7 +292,7 @@ class AuthService {
         const expiryDate = new Date()
         expiryDate.setHours(expiryDate.getHours() + SESSION_EXPIRY_HOURS)
 
-        await Session.create({
+        await sessionStore.create({
             userId: isTeacherExists.id,
             entityType: entityType,
             token: token,
@@ -353,14 +326,7 @@ class AuthService {
             ownerExists.password,
         )
         if (!passwordMatch) throw new Error('Wrong password')
-        const activeSession = await Session.findOne({
-            where: {
-                userId: ownerExists.id,
-                entityType: 'OWNER',
-                userAgent,
-                expiryDate: { [Op.gt]: new Date() },
-            },
-        })
+        const activeSession = await sessionStore.findActiveSession(ownerExists.id, 'OWNER', userAgent)
         if (activeSession) throw new Error('Session already exists')
         const payload: CurrentUserPayload = {
             userId: ownerExists.id,
@@ -370,12 +336,7 @@ class AuthService {
         if (!JWT_SECRET) {
             throw new Error('JWT_SECRET is not defined')
         }
-        await Session.destroy({
-            where: {
-                userAgent,
-                expiryDate: { [Op.lte]: new Date() },
-            },
-        })
+        await sessionStore.clearExpiredSessions()
 
         const token = jwt.sign(payload, JWT_SECRET, {
             expiresIn: JWT_EXPIRY,
@@ -384,7 +345,7 @@ class AuthService {
         const expiryDate = new Date()
         expiryDate.setHours(expiryDate.getHours() + SESSION_EXPIRY_HOURS)
 
-        await Session.create({
+        await sessionStore.create({
             userId: ownerExists.id,
             entityType: 'OWNER',
             token: token,
@@ -445,9 +406,7 @@ class AuthService {
         entityType: EntityType,
         userAgent: string,
     ): Promise<void> {
-        await Session.destroy({
-            where: { token, userAgent, userId, entityType },
-        })
+        await sessionStore.deleteByCriteria({ token, userAgent, userId, entityType })
     }
 
     /**
@@ -465,7 +424,7 @@ class AuthService {
      */
     async getCurrentUser(token: string): Promise<CurrentUserPayload | null> {
         try {
-            const session = await Session.findOne({ where: { token } })
+            const session = await sessionStore.findByToken(token)
             if (!session || session.expiryDate < new Date()) {
                 return null
             }

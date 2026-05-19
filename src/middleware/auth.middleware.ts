@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import process from 'process'
-import { Admin, Session } from '@/models/index.js'
+import { Admin } from '@/models/index.js'
+import { sessionStore } from '@/services/session-store.service.js'
 
 const { JWT_SECRET } = process.env
 if (!JWT_SECRET) throw new Error('JWT_SECRET is not defined.')
@@ -32,55 +33,32 @@ const AuthErrors = {
 } as const
 
 async function validateSession(token: string) {
-    try {
-        console.log(
-            `[Auth Debug] Looking up session for token: ${token.substring(0, 10)}...`,
-        )
-        const session = await Session.findOne({ where: { token } })
+    const session = await sessionStore.findByToken(token)
 
-        if (!session) {
-            console.log('[Auth Debug] Session not found for token')
-            throw new Error(AuthErrors.SESSION_NOT_FOUND.message)
-        }
-
-        console.log(
-            `[Auth Debug] Session found, expiry: ${session.expiryDate}, current time: ${new Date()}`,
-        )
-        if (new Date() > session.expiryDate) {
-            console.log('[Auth Debug] Session expired, destroying session')
-            await Session.destroy({ where: { token } })
-            throw new Error(AuthErrors.SESSION_EXPIRED.message)
-        }
-
-        console.log('[Auth Debug] Session is valid')
-        return true
-    } catch (error) {
-        console.error('[Auth Debug] Session validation error:', error)
-        throw error
+    if (!session) {
+        throw new Error(AuthErrors.SESSION_NOT_FOUND.message)
     }
+
+    if (new Date() > session.expiryDate) {
+        await sessionStore.deleteByToken(token)
+        throw new Error(AuthErrors.SESSION_EXPIRED.message)
+    }
+
+    return true
 }
 
 function getTokenFromRequest(req: Request): string | undefined {
     // Try cookie, then Authorization header (Bearer)
     if (req.cookies?.token) {
-        console.log('[Auth Debug] Token found in cookies')
         return req.cookies.token
     }
 
     const authHeader =
         req.headers['authorization'] || req.headers['Authorization']
     if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
-        console.log('[Auth Debug] Token found in Authorization header')
         return authHeader.slice(7)
     }
 
-    // Additional fallback - check if token is in query params
-    if (req.query?.token && typeof req.query.token === 'string') {
-        console.log('[Auth Debug] Token found in query parameters')
-        return req.query.token
-    }
-
-    console.log('[Auth Debug] No token found in request')
     return undefined
 }
 
@@ -90,12 +68,6 @@ export default function authWithRBAC(
 ) {
     return (req: Request, res: Response, next: NextFunction) => {
         ;(async () => {
-            console.log(
-                `[Auth Debug] authWithRBAC called with roles: ${JSON.stringify(allowedRoles)}, checkSubscription: ${checkSubscriptionForPremiumFeatures}`,
-            )
-            console.log(
-                `[Auth Debug] Request path: ${req.path}, method: ${req.method}`,
-            )
 
             try {
                 // 1) Get and validate token
@@ -109,16 +81,11 @@ export default function authWithRBAC(
                 // 2) Verify JWT
                 let payload: AuthTokenPayload
                 try {
-                    console.log('[Auth Debug] Verifying JWT token')
                     payload = jwt.verify(
                         token,
                         JWT_SECRET as string,
                     ) as AuthTokenPayload
-                    console.log(
-                        `[Auth Debug] JWT verified successfully, payload: id=${payload.userId}, type=${payload.entityType}`,
-                    )
                 } catch (err) {
-                    console.error('[Auth Debug] JWT verification error:', err)
                     let errorMessage = AuthErrors.INVALID_TOKEN.message
 
                     if (err instanceof jwt.TokenExpiredError) {
@@ -134,10 +101,6 @@ export default function authWithRBAC(
                 }
 
                 if (!payload?.userId || !payload.entityType) {
-                    console.log(
-                        '[Auth Debug] Payload missing required fields:',
-                        payload,
-                    )
                     return res.status(AuthErrors.INVALID_TOKEN.status).json({
                         error: AuthErrors.INVALID_TOKEN.message,
                         details: 'Token payload missing id or entityType',
@@ -146,7 +109,6 @@ export default function authWithRBAC(
 
                 // 3) Validate session
                 try {
-                    console.log('[Auth Debug] Validating session')
                     await validateSession(token)
                 } catch (error) {
                     const msg = (error as Error).message
