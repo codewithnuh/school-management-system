@@ -1,0 +1,400 @@
+{
+  "info": {
+    "_postman_id": "school-management-api",
+    "name": "School Management System API",
+    "description": "Complete API collection for School Management System with timetable generation, student/teacher management, and more.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@school.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"]}
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"role\": \"teacher\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schools",
+      "item": [
+        {
+          "name": "Create School",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Greenwood High School\",\n  \"code\": \"GHS001\",\n  \"address\": \"123 Education Street\",\n  \"phone\": \"+1234567890\",\n  \"email\": \"info@greenwood.edu\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/schools", "host": ["{{baseUrl}}"], "path": ["schools"]}
+          }
+        },
+        {
+          "name": "Get All Schools",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/schools", "host": ["{{baseUrl}}"], "path": ["schools"]}
+          }
+        },
+        {
+          "name": "Get School by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/schools/1", "host": ["{{baseUrl}}"], "path": ["schools", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Academic Years",
+      "item": [
+        {
+          "name": "Create Academic Year",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2024-2025\",\n  \"startDate\": \"2024-08-01\",\n  \"endDate\": \"2025-07-31\",\n  \"isCurrent\": true,\n  \"schoolId\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/academic-years", "host": ["{{baseUrl}}"], "path": ["academic-years"]}
+          }
+        },
+        {
+          "name": "Get Current Academic Year",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/academic-years/school/1/current", "host": ["{{baseUrl}}"], "path": ["academic-years", "school", "1", "current"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "Create Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Class 10\",\n  \"level\": 10,\n  \"schoolId\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/classes", "host": ["{{baseUrl}}"], "path": ["classes"]}
+          }
+        },
+        {
+          "name": "Get Class by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/classes/1", "host": ["{{baseUrl}}"], "path": ["classes", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sections",
+      "item": [
+        {
+          "name": "Create Section",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A\",\n  \"classId\": 1,\n  \"capacity\": 40\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/sections", "host": ["{{baseUrl}}"], "path": ["sections"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subjects",
+      "item": [
+        {
+          "name": "Create Subject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mathematics\",\n  \"code\": \"MATH101\",\n  \"description\": \"Advanced Mathematics\",\n  \"schoolId\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/subjects", "host": ["{{baseUrl}}"], "path": ["subjects"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "item": [
+        {
+          "name": "Create Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"qualification\": \"M.Ed Mathematics\",\n  \"experience\": 5,\n  \"specialization\": \"Algebra\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/teachers", "host": ["{{baseUrl}}"], "path": ["teachers"]}
+          }
+        },
+        {
+          "name": "Get Teacher by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/teachers/1", "host": ["{{baseUrl}}"], "path": ["teachers", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 2,\n  \"classId\": 1,\n  \"sectionId\": 1,\n  \"admissionNumber\": \"ADM2024001\",\n  \"admissionDate\": \"2024-08-01\",\n  \"dateOfBirth\": \"2008-05-15\",\n  \"gender\": \"male\"\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/students", "host": ["{{baseUrl}}"], "path": ["students"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "item": [
+        {
+          "name": "Create Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Room 101\",\n  \"type\": \"classroom\",\n  \"capacity\": 40,\n  \"schoolId\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/rooms", "host": ["{{baseUrl}}"], "path": ["rooms"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Time Slots",
+      "item": [
+        {
+          "name": "Create Time Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startTime\": \"08:00\",\n  \"endTime\": \"08:45\",\n  \"periodNumber\": 1,\n  \"academicYearId\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/time-slots", "host": ["{{baseUrl}}"], "path": ["time-slots"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Timetable",
+      "item": [
+        {
+          "name": "Create Timetable Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": 1,\n  \"sectionId\": 1,\n  \"subjectId\": 1,\n  \"teacherId\": 1,\n  \"roomId\": 1,\n  \"dayOfWeek\": \"monday\",\n  \"timeSlotId\": 1\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/timetable", "host": ["{{baseUrl}}"], "path": ["timetable"]}
+          }
+        },
+        {
+          "name": "Get Class Timetable",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/timetable/class/1/section/1", "host": ["{{baseUrl}}"], "path": ["timetable", "class", "1", "section", "1"]}
+          }
+        },
+        {
+          "name": "Get Teacher Timetable",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/timetable/teacher/1", "host": ["{{baseUrl}}"], "path": ["timetable", "teacher", "1"]}
+          }
+        },
+        {
+          "name": "Get Room Timetable",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/timetable/room/1", "host": ["{{baseUrl}}"], "path": ["timetable", "room", "1"]}
+          }
+        },
+        {
+          "name": "Update Timetable Entry",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": 2,\n  \"timeSlotId\": 2\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/timetable/1", "host": ["{{baseUrl}}"], "path": ["timetable", "1"]}
+          }
+        },
+        {
+          "name": "Delete Timetable Entry",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/timetable/1", "host": ["{{baseUrl}}"], "path": ["timetable", "1"]}
+          }
+        },
+        {
+          "name": "Generate Timetable (Auto)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": 1,\n  \"academicYearId\": 1,\n  \"workingDays\": [\"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\"]\n}"
+            },
+            "url": {"raw": "{{baseUrl}}/timetable/generate", "host": ["{{baseUrl}}"], "path": ["timetable", "generate"]}
+          }
+        },
+        {
+          "name": "Clear Class Timetable",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/timetable/class/1/clear", "host": ["{{baseUrl}}"], "path": ["timetable", "class", "1", "clear"]}
+          }
+        },
+        {
+          "name": "Validate Timetable Completeness",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/timetable/class/1/validate", "host": ["{{baseUrl}}"], "path": ["timetable", "class", "1", "validate"]}
+          }
+        },
+        {
+          "name": "Check Availability",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/timetable/check-availability?teacherId=1&dayOfWeek=monday&timeSlotId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["timetable", "check-availability"],
+              "query": [
+                {"key": "teacherId", "value": "1"},
+                {"key": "dayOfWeek", "value": "monday"},
+                {"key": "timeSlotId", "value": "1"}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
