@@ -1,4 +1,10 @@
-```
-# Test files
-tests/
-```
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+logs/
+uploads/
+.DS_Store

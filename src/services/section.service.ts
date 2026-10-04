@@ -1,4 +1,4 @@
-import sequelize from '@/config/database.js'
+import sequelize from '@/infrastructure/persistence/sequelize/client.js'
 import { Class, Timetable, TimetableEntry } from '@/models/index.js'
 import { CreateSectionInput, Section } from '@/models/Section.js'
 import { SectionTeacher } from '@/models/SectionTeacher.js'

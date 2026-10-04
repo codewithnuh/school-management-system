@@ -1,31 +1,27 @@
 import swaggerJSDoc from 'swagger-jsdoc'
 
 const swaggerDefinition = {
-    openapi: '3.0.0',
+    openapi: '3.0.3',
     info: {
         title: 'School Management System API',
         version: '1.0.0',
-        description: 'API documentation for School Management System',
-        contact: {
-            name: 'API Support',
-            email: 'support@example.com',
-        },
+        description: 'Versioned HTTP API for school management.',
         license: {
-            name: 'MIT',
-            url: 'https://opensource.org/licenses/MIT',
+            name: 'ISC',
+            url: 'https://opensource.org/license/isc-license-txt/',
         },
     },
     servers: [
         {
-            url: 'http://localhost:3000',
-            description: 'Development server',
-        },
-        {
-            url: 'https://api.production.com',
-            description: 'Production server',
+            url: '/api/v1',
+            description: 'Current API deployment',
         },
     ],
     tags: [
+        {
+            name: 'Health',
+            description: 'Service readiness and dependency status',
+        },
         {
             name: 'Timetable',
             description: 'Endpoints for managing timetables',
@@ -100,16 +96,15 @@ const swaggerDefinition = {
             // ... [Your other schemas here]
         },
     },
-    security: [
-        {
-            bearerAuth: [],
-        },
-    ],
 }
 
 const options = {
     swaggerDefinition,
-    apis: ['./src/routes/*.ts'], // Path to your route files
+    apis: [
+        ...(process.env.NODE_ENV === 'production'
+            ? ['./dist/routes/*.js', './dist/app.js']
+            : ['./src/routes/*.ts', './src/app.ts']),
+    ],
 }
 
 const swaggerSpec = swaggerJSDoc(options)

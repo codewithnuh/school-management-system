@@ -18,6 +18,7 @@ import {
     ownerSchema,
 } from '@/models/index.js'
 import { Op } from 'sequelize'
+import { env } from '@/config/env.js'
 
 const loginSchema = z.object({
     email: z.string().email(),
@@ -98,7 +99,7 @@ export const AuthController = {
             }
 
             // Step 6: Set secure HTTP-only cookie (configured per environment)
-            const isProduction = process.env.NODE_ENV === 'production'
+            const isProduction = env.NODE_ENV === 'production'
 
             res.cookie('token', token, {
                 httpOnly: true,
@@ -166,7 +167,7 @@ export const AuthController = {
             }
 
             // Step 6: Set secure HTTP-only cookie (configured per environment)
-            const isProduction = process.env.NODE_ENV === 'production'
+            const isProduction = env.NODE_ENV === 'production'
 
             res.cookie('token', token, {
                 httpOnly: true,
@@ -234,7 +235,7 @@ export const AuthController = {
             }
 
             // Step 6: Set secure HTTP-only cookie (configured per environment)
-            const isProduction = process.env.NODE_ENV === 'production'
+            const isProduction = env.NODE_ENV === 'production'
 
             res.cookie('token', token, {
                 httpOnly: true,
@@ -364,7 +365,7 @@ export const AuthController = {
             })
             const decodedToken = jwt.verify(
                 token,
-                process.env.JWT_SECRET as string,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             const userId = decodedToken.userId
             const entityType = decodedToken.entityType
@@ -397,7 +398,7 @@ export const AuthController = {
 
             const decodedToken = jwt.verify(
                 token,
-                process.env.JWT_SECRET as string,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             console.log(decodedToken)
             const userId = decodedToken.userId

@@ -9,15 +9,12 @@ import {
 } from '@/models/index.js'
 import jwt, { SignOptions } from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import process from 'process'
 import { sessionStore } from '@/services/session-store.service.js'
+import { env } from '@/config/env.js'
 
-const JWT_SECRET = process.env.JWT_SECRET
-const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d'
-const SESSION_EXPIRY_HOURS = parseInt(
-    process.env.SESSION_EXPIRY_HOURS || '168',
-    10,
-)
+const JWT_SECRET = env.JWT_SECRET
+const JWT_EXPIRY = env.JWT_EXPIRES_IN
+const SESSION_EXPIRY_HOURS = env.SESSION_EXPIRY_HOURS
 
 // Define EntityType enum for better type safety and readability
 export enum EntityType {
@@ -115,7 +112,11 @@ class AuthService {
         }
 
         // Check if an active session already exists for the user with the same entityType
-        const activeSession = await sessionStore.findActiveSession(userStringify.id, entityType, userAgent)
+        const activeSession = await sessionStore.findActiveSession(
+            userStringify.id,
+            entityType,
+            userAgent,
+        )
 
         if (activeSession) {
             // Return existing session token if active session is found
@@ -189,7 +190,11 @@ class AuthService {
         )
         if (!passwordMatch) throw new Error('Invalid Credentials')
         // Check if an active session already exists for the user with the same entityType
-        const activeSession = await sessionStore.findActiveSession(isUserExists.id, entityType, userAgent)
+        const activeSession = await sessionStore.findActiveSession(
+            isUserExists.id,
+            entityType,
+            userAgent,
+        )
 
         if (activeSession) {
             // Return existing session token if active session is found
@@ -265,7 +270,11 @@ class AuthService {
         )
         if (!passwordMatch) throw new Error('Invalid Credentials')
         // Check if an active session already exists for the user with the same entityType
-        const activeSession = await sessionStore.findActiveSession(isTeacherExists.id, entityType, userAgent)
+        const activeSession = await sessionStore.findActiveSession(
+            isTeacherExists.id,
+            entityType,
+            userAgent,
+        )
 
         if (activeSession) {
             // Return existing session token if active session is found
@@ -326,7 +335,11 @@ class AuthService {
             ownerExists.password,
         )
         if (!passwordMatch) throw new Error('Wrong password')
-        const activeSession = await sessionStore.findActiveSession(ownerExists.id, 'OWNER', userAgent)
+        const activeSession = await sessionStore.findActiveSession(
+            ownerExists.id,
+            'OWNER',
+            userAgent,
+        )
         if (activeSession) throw new Error('Session already exists')
         const payload: CurrentUserPayload = {
             userId: ownerExists.id,
@@ -406,7 +419,12 @@ class AuthService {
         entityType: EntityType,
         userAgent: string,
     ): Promise<void> {
-        await sessionStore.deleteByCriteria({ token, userAgent, userId, entityType })
+        await sessionStore.deleteByCriteria({
+            token,
+            userAgent,
+            userId,
+            entityType,
+        })
     }
 
     /**

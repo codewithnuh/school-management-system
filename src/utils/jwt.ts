@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose'
+import { env } from '@/config/env.js'
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET) // Use an environment variable
+const JWT_SECRET = new TextEncoder().encode(env.JWT_SECRET)
 
 import { JWTPayload } from 'jose'
 

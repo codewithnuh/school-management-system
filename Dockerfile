@@ -1,5 +1,5 @@
 # ---------- builder stage ----------
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 
 # make a directory inside the container
 WORKDIR /app
@@ -16,7 +16,7 @@ COPY . .
 RUN pnpm build
 
 # ---------- runner stage ----------
-FROM node:20-alpine AS runner
+FROM node:26-alpine AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -29,7 +29,8 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/src/migrations ./src/migrations
+COPY --from=builder /app/src/config/config.cjs ./src/config/config.cjs
 
 USER nodejs
 
@@ -38,7 +39,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+  CMD node -e "require('http').get('http://localhost:3000/api/v1/health/ready', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
 # default start command
 CMD ["node", "dist/app.js"]

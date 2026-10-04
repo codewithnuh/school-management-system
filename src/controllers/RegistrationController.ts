@@ -5,6 +5,7 @@ import { Request, Response } from 'express'
 import QRCode from 'qrcode'
 import jwt from 'jsonwebtoken'
 import { ResponseUtil } from '@/utils/response.util.js'
+import { env } from '@/config/env.js'
 
 export class RegistrationController {
     static async createTeacherRegistrationLink(req: Request, res: Response) {
@@ -13,7 +14,7 @@ export class RegistrationController {
             if (!token) throw new Error('Token Missing')
             const decodedToken = jwt.verify(
                 token,
-                process.env.JWT_SECRET!,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             const adminId = decodedToken.userId
             const school = await School.findOne({
@@ -30,7 +31,7 @@ export class RegistrationController {
                 type: 'TEACHER',
                 expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 2 days
             })
-            const link = `${process.env.FRONTEND_URL}/register/teacher?registrationLinkId=${generateLink.id}`
+            const link = `${env.FRONTEND_URL}/register/teacher?registrationLinkId=${generateLink.id}`
             const response = ResponseUtil.success(
                 link,
                 'Teacher Registration Link Created',
@@ -55,7 +56,7 @@ export class RegistrationController {
             if (!token) throw new Error('Token Missing')
             const decodedToken = jwt.verify(
                 token,
-                process.env.JWT_SECRET!,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             const adminId = decodedToken.userId
             const school = await School.findOne({
@@ -71,7 +72,7 @@ export class RegistrationController {
                 type: 'TEACHER',
                 expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 2 days
             })
-            const link = `${process.env.FRONTEND_URL}/register/${generateLink.id}`
+            const link = `${env.FRONTEND_URL}/register/${generateLink.id}`
             const response = ResponseUtil.success(
                 link,
                 'Teacher Registration Link Created',
@@ -95,7 +96,7 @@ export class RegistrationController {
             if (!token) throw new Error('Token Missing')
             const decodedToken = jwt.verify(
                 token,
-                process.env.JWT_SECRET!,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             const adminId = decodedToken.userId
             const school = await School.findOne({
@@ -132,7 +133,7 @@ export class RegistrationController {
             if (!token) throw new Error('Token Missing')
             const decodedToken = jwt.verify(
                 token,
-                process.env.JWT_SECRET!,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             const adminId = decodedToken.userId
             const school = await School.findOne({
@@ -169,7 +170,7 @@ export class RegistrationController {
             if (!cookie) throw new Error('Token Missing')
             const decodedToken = jwt.verify(
                 cookie,
-                process.env.JWT_SECRET!,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             const adminId = decodedToken.userId
             const school = await School.findOne({ where: { adminId } })
@@ -181,7 +182,7 @@ export class RegistrationController {
                 type: 'STUDENT',
                 expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // Link expires in 48 hours
             })
-            const link = `${process.env.FRONTEND_URL}/register/student?registrationLinkId=${generateLink.id}`
+            const link = `${env.FRONTEND_URL}/register/student?registrationLinkId=${generateLink.id}`
             const response = ResponseUtil.success(
                 link,
                 'Student Registration Link Created',
@@ -207,7 +208,7 @@ export class RegistrationController {
             if (!cookie) throw new Error('Token Missing')
             const decodedToken = jwt.verify(
                 cookie,
-                process.env.JWT_SECRET!,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             const adminId = decodedToken.userId
             const school = await School.findOne({ where: { adminId } })
@@ -221,7 +222,7 @@ export class RegistrationController {
 
             const enrichedLinks = await Promise.all(
                 teacherLinks.map(async link => {
-                    const fullLink = `${process.env.FRONTEND_URL}/register/teacher?registrationLinkId=${link.id}`
+                    const fullLink = `${env.FRONTEND_URL}/register/teacher?registrationLinkId=${link.id}`
                     const qrCode = await QRCode.toDataURL(fullLink)
                     return {
                         ...link.toJSON(),
@@ -252,7 +253,7 @@ export class RegistrationController {
             if (!cookie) throw new Error('Token Missing')
             const decodedToken = jwt.verify(
                 cookie,
-                process.env.JWT_SECRET!,
+                env.JWT_SECRET,
             ) as CurrentUserPayload
             const adminId = decodedToken.userId
             const school = await School.findOne({ where: { adminId } })
@@ -266,7 +267,7 @@ export class RegistrationController {
 
             const enrichedLinks = await Promise.all(
                 teacherLinks.map(async link => {
-                    const fullLink = `${process.env.FRONTEND_URL}/register/student?registrationLinkId=${link.id}`
+                    const fullLink = `${env.FRONTEND_URL}/register/student?registrationLinkId=${link.id}`
                     const qrCode = await QRCode.toDataURL(fullLink)
                     return {
                         ...link.toJSON(),

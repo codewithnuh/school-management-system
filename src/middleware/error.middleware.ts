@@ -1,67 +1,69 @@
-import { Request, Response, NextFunction } from 'express'
+import type { ErrorRequestHandler } from 'express'
 import { ZodError } from 'zod'
 
-// Custom error class for better error handling
 export class AppError extends Error {
-    statusCode: number
-    constructor(message: string, statusCode: number) {
+    constructor(
+        message: string,
+        public readonly statusCode: number,
+    ) {
         super(message)
-        this.statusCode = statusCode
+        this.name = 'AppError'
+        Object.setPrototypeOf(this, new.target.prototype)
     }
 }
 
-// Middleware to handle invalid JSON payloads
-export const handleInvalidJSON = (
-    err: Error,
-    req: Request,
-    res: Response,
-    next: NextFunction,
+export const handleInvalidJSON: ErrorRequestHandler = (
+    error,
+    _request,
+    response,
+    next,
 ) => {
-    if (err instanceof SyntaxError && 'body' in err) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid JSON payload',
-            error: err.message,
-        })
+    if (error instanceof SyntaxError && 'body' in error) {
+        response
+            .status(400)
+            .json({ success: false, message: 'Invalid JSON payload' })
+        return
     }
-    next(err) // Pass other errors to the next middleware
+    next(error)
 }
 
-// Middleware to handle Zod validation errors
-export const handleValidationErrors = (
-    err: unknown,
-    req: Request,
-    res: Response,
-    next: NextFunction,
+export const handleValidationErrors: ErrorRequestHandler = (
+    error,
+    _request,
+    response,
+    next,
 ) => {
-    if (err instanceof ZodError) {
-        return res.status(400).json({
+    if (error instanceof ZodError) {
+        response.status(400).json({
             success: false,
             message: 'Validation failed',
-            errors: err.errors.map(e => ({
-                field: e.path.join('.'),
-                message: e.message,
+            errors: error.issues.map(issue => ({
+                field: issue.path.join('.'),
+                message: issue.message,
             })),
         })
+        return
     }
-    next(err) // Pass other errors to the next middleware
+    next(error)
 }
 
-// Generic error-handling middleware
-export const errorHandler = (
-    err: Error & { statusCode?: number },
-    req: Request,
-    res: Response,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    next: NextFunction,
+export const errorHandler: ErrorRequestHandler = (
+    error: unknown,
+    _request,
+    response,
+    _next,
 ) => {
-    console.error('Error:', err.message || err)
+    if (response.headersSent) return
 
-    const statusCode = err.statusCode || 500
-    const message = err.message || 'Internal Server Error'
+    if (error instanceof AppError) {
+        response
+            .status(error.statusCode)
+            .json({ success: false, message: error.message })
+        return
+    }
 
-    res.status(statusCode).json({
-        success: false,
-        message,
-    })
+    console.error('Unhandled request error', error)
+    response
+        .status(500)
+        .json({ success: false, message: 'Internal server error' })
 }

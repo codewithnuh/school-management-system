@@ -1,4 +1,4 @@
-import sequelize from '@/config/database.js'
+import sequelize from '@/infrastructure/persistence/sequelize/client.js'
 import {
     FeePayment,
     FeePaymentAttributes,

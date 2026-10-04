@@ -1,4 +1,4 @@
-import sequelize from '@/config/database.js' // Adjust path if needed
+import sequelize from '@/infrastructure/persistence/sequelize/client.js'
 import {
     FeeCategory,
     FeeCategoryAttributes,

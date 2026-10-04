@@ -1,0 +1,3 @@
+[mcp_servers.blockend]
+command = "npx"
+args = ["-y", "blockend-cli", "mcp"]

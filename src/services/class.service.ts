@@ -1,4 +1,4 @@
-import sequelize from '@/config/database.js'
+import sequelize from '@/infrastructure/persistence/sequelize/client.js'
 import { Class } from '@/models/Class.js'
 import { Section } from '@/models/Section.js'
 import { SectionTeacher } from '@/models/SectionTeacher.js'

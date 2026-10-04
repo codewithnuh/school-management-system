@@ -6,7 +6,7 @@ import {
     FeeStructureAttributes,
     feeStructureSchema,
 } from '@/models/index.js'
-import sequelize from '@/config/database.js'
+import sequelize from '@/infrastructure/persistence/sequelize/client.js'
 export class FeeStructureService {
     static async createFeeStructure(input: FeeStructureAttributes) {
         feeStructureSchema.parse(input) // Input validation

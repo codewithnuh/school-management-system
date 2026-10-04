@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { SubjectService } from '@/services/subject.service.js'
+import { subjectService } from '@/modules/subjects/index.js'
 import { ResponseUtil } from '@/utils/response.util.js'
 
 export class SubjectController {
@@ -8,7 +8,7 @@ export class SubjectController {
      */
     public static async create(req: Request, res: Response) {
         try {
-            const subject = await SubjectService.createSubject(req.body)
+            const subject = await subjectService.createSubject(req.body)
             const response = ResponseUtil.success(
                 subject,
                 'Subject created successfully',
@@ -32,7 +32,7 @@ export class SubjectController {
     public static async getById(req: Request, res: Response) {
         try {
             const { id } = req.params
-            const subject = await SubjectService.getSubjectById(Number(id))
+            const subject = await subjectService.getSubjectById(Number(id))
             const response = ResponseUtil.success(
                 subject,
                 'Subject retrieved successfully',
@@ -57,7 +57,7 @@ export class SubjectController {
         const { schoolId } = req.query
         if (!schoolId) throw new Error('Please provide schoolId')
         try {
-            const subjects = await SubjectService.getAllSubjects(
+            const subjects = await subjectService.getAllSubjects(
                 parseInt(schoolId as string, 10),
             )
             const response = ResponseUtil.success(
@@ -84,7 +84,7 @@ export class SubjectController {
         try {
             const { id } = req.params
             const subjectData = req.body
-            const updatedSubject = await SubjectService.updateSubject(
+            const updatedSubject = await subjectService.updateSubject(
                 Number(id),
                 subjectData,
             )
@@ -113,7 +113,7 @@ export class SubjectController {
             const { id, schoolId } = req.query
             if (!id || !schoolId)
                 throw new Error('Please provide id and schoolId')
-            const deletedSubject = await SubjectService.deleteSubject(
+            const deletedSubject = await subjectService.deleteSubject(
                 Number(id),
                 Number(schoolId),
             )

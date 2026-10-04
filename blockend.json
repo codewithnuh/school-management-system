@@ -1,0 +1,64 @@
+{
+  "$schema": "https://blockend.noorulhassan.com/schema.json",
+  "environment": "express",
+  "language": "typescript",
+  "packageManager": "pnpm",
+  "importRewriteStrategy": "rewrite",
+  "includeRedis": true,
+  "aliases": {
+    "blocks": "@/blocks"
+  },
+  "paths": {
+    "blocks": "./src/blocks"
+  },
+  "installed": [
+    {
+      "name": "health-check",
+      "version": "1.0.0",
+      "installedAt": "2026-10-04T12:45:08.298Z",
+      "files": [
+        "core/build-report.ts",
+        "core/build-report.test.ts",
+        "core/calculate-status.ts",
+        "core/calculate-status.test.ts",
+        "core/create-health.ts",
+        "core/create-health.test.ts",
+        "core/run-check.ts",
+        "core/run-check.test.ts",
+        "core/run-checks.ts",
+        "core/run-checks.test.ts",
+        "core/validate-config.ts",
+        "types/index.ts",
+        "adapters/express.ts",
+        "adapters/express.test.ts"
+      ],
+      "contentHash": "30edf992",
+      "variant": "default"
+    },
+    {
+      "name": "graceful-shutdown",
+      "version": "1.0.0",
+      "installedAt": "2026-10-04T12:45:16.684Z",
+      "files": [
+        "index.ts",
+        "constants.ts",
+        "types.ts",
+        "core/shutdown.ts",
+        "core/connection-tracker.ts",
+        "utils/index.ts",
+        "utils/http.ts",
+        "utils/state.ts",
+        "utils/timeout.ts",
+        "tests/unit/shutdown.test.ts",
+        "tests/unit/connection-tracker.test.ts",
+        "tests/unit/http-task.test.ts",
+        "tests/unit/state.test.ts",
+        "tests/unit/timeout.test.ts",
+        "adapters/express.ts",
+        "tests/integration/express.test.ts"
+      ],
+      "contentHash": "-7d365980",
+      "variant": "default"
+    }
+  ]
+}

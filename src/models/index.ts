@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize-typescript'
-import sequelize from '@/config/database.js'
+import sequelize from '@/infrastructure/persistence/sequelize/client.js'
 
 // Core models
 import { School } from './School.js'

@@ -9,7 +9,7 @@ import {
     StudentFeeAllocationSchema,
     User,
 } from '@/models/index.js'
-import sequelize from '@/config/database.js'
+import sequelize from '@/infrastructure/persistence/sequelize/client.js'
 export class StudentFeeAllocationService {
     static async createStudentFeeAllocation(
         input: StudentFeeAllocationAttributes,
