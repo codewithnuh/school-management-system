@@ -9,11 +9,7 @@ npm-debug.log
 coverage
 .nyc_output
 *.log
-tests
-*.test.ts
-*.spec.ts
-vitest.config.ts
-tsconfig.test.json
+# Keep test configuration and specs in the build context for CI test images.
 README.md
 docs
 .postman
