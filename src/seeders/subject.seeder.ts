@@ -1,50 +1,29 @@
-// src/seeders/subject.seeder.ts
+import { School } from '@/models/School.js'
 import { Subject } from '@/models/Subject.js'
 
-export const seedSubjects = async () => {
-    try {
-        await Subject.bulkCreate(
-            [
-                {
-                    name: 'Maths',
-                    description: 'Mathematics subject',
-                    schoolId: 8,
+const SUBJECTS = [
+    { code: 'MATH', name: 'Mathematics', description: 'Mathematics subject' },
+    { code: 'ENG', name: 'English', description: 'English subject' },
+    { code: 'COMP', name: 'Computer Science', description: 'Computer Science subject' },
+    { code: 'PHY', name: 'Physics', description: 'Physics subject' },
+    { code: 'CHEM', name: 'Chemistry', description: 'Chemistry subject' },
+    { code: 'URD', name: 'Urdu', description: 'Urdu subject' },
+    { code: 'PAKST', name: 'Pakistan Studies', description: 'Pakistan Studies subject' },
+] as const
+
+export async function seedSubjects(): Promise<void> {
+    const schools = await School.findAll({ attributes: ['id'] })
+    for (const school of schools) {
+        for (const subject of SUBJECTS) {
+            await Subject.findOrCreate({
+                where: { schoolId: school.id, code: subject.code },
+                defaults: {
+                    ...subject,
+                    schoolId: school.id,
+                    category: 'CORE',
+                    credits: 0,
                 },
-                {
-                    name: 'English',
-                    description: 'English subject',
-                    schoolId: 8,
-                },
-                {
-                    name: 'Computer Science',
-                    description: 'Computer Science subject',
-                    schoolId: 8,
-                },
-                {
-                    name: 'Physics',
-                    description: 'Physics subject',
-                    schoolId: 8,
-                },
-                {
-                    name: 'Chemistry',
-                    description: 'Chemistry subject',
-                    schoolId: 8,
-                },
-                {
-                    name: 'Urdu',
-                    description: 'Urdu subject',
-                    schoolId: 8,
-                },
-                {
-                    name: 'Pakistan Study',
-                    description: 'Pakistan Study subject',
-                    schoolId: 8,
-                },
-            ],
-            { ignoreDuplicates: true },
-        ) // Ignore duplicates on subsequent seeding
-        console.log('Subjects seeded successfully')
-    } catch (error) {
-        console.error('Error seeding subjects:', error)
+            })
+        }
     }
 }

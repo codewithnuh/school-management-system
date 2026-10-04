@@ -1,62 +1,56 @@
-// src/seeders/teacher.seeder.ts
-import { Teacher, Gender, ApplicationStatus } from '@/models/Teacher.js'
-import { Subject } from '@/models/Subject.js'
-import { faker } from '@faker-js/faker' // You'll need to install faker: npm install @faker-js/faker
-import { v4 as uuid } from 'uuid'
+import { randomBytes, randomUUID } from 'node:crypto'
 import bcrypt from 'bcryptjs'
-enum EntityType {
-    TEACHER = 'TEACHER',
-}
-export const seedTeachers = async () => {
-    try {
-        // Fetch all subjects
-        const subjects = await Subject.findAll()
+import { faker } from '@faker-js/faker'
+import { School } from '@/models/School.js'
+import { Subject } from '@/models/Subject.js'
+import { Teacher, ApplicationStatus } from '@/models/Teacher.js'
+import { User } from '@/models/User.js'
+import sequelize from '@/infrastructure/persistence/sequelize/client.js'
 
-        if (!subjects || subjects.length === 0) {
-            console.error('No subjects found. Seed subjects first.')
-            return
-        }
+export async function seedTeachers(): Promise<void> {
+    const subjects = await Subject.findAll({ where: { isActive: true } })
+    for (const subject of subjects) {
+        const school = await School.findByPk(subject.schoolId, { attributes: ['id'] })
+        if (!school) continue
 
-        // Create teachers dynamically
-        const teachers = subjects.map(subject => ({
-            firstName: faker.name.firstName(),
-            middleName: faker.name.middleName(),
-            lastName: faker.name.lastName(),
-            dateOfBirth: faker.date.past(),
-            gender: faker.helpers.arrayElement([
-                Gender.Male,
-                Gender.Female,
-                Gender.Other,
-            ]),
-            nationality: faker.address.country(),
-            email: faker.internet.email(),
-            phoneNo: faker.phone.number(),
-            entityType: EntityType.TEACHER,
-            password: bcrypt.hashSync('teacher123'), //Insecure - use bcrypt or similar for production
-            address: faker.address.streetAddress(),
-            currentAddress: faker.address.streetAddress(),
-            cnic: faker.string.numeric(13), // Ensure CNIC is 13 digits
-            highestQualification: faker.helpers.arrayElement([
-                'Bachelors',
-                'Masters',
-                'PhD',
-            ]),
-            specialization: faker.lorem.word(),
-            experienceYears: faker.number.int({ min: 1, max: 10 }),
-            joiningDate: faker.date.past(),
-            photo: faker.image.avatar(),
-            emergencyContactName: faker.person.fullName(),
-            emergencyContactNumber: faker.phone.number(),
-            isVerified: true,
-            applicationStatus: ApplicationStatus.Accepted,
-            subjectId: subject.id, // Assign each teacher to a subject
-            schoolId: 1,
-            role: EntityType.TEACHER,
-        }))
+        const firstName = faker.person.firstName()
+        const lastName = faker.person.lastName()
+        const email = faker.internet.email({ firstName, lastName }).toLowerCase()
+        const passwordHash = await bcrypt.hash(randomBytes(32).toString('base64url'), 12)
 
-        await Teacher.bulkCreate(teachers, { ignoreDuplicates: true })
-        console.log('Teachers seeded successfully')
-    } catch (error) {
-        console.error('Error seeding teachers:', error)
+        await sequelize.transaction(async transaction => {
+            const user = await User.create(
+                {
+                    email,
+                    passwordHash,
+                    role: 'TEACHER',
+                    schoolId: school.id,
+                    firstName,
+                    lastName,
+                    phone: faker.phone.number(),
+                    isActive: true,
+                    isVerified: true,
+                },
+                { transaction },
+            )
+
+            await Teacher.create(
+                {
+                    userId: user.id,
+                    schoolId: school.id,
+                    employeeCode: randomUUID(),
+                    qualification: faker.helpers.arrayElement(['Bachelors', 'Masters', 'PhD']),
+                    specialization: subject.name,
+                    experienceYears: faker.number.int({ min: 1, max: 10 }),
+                    joiningDate: faker.date.past(),
+                    dateOfBirth: faker.date.birthdate({ min: 25, max: 55, mode: 'age' }),
+                    gender: faker.helpers.arrayElement(['MALE', 'FEMALE', 'OTHER']),
+                    address: faker.location.streetAddress(),
+                    isVerified: true,
+                    applicationStatus: ApplicationStatus.Accepted,
+                },
+                { transaction },
+            )
+        })
     }
 }

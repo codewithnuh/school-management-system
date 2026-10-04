@@ -25,15 +25,16 @@ export class TimeSlotService {
 
     static async updateTimeSlot(
         id: number,
+        schoolId: number,
         data: Partial<TimeSlotAttributes>,
     ): Promise<TimeSlot> {
-        const timeSlot = await TimeSlot.findByPk(id)
+        const timeSlot = await TimeSlot.findOne({ where: { id, schoolId } })
         if (!timeSlot) throw new NotFoundError('Time slot')
         return timeSlot.update(data)
     }
 
-    static async deleteTimeSlot(id: number): Promise<void> {
-        const timeSlot = await TimeSlot.findByPk(id)
+    static async deleteTimeSlot(id: number, schoolId: number): Promise<void> {
+        const timeSlot = await TimeSlot.findOne({ where: { id, schoolId } })
         if (!timeSlot) throw new NotFoundError('Time slot')
         await timeSlot.destroy()
     }
