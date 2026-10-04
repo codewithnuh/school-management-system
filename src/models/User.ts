@@ -1,3 +1,4 @@
+import type { Optional } from 'sequelize'
 import {
     Table,
     Column,
@@ -31,12 +32,25 @@ export type UserAttributes = z.infer<typeof UserSchema> & {
     updatedAt: Date
 }
 
+export type UserCreationAttributes = Optional<
+    UserAttributes,
+    | 'id'
+    | 'passwordHash'
+    | 'phone'
+    | 'avatar'
+    | 'isActive'
+    | 'isVerified'
+    | 'lastLoginAt'
+    | 'createdAt'
+    | 'updatedAt'
+>
+
 @Table({
     tableName: 'users',
     timestamps: true,
     underscored: true,
 })
-export class User extends Model<UserAttributes> implements UserAttributes {
+export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
     @Column({
         type: DataType.INTEGER,
         primaryKey: true,

@@ -22,6 +22,7 @@ export async function seedSubjects(): Promise<void> {
                     schoolId: school.id,
                     category: 'CORE',
                     credits: 0,
+                    isActive: true,
                 },
             })
         }
