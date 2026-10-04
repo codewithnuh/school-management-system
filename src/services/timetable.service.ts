@@ -204,6 +204,11 @@ export class TimetableService {
      * Clear timetable for a class
      */
     static async clearTimetable(classId: number, academicYearId?: number) {
+        if (!academicYearId) {
+            const schoolClass = await Class.findByPk(classId)
+            if (!schoolClass) throw new NotFoundError('Class')
+            academicYearId = schoolClass.academicYearId
+        }
         return await clearTimetableForClass(classId, academicYearId)
     }
 

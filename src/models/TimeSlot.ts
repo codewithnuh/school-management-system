@@ -1,90 +1,90 @@
-import { Table, Column, Model, DataType, BelongsTo, HasMany, CreatedAt, UpdatedAt } from 'sequelize-typescript'
+import type { Optional } from 'sequelize'
+import {
+    Column,
+    CreatedAt,
+    DataType,
+    Model,
+    Table,
+    UpdatedAt,
+} from 'sequelize-typescript'
 import { z } from 'zod'
 
 export const TimeSlotSchema = z.object({
-  id: z.number().optional(),
-  schoolId: z.number(),
-  name: z.string().min(1, 'Time slot name is required'),
-  startTime: z.string().min(1, 'Start time is required'),
-  endTime: z.string().min(1, 'End time is required'),
-  duration: z.number().min(1),
-  dayOfWeek: z.number().min(0).max(6),
-  isActive: z.boolean().default(true),
+    schoolId: z.number().int().positive(),
+    name: z.string().trim().min(1).max(80),
+    startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    periodNumber: z.number().int().positive(),
+    isBreak: z.boolean().default(false),
+    isActive: z.boolean().default(true),
 })
 
-export type TimeSlotAttributes = z.infer<typeof TimeSlotSchema> & {
-  id: number
-  createdAt: Date
-  updatedAt: Date
+export interface TimeSlotAttributes {
+    id: number
+    schoolId: number
+    name: string
+    startTime: string
+    endTime: string
+    periodNumber: number
+    isBreak: boolean
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
 }
 
-@Table({
-  tableName: 'time_slots',
-  timestamps: true,
-  underscored: true,
-})
-export class TimeSlot extends Model<TimeSlotAttributes> implements TimeSlotAttributes {
-  @Column({
-    type: DataType.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  })
-  id!: number
+export type TimeSlotCreationAttributes = Optional<
+    TimeSlotAttributes,
+    'id' | 'createdAt' | 'updatedAt' | 'isBreak' | 'isActive'
+>
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: 'school_id',
-  })
-  schoolId!: number
+@Table({ tableName: 'time_slots', timestamps: true, underscored: true })
+export class TimeSlot extends Model<
+    TimeSlotAttributes,
+    TimeSlotCreationAttributes
+> {
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
+    declare id: number
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
-  name!: string
+    @Column({ type: DataType.INTEGER, allowNull: false, field: 'school_id' })
+    declare schoolId: number
 
-  @Column({
-    type: DataType.TIME,
-    allowNull: false,
-    field: 'start_time',
-  })
-  startTime!: string
+    @Column({ type: DataType.STRING(80), allowNull: false })
+    declare name: string
 
-  @Column({
-    type: DataType.TIME,
-    allowNull: false,
-    field: 'end_time',
-  })
-  endTime!: string
+    @Column({ type: DataType.TIME, allowNull: false, field: 'start_time' })
+    declare startTime: string
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 45,
-  })
-  duration!: number
+    @Column({ type: DataType.TIME, allowNull: false, field: 'end_time' })
+    declare endTime: string
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: 'day_of_week',
-    comment: '0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday',
-  })
-  dayOfWeek!: number
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        field: 'period_number',
+    })
+    declare periodNumber: number
 
-  @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: true,
-    field: 'is_active',
-  })
-  isActive!: boolean
+    @Column({
+        type: DataType.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        field: 'is_break',
+    })
+    declare isBreak: boolean
 
-  @CreatedAt
-  @Column({ field: 'created_at' })
-  createdAt!: Date
+    @Column({
+        type: DataType.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+        field: 'is_active',
+    })
+    declare isActive: boolean
 
-  @UpdatedAt
-  @Column({ field: 'updated_at' })
-  updatedAt!: Date
+    @CreatedAt
+    @Column({ field: 'created_at' })
+    declare createdAt: Date
+
+    @UpdatedAt
+    @Column({ field: 'updated_at' })
+    declare updatedAt: Date
 }

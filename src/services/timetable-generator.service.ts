@@ -1,506 +1,199 @@
-import { Transaction } from 'sequelize'
+import type { Transaction } from 'sequelize'
 import sequelize from '@/infrastructure/persistence/sequelize/client.js'
-import {
-    Timetable,
-    Class,
-    Section,
-    Subject,
-    Teacher,
-    Room,
-    TimeSlot,
-    ClassSubject,
-    SectionTeacher,
-} from '../models'
-import { validateScheduleEntry } from './timetable-validator.service'
-import { scheduleSession } from './timetable-scheduler.service'
-import {
-    TimetableConflictError,
-    NotFoundError,
-    ValidationError,
-} from '../errors'
+import { Class } from '@/models/Class.js'
+import { ClassSubject } from '@/models/ClassSubject.js'
+import { Section } from '@/models/Section.js'
+import { SectionTeacher } from '@/models/SectionTeacher.js'
+import { TimeSlot } from '@/models/TimeSlot.js'
+import { Timetable } from '@/models/Timetable.js'
+import { TimetableEntry } from '@/models/TimetableEntry.js'
+import { NotFoundError, ValidationError } from '@/errors/index.js'
 import type { DayOfWeek } from './validation.service.js'
+import { scheduleSession } from './timetable-scheduler.service.js'
 
 interface AutoScheduleConfig {
     classId: number
     academicYearId: number
     workingDays: DayOfWeek[]
-    maxPeriodsPerDay?: number // Maximum periods per day for a class (default: all available)
-}
-
-interface SchedulingTask {
-    subjectId: number
-    teacherId: number
-    periodsPerWeek: number
-    priority: number // Higher priority = schedule first
+    maxPeriodsPerDay?: number
 }
 
 interface ScheduleResult {
     success: boolean
     scheduledCount: number
     failedCount: number
-    errors: Array<{
-        subjectId: number
-        teacherId: number
-        error: string
-    }>
-    timetable?: Timetable[]
+    errors: Array<{ subjectId: number; teacherId: number; error: string }>
+    timetable?: TimetableEntry[]
 }
 
-/**
- * Get subject requirements for a class
- */
-async function getSubjectRequirements(
-    classId: number,
-    academicYearId: number,
-    transaction?: Transaction,
-): Promise<SchedulingTask[]> {
-    const classSubjects = await ClassSubject.findAll({
-        where: { classId, academicYearId },
-        include: [
-            {
-                model: Subject,
-                as: 'subject',
-                attributes: ['id', 'name', 'code'],
-            },
-        ],
-        transaction,
-    })
-
-    const tasks: SchedulingTask[] = []
-
-    for (const cs of classSubjects) {
-        // Find eligible teachers for this subject
-        const sectionTeachers = await SectionTeacher.findAll({
-            include: [
-                {
-                    model: Section,
-                    as: 'section',
-                    where: { classId },
-                },
-                {
-                    model: Teacher,
-                    as: 'teacher',
-                    include: [
-                        {
-                            model: Subject,
-                            as: 'subjects',
-                            where: { id: cs.subjectId },
-                        },
-                    ],
-                },
-            ],
-            transaction,
-        })
-
-        if (sectionTeachers.length > 0) {
-            // Use the first eligible teacher (could be enhanced with load balancing)
-            const teacher = sectionTeachers[0].teacher
-
-            tasks.push({
-                subjectId: cs.subjectId,
-                teacherId: teacher.id,
-                periodsPerWeek: cs.periodsPerWeek || 1,
-                priority: cs.priority || 0,
-            })
-        } else {
-            throw new ValidationError(
-                `No eligible teacher found for subject ${cs.subjectId} in class ${classId}`,
-            )
-        }
-    }
-
-    // Sort by priority (higher priority first)
-    return tasks.sort((a, b) => b.priority - a.priority)
-}
-
-/**
- * Get available sections for a class
- */
-async function getClassSections(
-    classId: number,
-    transaction?: Transaction,
-): Promise<Section[]> {
-    return await Section.findAll({
-        where: { classId },
-        transaction,
-    })
-}
-
-/**
- * Try to schedule a single period using backtracking
- */
-async function trySchedulePeriod(
-    task: SchedulingTask,
-    classId: number,
-    sectionId: number,
-    workingDays: DayOfWeek[],
-    timeSlots: TimeSlot[],
-    transaction: Transaction,
-    attempt: number = 0,
-): Promise<Timetable | null> {
-    const maxAttempts = workingDays.length * timeSlots.length
-
-    if (attempt >= maxAttempts) {
-        return null // No available slot found
-    }
-
-    // Try each day and time slot combination
-    for (const day of workingDays) {
-        for (const timeSlot of timeSlots) {
-            try {
-                const request = {
-                    classId,
-                    sectionId,
-                    subjectId: task.subjectId,
-                    teacherId: task.teacherId,
-                    dayOfWeek: day,
-                    timeSlotId: timeSlot.id,
-                }
-
-                // Validate without room assignment first (can be optimized later)
-                const validation = await validateScheduleEntry(
-                    request,
-                    undefined,
-                    transaction,
-                )
-
-                if (validation.valid) {
-                    const result = await scheduleSession(request, transaction)
-
-                    if (result.success && result.timetable) {
-                        return result.timetable
-                    }
-                }
-            } catch (error) {
-                // Conflict detected, try next slot
-                continue
-            }
-        }
-    }
-
-    return null
-}
-
-/**
- * Auto-generate timetable for a class using backtracking algorithm
- */
 export async function generateTimetableForClass(
     config: AutoScheduleConfig,
     transaction?: Transaction,
 ): Promise<ScheduleResult> {
-    const externalTransaction = !!transaction
-    let txn: Transaction | undefined = transaction
-
-    if (!externalTransaction) {
-        txn = await sequelize.transaction()
-    }
+    const ownsTransaction = transaction === undefined
+    const activeTransaction = transaction ?? (await sequelize.transaction())
+    const errors: ScheduleResult['errors'] = []
+    const entries: TimetableEntry[] = []
 
     try {
-        const { classId, academicYearId, workingDays } = config
-        const maxPeriodsPerDay = config.maxPeriodsPerDay || 10 // Default max
-
-        // Verify class exists
-        const classEntity = await Class.findByPk(classId, { transaction: txn })
-        if (!classEntity) {
-            throw new NotFoundError('Class')
+        const schoolClass = await Class.findByPk(config.classId, { transaction: activeTransaction })
+        if (!schoolClass) throw new NotFoundError('Class')
+        if (schoolClass.academicYearId !== config.academicYearId) {
+            throw new ValidationError('Class does not belong to the requested academic year')
         }
 
-        // Get all time slots for the academic year
-        const timeSlots = await TimeSlot.findAll({
-            where: { academicYearId },
-            order: [['periodNumber', 'ASC']],
-            transaction: txn,
-        })
-
-        if (timeSlots.length === 0) {
-            throw new ValidationError(
-                'No time slots defined for this academic year',
-            )
+        const [sections, classSubjects, timeSlots] = await Promise.all([
+            Section.findAll({ where: { classId: config.classId, isActive: true }, transaction: activeTransaction }),
+            ClassSubject.findAll({ where: { classId: config.classId }, transaction: activeTransaction }),
+            TimeSlot.findAll({
+                where: { schoolId: schoolClass.schoolId, isActive: true, isBreak: false },
+                order: [['periodNumber', 'ASC']],
+                transaction: activeTransaction,
+            }),
+        ])
+        if (sections.length === 0) throw new ValidationError('No active sections are configured for this class')
+        if (classSubjects.length === 0) throw new ValidationError('No subjects are configured for this class')
+        const maxPeriod = config.maxPeriodsPerDay ?? Number.POSITIVE_INFINITY
+        const slots = timeSlots.filter(slot => slot.periodNumber <= maxPeriod)
+        if (slots.length === 0 || config.workingDays.length === 0) {
+            throw new ValidationError('No usable timetable periods or working days are configured')
         }
 
-        // Get sections for this class
-        const sections = await getClassSections(classId, txn)
-
-        if (sections.length === 0) {
-            throw new ValidationError(`No sections found for class ${classId}`)
-        }
-
-        // Get subject requirements
-        const tasks = await getSubjectRequirements(classId, academicYearId, txn)
-
-        if (tasks.length === 0) {
-            throw new ValidationError('No subjects configured for this class')
-        }
-
-        const scheduledEntries: Timetable[] = []
-        const errors: Array<{
-            subjectId: number
-            teacherId: number
-            error: string
-        }> = []
-        let scheduledCount = 0
-        let failedCount = 0
-
-        // Schedule for each section
         for (const section of sections) {
-            // Calculate total periods needed
-            const totalPeriodsNeeded = tasks.reduce(
-                (sum, task) => sum + task.periodsPerWeek,
-                0,
-            )
-
-            const maxPeriodsAvailable =
-                workingDays.length *
-                Math.min(maxPeriodsPerDay, timeSlots.length)
-
-            if (totalPeriodsNeeded > maxPeriodsAvailable) {
-                errors.push({
-                    subjectId: 0,
-                    teacherId: 0,
-                    error: `Total periods (${totalPeriodsNeeded}) exceed available slots (${maxPeriodsAvailable}) for section ${section.name}`,
+            for (const classSubject of classSubjects) {
+                const assignment = await SectionTeacher.findOne({
+                    where: { sectionId: section.id, subjectId: classSubject.subjectId },
+                    order: [['teacherId', 'ASC']],
+                    transaction: activeTransaction,
                 })
-                failedCount += tasks.length
-                continue
-            }
+                if (!assignment) {
+                    errors.push({
+                        subjectId: classSubject.subjectId,
+                        teacherId: 0,
+                        error: `No teacher is assigned to subject ${classSubject.subjectId} in section ${section.name}`,
+                    })
+                    continue
+                }
 
-            // Schedule each subject's periods
-            for (const task of tasks) {
-                let periodsScheduled = 0
-
-                for (let i = 0; i < task.periodsPerWeek; i++) {
-                    try {
-                        const entry = await trySchedulePeriod(
-                            task,
-                            classId,
-                            section.id,
-                            workingDays,
-                            timeSlots,
-                            txn!,
-                        )
-
-                        if (entry) {
-                            scheduledEntries.push(entry)
-                            periodsScheduled++
-                            scheduledCount++
-                        } else {
-                            errors.push({
-                                subjectId: task.subjectId,
-                                teacherId: task.teacherId,
-                                error: `Could not schedule period ${i + 1}/${task.periodsPerWeek} for subject ${task.subjectId}`,
-                            })
-                            failedCount++
+                for (let period = 0; period < classSubject.periodsPerWeek; period += 1) {
+                    let scheduled: TimetableEntry | undefined
+                    for (const day of config.workingDays) {
+                        for (const slot of slots) {
+                            try {
+                                const result = await scheduleSession({
+                                    classId: config.classId,
+                                    sectionId: section.id,
+                                    subjectId: classSubject.subjectId,
+                                    teacherId: assignment.teacherId,
+                                    dayOfWeek: day,
+                                    timeSlotId: slot.id,
+                                }, activeTransaction)
+                                if (result.success && result.timetable) {
+                                    scheduled = result.timetable
+                                    break
+                                }
+                            } catch {
+                                // Try the next available day and period after a scheduling conflict.
+                            }
                         }
-                    } catch (error) {
+                        if (scheduled) break
+                    }
+                    if (scheduled) {
+                        entries.push(scheduled)
+                    } else {
                         errors.push({
-                            subjectId: task.subjectId,
-                            teacherId: task.teacherId,
-                            error:
-                                error instanceof Error
-                                    ? error.message
-                                    : 'Unknown error',
+                            subjectId: classSubject.subjectId,
+                            teacherId: assignment.teacherId,
+                            error: `No conflict-free period was available for weekly occurrence ${period + 1}`,
                         })
-                        failedCount++
                     }
                 }
             }
         }
 
-        // Commit transaction if successful
-        if (!externalTransaction) {
-            await txn!.commit()
-        }
-
+        if (ownsTransaction) await activeTransaction.commit()
         return {
-            success: failedCount === 0,
-            scheduledCount,
-            failedCount,
+            success: errors.length === 0,
+            scheduledCount: entries.length,
+            failedCount: errors.length,
             errors,
-            timetable: scheduledEntries,
+            timetable: entries,
         }
     } catch (error) {
-        // Rollback on error
-        if (!externalTransaction && txn) {
-            await txn.rollback()
-        }
-
+        if (ownsTransaction) await activeTransaction.rollback()
         throw error
     }
 }
 
-/**
- * Generate timetables for multiple classes
- */
 export async function generateTimetablesForSchool(
     schoolId: number,
     academicYearId: number,
     workingDays: DayOfWeek[],
     transaction?: Transaction,
-): Promise<{
-    success: boolean
-    results: Array<{ classId: number; result: ScheduleResult }>
-}> {
-    const externalTransaction = !!transaction
-    let txn: Transaction | undefined = transaction
-
-    if (!externalTransaction) {
-        txn = await sequelize.transaction()
+): Promise<{ success: boolean; results: Array<{ classId: number; result: ScheduleResult }> }> {
+    const classes = await Class.findAll({ where: { schoolId, academicYearId }, transaction })
+    const results: Array<{ classId: number; result: ScheduleResult }> = []
+    for (const schoolClass of classes) {
+        const result = await generateTimetableForClass(
+            { classId: schoolClass.id, academicYearId, workingDays },
+            transaction,
+        )
+        results.push({ classId: schoolClass.id, result })
     }
-
-    try {
-        // Get all classes for this school
-        const classes = await Class.findAll({
-            where: { schoolId },
-            transaction: txn,
-        })
-
-        const results: Array<{ classId: number; result: ScheduleResult }> = []
-        let overallSuccess = true
-
-        for (const cls of classes) {
-            try {
-                const result = await generateTimetableForClass(
-                    {
-                        classId: cls.id,
-                        academicYearId,
-                        workingDays,
-                    },
-                    txn!,
-                )
-
-                results.push({ classId: cls.id, result })
-
-                if (!result.success) {
-                    overallSuccess = false
-                }
-            } catch (error) {
-                results.push({
-                    classId: cls.id,
-                    result: {
-                        success: false,
-                        scheduledCount: 0,
-                        failedCount: 1,
-                        errors: [
-                            {
-                                subjectId: 0,
-                                teacherId: 0,
-                                error:
-                                    error instanceof Error
-                                        ? error.message
-                                        : 'Unknown error',
-                            },
-                        ],
-                    },
-                })
-                overallSuccess = false
-            }
-        }
-
-        // Commit or rollback based on overall success
-        if (!externalTransaction) {
-            if (overallSuccess) {
-                await txn!.commit()
-            } else {
-                await txn!.rollback()
-            }
-        }
-
-        return {
-            success: overallSuccess,
-            results,
-        }
-    } catch (error) {
-        if (!externalTransaction && txn) {
-            await txn.rollback()
-        }
-        throw error
-    }
+    return { success: results.every(({ result }) => result.success), results }
 }
 
-/**
- * Clear all timetable entries for a class
- */
 export async function clearTimetableForClass(
     classId: number,
     academicYearId: number,
     transaction?: Transaction,
 ): Promise<{ success: boolean; deletedCount: number }> {
-    try {
-        const deleted = await Timetable.destroy({
-            where: {
-                classId,
-            },
-            transaction,
-        })
-
-        return {
-            success: true,
-            deletedCount: deleted,
-        }
-    } catch (error) {
-        throw new Error(
-            `Failed to clear timetable: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        )
-    }
+    const timetables = await Timetable.findAll({
+        where: { classId, academicYearId },
+        attributes: ['id'],
+        transaction,
+    })
+    const timetableIds = timetables.map(timetable => timetable.id)
+    const deletedCount = await TimetableEntry.destroy({
+        where: { timetableId: timetableIds },
+        transaction,
+    })
+    await Timetable.destroy({ where: { id: timetableIds }, transaction })
+    return { success: true, deletedCount }
 }
 
-/**
- * Validate timetable completeness for a class
- */
 export async function validateTimetableCompleteness(
     classId: number,
     academicYearId: number,
-    workingDays: DayOfWeek[],
+    _workingDays: DayOfWeek[],
     transaction?: Transaction,
 ): Promise<{
     isValid: boolean
-    missingPeriods: Array<{
-        subjectId: number
-        required: number
-        scheduled: number
-    }>
+    missingPeriods: Array<{ subjectId: number; required: number; scheduled: number }>
     totalScheduled: number
     totalRequired: number
 }> {
-    const classSubjects = await ClassSubject.findAll({
-        where: { classId, academicYearId },
+    const [sections, classSubjects, timetables] = await Promise.all([
+        Section.findAll({ where: { classId, isActive: true }, attributes: ['id'], transaction }),
+        ClassSubject.findAll({ where: { classId }, transaction }),
+        Timetable.findAll({ where: { classId, academicYearId }, attributes: ['id'], transaction }),
+    ])
+    const entries = await TimetableEntry.findAll({
+        where: { timetableId: timetables.map(timetable => timetable.id) },
+        attributes: ['subjectId'],
         transaction,
     })
-
-    const existingTimetable = await Timetable.findAll({
-        where: { classId },
-        transaction,
+    const missingPeriods = classSubjects.flatMap(classSubject => {
+        const scheduled = entries.filter(entry => entry.subjectId === classSubject.subjectId).length
+        const required = classSubject.periodsPerWeek * sections.length
+        return scheduled < required
+            ? [{ subjectId: classSubject.subjectId, required, scheduled }]
+            : []
     })
-
-    const missingPeriods: Array<{
-        subjectId: number
-        required: number
-        scheduled: number
-    }> = []
-
-    let totalRequired = 0
-    let totalScheduled = existingTimetable.length
-
-    for (const cs of classSubjects) {
-        const required = cs.periodsPerWeek || 0
-        totalRequired += required
-
-        const scheduled = existingTimetable.filter(
-            t => t.subjectId === cs.subjectId,
-        ).length
-
-        if (scheduled < required) {
-            missingPeriods.push({
-                subjectId: cs.subjectId,
-                required,
-                scheduled,
-            })
-        }
-    }
-
-    return {
-        isValid: missingPeriods.length === 0,
-        missingPeriods,
-        totalScheduled,
-        totalRequired,
-    }
+    const totalScheduled = entries.length
+    const totalRequired = classSubjects.reduce(
+        (total, classSubject) => total + classSubject.periodsPerWeek * sections.length,
+        0,
+    )
+    return { isValid: missingPeriods.length === 0, missingPeriods, totalScheduled, totalRequired }
 }

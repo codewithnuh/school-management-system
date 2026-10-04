@@ -131,7 +131,6 @@ export function createApp(shutdown?: GracefulShutdown): Express {
 
 export async function startServer(): Promise<Server> {
     await sequelize.authenticate()
-    if (env.NODE_ENV !== 'production') await sequelize.sync()
 
     const tracker = new NodeConnectionTracker()
     const shutdown = new GracefulShutdown({

@@ -1,5 +1,3 @@
-import { TimeSlotAttributes } from '@/models/TimeSlot'
-
 export interface GenerateTimeSlotsInput {
     startTime: string // "08:00"
     endTime: string // "14:00"
@@ -7,32 +5,46 @@ export interface GenerateTimeSlotsInput {
     breakLength?: number // 15 (minutes)
 }
 
+export interface GeneratedTimeSlot {
+    name: string
+    startTime: string
+    endTime: string
+    periodNumber: number
+    isBreak: boolean
+}
+
 export function generateTimeSlots(
     input: GenerateTimeSlotsInput,
-): TimeSlotAttributes[] {
+): GeneratedTimeSlot[] {
     const { startTime, endTime, periodLength, breakLength = 0 } = input
-    const slots: TimeSlotAttributes[] = []
+    const slots: GeneratedTimeSlot[] = []
     let currentTime = parseTime(startTime)
+    let periodNumber = 1
 
     while (currentTime < parseTime(endTime)) {
         const slotEnd = addMinutes(currentTime, periodLength)
         if (slotEnd > parseTime(endTime)) break
 
         slots.push({
+            name: `Period ${periodNumber}`,
             startTime: formatTime(currentTime),
             endTime: formatTime(slotEnd),
-            day: 'MON', // Repeat for other days
+            periodNumber,
+            isBreak: false,
         })
+        periodNumber += 1
 
         // Add break
         if (breakLength > 0) {
             const breakEnd = addMinutes(slotEnd, breakLength)
             slots.push({
+                name: 'Break',
                 startTime: formatTime(slotEnd),
                 endTime: formatTime(breakEnd),
-                day: 'MON',
-                type: 'BREAK', // Add this field to TimeSlot model
+                periodNumber,
+                isBreak: true,
             })
+            periodNumber += 1
             currentTime = breakEnd
         } else {
             currentTime = slotEnd

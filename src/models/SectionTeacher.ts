@@ -1,80 +1,65 @@
+import type { Optional } from 'sequelize'
 import {
-    Table,
     Column,
-    Model,
-    DataType,
-    BelongsTo,
     CreatedAt,
+    DataType,
+    Model,
+    Table,
     UpdatedAt,
 } from 'sequelize-typescript'
-import { z } from 'zod'
+import type { Section } from './Section.js'
+import type { Subject } from './Subject.js'
+import type { Teacher } from './Teacher.js'
 
-export const SectionTeacherSchema = z.object({
-    id: z.number().optional(),
-    sectionId: z.number(),
-    teacherId: z.number(),
-    subjectId: z.number(),
-    academicYearId: z.number().nullable().optional(),
-})
-
-export type SectionTeacherAttributes = z.infer<typeof SectionTeacherSchema> & {
+export interface SectionTeacherAttributes {
     id: number
+    sectionId: number
+    teacherId: number
+    subjectId: number
+    isClassTeacher: boolean
     createdAt: Date
     updatedAt: Date
 }
 
-@Table({
-    tableName: 'section_teachers',
-    timestamps: true,
-    underscored: true,
-})
-export class SectionTeacher
-    extends Model<SectionTeacherAttributes>
-    implements SectionTeacherAttributes
-{
-    @Column({
-        type: DataType.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    })
-    id!: number
+export type SectionTeacherCreationAttributes = Optional<
+    SectionTeacherAttributes,
+    'id' | 'isClassTeacher' | 'createdAt' | 'updatedAt'
+>
+
+@Table({ tableName: 'section_teachers', timestamps: true, underscored: true })
+export class SectionTeacher extends Model<
+    SectionTeacherAttributes,
+    SectionTeacherCreationAttributes
+> {
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
+    declare id: number
+
+    @Column({ type: DataType.INTEGER, allowNull: false, field: 'section_id' })
+    declare sectionId: number
+
+    @Column({ type: DataType.INTEGER, allowNull: false, field: 'teacher_id' })
+    declare teacherId: number
+
+    @Column({ type: DataType.INTEGER, allowNull: false, field: 'subject_id' })
+    declare subjectId: number
 
     @Column({
-        type: DataType.INTEGER,
+        type: DataType.BOOLEAN,
         allowNull: false,
-        field: 'section_id',
-        unique: 'unique_section_teacher_subject',
+        defaultValue: false,
+        field: 'is_class_teacher',
     })
-    sectionId!: number
-
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-        field: 'teacher_id',
-        unique: 'unique_section_teacher_subject',
-    })
-    teacherId!: number
-
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: false,
-        field: 'subject_id',
-        unique: 'unique_section_teacher_subject',
-    })
-    subjectId!: number
-
-    @Column({
-        type: DataType.INTEGER,
-        allowNull: true,
-        field: 'academic_year_id',
-    })
-    academicYearId!: number | null
+    declare isClassTeacher: boolean
 
     @CreatedAt
     @Column({ field: 'created_at' })
-    createdAt!: Date
+    declare createdAt: Date
 
     @UpdatedAt
     @Column({ field: 'updated_at' })
-    updatedAt!: Date
+    declare updatedAt: Date
+
+    declare section?: Section
+    declare teacher?: Teacher
+    declare subject?: Subject
 }

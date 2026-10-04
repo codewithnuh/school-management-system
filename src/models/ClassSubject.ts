@@ -1,60 +1,69 @@
-import { Table, Column, Model, DataType, BelongsTo, CreatedAt, UpdatedAt } from 'sequelize-typescript'
-import { z } from 'zod'
+import type { Optional } from 'sequelize'
+import {
+    Column,
+    CreatedAt,
+    DataType,
+    Model,
+    Table,
+    UpdatedAt,
+} from 'sequelize-typescript'
+import type { Class } from './Class.js'
+import type { Subject } from './Subject.js'
 
-export const ClassSubjectSchema = z.object({
-  id: z.number().optional(),
-  classId: z.number(),
-  subjectId: z.number(),
-  isCompulsory: z.boolean().default(true),
-})
-
-export type ClassSubjectAttributes = z.infer<typeof ClassSubjectSchema> & {
-  id: number
-  createdAt: Date
-  updatedAt: Date
+export interface ClassSubjectAttributes {
+    id: number
+    classId: number
+    subjectId: number
+    periodsPerWeek: number
+    isCompulsory: boolean
+    createdAt: Date
+    updatedAt: Date
 }
 
-@Table({
-  tableName: 'class_subjects',
-  timestamps: true,
-  underscored: true,
-})
-export class ClassSubject extends Model<ClassSubjectAttributes> implements ClassSubjectAttributes {
-  @Column({
-    type: DataType.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  })
-  id!: number
+export type ClassSubjectCreationAttributes = Optional<
+    ClassSubjectAttributes,
+    'id' | 'periodsPerWeek' | 'isCompulsory' | 'createdAt' | 'updatedAt'
+>
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: 'class_id',
-    unique: 'unique_class_subject',
-  })
-  classId!: number
+@Table({ tableName: 'class_subjects', timestamps: true, underscored: true })
+export class ClassSubject extends Model<
+    ClassSubjectAttributes,
+    ClassSubjectCreationAttributes
+> {
+    @Column({ type: DataType.INTEGER, primaryKey: true, autoIncrement: true })
+    declare id: number
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: 'subject_id',
-    unique: 'unique_class_subject',
-  })
-  subjectId!: number
+    @Column({ type: DataType.INTEGER, allowNull: false, field: 'class_id' })
+    declare classId: number
 
-  @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: true,
-    field: 'is_compulsory',
-  })
-  isCompulsory!: boolean
+    @Column({ type: DataType.INTEGER, allowNull: false, field: 'subject_id' })
+    declare subjectId: number
 
-  @CreatedAt
-  @Column({ field: 'created_at' })
-  createdAt!: Date
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 4,
+        field: 'periods_per_week',
+    })
+    declare periodsPerWeek: number
 
-  @UpdatedAt
-  @Column({ field: 'updated_at' })
-  updatedAt!: Date
+    @Column({
+        type: DataType.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+        field: 'is_compulsory',
+    })
+    declare isCompulsory: boolean
+
+    @CreatedAt
+    @Column({ field: 'created_at' })
+    declare createdAt: Date
+
+    @UpdatedAt
+    @Column({ field: 'updated_at' })
+    declare updatedAt: Date
+
+    declare class?: Class
+
+    declare subject?: Subject
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { NextFunction, Request, Response } from 'express'
 import {
     isTrustedBrowserOrigin,
