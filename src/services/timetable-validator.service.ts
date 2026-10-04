@@ -17,7 +17,7 @@ const ScheduleEntrySchema = z.object({
 
 type ScheduleEntry = z.infer<typeof ScheduleEntrySchema>;
 
-interface ConflictCheck {
+export interface ConflictCheck {
   hasConflict: boolean;
   conflictType?: 'teacher' | 'room' | 'class' | 'subject';
   conflictingEntity?: {
@@ -25,6 +25,14 @@ interface ConflictCheck {
     id: number;
     name?: string;
   };
+}
+
+export interface ScheduleConflict {
+  type: 'teacher' | 'room' | 'class'
+  entityId: number
+  timeSlotId: number
+  day: string
+  details?: ConflictCheck['conflictingEntity']
 }
 
 /**
@@ -171,9 +179,9 @@ export async function validateScheduleEntry(
   entry: ScheduleEntry,
   excludeTimetableId?: number,
   transaction?: Transaction
-): Promise<{ valid: boolean; errors: string[]; conflicts: any[] }> {
+): Promise<{ valid: boolean; errors: string[]; conflicts: ScheduleConflict[] }> {
   const errors: string[] = [];
-  const conflicts: any[] = [];
+  const conflicts: ScheduleConflict[] = [];
 
   // Validate input schema
   const validation = ScheduleEntrySchema.safeParse(entry);

@@ -145,13 +145,24 @@ export const CreateSectionTeacherSchema = z.object({
 export const UpdateSectionTeacherSchema = CreateSectionTeacherSchema.partial();
 
 // Timetable schemas
+export const DayOfWeekSchema = z.enum([
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+]);
+export type DayOfWeek = z.infer<typeof DayOfWeekSchema>;
+
 export const CreateTimetableSchema = z.object({
   classId: IdSchema,
   sectionId: IdSchema,
   subjectId: IdSchema,
   teacherId: IdSchema,
   roomId: IdSchema.optional(),
-  dayOfWeek: z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
+  dayOfWeek: DayOfWeekSchema,
   timeSlotId: IdSchema,
 });
 

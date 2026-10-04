@@ -24,6 +24,8 @@ For development outside Docker, start PostgreSQL and Redis, then run `pnpm dev`.
 
 `CORS_ORIGINS` is a comma-separated allowlist. Set `TRUST_PROXY_HOPS` to the exact number of trusted proxy hops in front of the API; it defaults to `0`. Set `UPLOADTHING_TOKEN` when file uploads are enabled. `JWT_SECRET` must be at least 32 characters.
 
+Authentication cookies are HTTP-only and use the configured session lifetime. Unsafe requests carrying the cookie must include an allowed `Origin` (or same-origin `Referer`). Session records store a SHA-256 digest of the bearer token, so the raw token is not persisted in PostgreSQL.
+
 ## Project layout
 
 - `src/modules/` contains feature application and domain code.

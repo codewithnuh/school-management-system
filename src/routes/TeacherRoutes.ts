@@ -1,6 +1,7 @@
 import express from 'express'
 import { TeacherController } from '@/controllers/TeacherController.js'
 import authenticate from '@/middleware/auth.middleware.js'
+import { registrationLimiter } from '@/middleware/rateLimit.middleware.js'
 
 const router = express.Router()
 
@@ -186,7 +187,7 @@ router.put('/', authenticate(['ADMIN']), TeacherController.updateTeacher)
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 
-router.post('/register', TeacherController.registerTeacher)
+router.post('/register', registrationLimiter, TeacherController.registerTeacher)
 router.post(
     '/accept-teacher-application',
     authenticate(['ADMIN']),
@@ -259,12 +260,12 @@ router.post(
 
     TeacherController.interviewTeacherApplication,
 )
-router.get('/teachers-count', TeacherController.getTeachersCount)
+router.get('/teachers-count', authenticate(['ADMIN']), TeacherController.getTeachersCount)
 router.post('/', authenticate(['ADMIN']), TeacherController.createTeacher)
 router.get(
     '/applications',
     authenticate(['ADMIN']),
     TeacherController.getUnregisteredTeachers,
 )
-router.get('/:id', TeacherController.getTeacherById)
+router.get('/:id', authenticate(['ADMIN', 'TEACHER']), TeacherController.getTeacherById)
 export default router

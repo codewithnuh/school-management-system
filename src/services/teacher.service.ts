@@ -4,9 +4,12 @@ import {
     Teacher,
     TeacherAttributes,
 } from '@/models/Teacher.js'
-import { Op, WhereOptions } from 'sequelize'
+import { Op, type Includeable, type WhereOptions } from 'sequelize'
 import bcrypt from 'bcryptjs'
 import { logger } from '@/middleware/loggin.middleware.js'
+import { User } from '@/models/User.js'
+import { Subject } from '@/models/Subject.js'
+import type { UserAttributes } from '@/models/User.js'
 
 class TeacherService {
     /**
@@ -138,7 +141,9 @@ class TeacherService {
             const offset = (page - 1) * limit
 
             // Sorting parameters
-            const sortBy = query.sortBy || 'createdAt'
+            const allowedSortFields = ['createdAt', 'employeeId', 'experience'] as const
+            const sortBy =
+                allowedSortFields.find(field => field === query.sortBy) ?? 'createdAt'
             const sortOrder = query.sortOrder || 'ASC'
 
             // Filter parameters
@@ -151,45 +156,43 @@ class TeacherService {
                         : query.subjectId
                     : null
 
-            // Build where conditions with proper typing
-            const whereConditions: WhereOptions<TeacherAttributes> = {
-                schoolId: schoolId,
-            }
-
-            // Build search condition if provided
-            if (search && search.trim() !== '') {
-                whereConditions[Op.and] = [
-                    // Keep the schoolId condition within the AND array to ensure it's always applied
-                    { schoolId },
-                    {
-                        [Op.or]: [
-                            { firstName: { [Op.iLike]: `%${search}%` } },
-                            { lastName: { [Op.iLike]: `%${search}%` } },
-                            { email: { [Op.iLike]: `%${search}%` } },
-                            { cnic: { [Op.iLike]: `%${search}%` } },
-                        ],
-                    },
-                ]
-            }
-
-            // Add subjectId filter if provided
-            if (subjectId !== null) {
-                if (whereConditions[Op.and]) {
-                    // If we already have an AND condition, add the subjectId to it
-                    ;(whereConditions[Op.and] as any[]).push({ subjectId })
-                } else {
-                    // Otherwise, create a new AND condition that includes schoolId
-                    whereConditions[Op.and] = [{ schoolId }, { subjectId }]
+            const whereConditions: WhereOptions<TeacherAttributes> = { schoolId }
+            const include: Includeable[] = []
+            const normalizedSearch = search?.trim()
+            if (normalizedSearch) {
+                const pattern = `%${normalizedSearch}%`
+                const userWhere: WhereOptions<UserAttributes> = {
+                    [Op.or]: [
+                        { firstName: { [Op.iLike]: pattern } },
+                        { lastName: { [Op.iLike]: pattern } },
+                        { email: { [Op.iLike]: pattern } },
+                    ],
                 }
+                include.push({
+                    model: User,
+                    as: 'user',
+                    attributes: ['id', 'firstName', 'lastName', 'email', 'phone'],
+                    where: userWhere,
+                    required: true,
+                })
+            }
+            if (subjectId !== null) {
+                include.push({
+                    model: Subject,
+                    as: 'subjects',
+                    attributes: ['id', 'name', 'code'],
+                    where: { id: subjectId },
+                    through: { attributes: [] },
+                    required: true,
+                })
             }
 
             return await Teacher.findAndCountAll({
                 where: whereConditions,
                 limit,
                 offset,
-                attributes: {
-                    exclude: ['password'],
-                },
+                include,
+                distinct: true,
                 order: [[sortBy, sortOrder]],
                 // include: [{
                 //     model: Subject, // Make sure Subject model is imported and associated

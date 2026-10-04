@@ -2,11 +2,14 @@ declare global {
     namespace Express {
         interface Request {
             id?: string
-            user?: {
-                userid: string
-                email: string
-                role: string
-                schoolId?: number
+            auth?: {
+                userId: number
+                entityType: 'ADMIN' | 'TEACHER' | 'USER' | 'STUDENT' | 'PARENT' | 'OWNER'
+            }
+            pagination?: {
+                page: number
+                limit: number
+                offset: number
             }
         }
     }

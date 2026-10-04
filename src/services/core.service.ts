@@ -21,7 +21,7 @@ export class SchoolService {
     /**
      * Create a new school
      */
-    static async create(data: any, transaction?: Transaction) {
+    static async create(data: NonNullable<Parameters<typeof School.create>[0]>, transaction?: Transaction) {
         const existing = await School.findOne({
             where: { code: data.code },
             transaction,
@@ -70,7 +70,7 @@ export class SchoolService {
     /**
      * Update school
      */
-    static async update(id: number, data: any, transaction?: Transaction) {
+    static async update(id: number, data: Partial<NonNullable<Parameters<typeof School.create>[0]>>, transaction?: Transaction) {
         const school = await School.findByPk(id, { transaction })
 
         if (!school) {
@@ -121,7 +121,7 @@ export class AcademicYearService {
     /**
      * Create academic year
      */
-    static async create(data: any, transaction?: Transaction) {
+    static async create(data: NonNullable<Parameters<typeof AcademicYear.create>[0]>, transaction?: Transaction) {
         // Validate dates
         if (new Date(data.startDate) >= new Date(data.endDate)) {
             throw new ValidationError('End date must be after start date')
@@ -163,7 +163,7 @@ export class AcademicYearService {
     /**
      * Update academic year
      */
-    static async update(id: number, data: any, transaction?: Transaction) {
+    static async update(id: number, data: Partial<NonNullable<Parameters<typeof AcademicYear.create>[0]>>, transaction?: Transaction) {
         const academicYear = await AcademicYear.findByPk(id, { transaction })
 
         if (!academicYear) {
@@ -219,7 +219,7 @@ export class ClassService {
     /**
      * Create class
      */
-    static async create(data: any, transaction?: Transaction) {
+    static async create(data: NonNullable<Parameters<typeof Class.create>[0]>, transaction?: Transaction) {
         const existing = await Class.findOne({
             where: {
                 schoolId: data.schoolId,
@@ -267,7 +267,7 @@ export class ClassService {
     /**
      * Update class
      */
-    static async update(id: number, data: any, transaction?: Transaction) {
+    static async update(id: number, data: Partial<NonNullable<Parameters<typeof Class.create>[0]>>, transaction?: Transaction) {
         const classEntity = await Class.findByPk(id, { transaction })
 
         if (!classEntity) {
@@ -299,7 +299,7 @@ export class SectionService {
     /**
      * Create section
      */
-    static async create(data: any, transaction?: Transaction) {
+    static async create(data: NonNullable<Parameters<typeof Section.create>[0]>, transaction?: Transaction) {
         const existing = await Section.findOne({
             where: {
                 classId: data.classId,
@@ -342,7 +342,7 @@ export class SectionService {
     /**
      * Update section
      */
-    static async update(id: number, data: any, transaction?: Transaction) {
+    static async update(id: number, data: Partial<NonNullable<Parameters<typeof Section.create>[0]>>, transaction?: Transaction) {
         const section = await Section.findByPk(id, { transaction })
 
         if (!section) {
@@ -374,7 +374,7 @@ export class SubjectService {
     /**
      * Create subject
      */
-    static async create(data: any, transaction?: Transaction) {
+    static async create(data: NonNullable<Parameters<typeof Subject.create>[0]>, transaction?: Transaction) {
         const existing = await Subject.findOne({
             where: {
                 schoolId: data.schoolId,
@@ -417,7 +417,7 @@ export class SubjectService {
     /**
      * Update subject
      */
-    static async update(id: number, data: any, transaction?: Transaction) {
+    static async update(id: number, data: Partial<NonNullable<Parameters<typeof Subject.create>[0]>>, transaction?: Transaction) {
         const subject = await Subject.findByPk(id, { transaction })
 
         if (!subject) {
@@ -449,7 +449,7 @@ export class TeacherService {
     /**
      * Create teacher
      */
-    static async create(data: any, transaction?: Transaction) {
+    static async create(data: NonNullable<Parameters<typeof Teacher.create>[0]>, transaction?: Transaction) {
         const existing = await Teacher.findOne({
             where: { userId: data.userId },
             transaction,
@@ -500,7 +500,7 @@ export class TeacherService {
     /**
      * Update teacher
      */
-    static async update(id: number, data: any, transaction?: Transaction) {
+    static async update(id: number, data: Partial<NonNullable<Parameters<typeof Teacher.create>[0]>>, transaction?: Transaction) {
         const teacher = await Teacher.findByPk(id, { transaction })
 
         if (!teacher) {
@@ -532,7 +532,7 @@ export class StudentService {
     /**
      * Create student
      */
-    static async create(data: any, transaction?: Transaction) {
+    static async create(data: NonNullable<Parameters<typeof Student.create>[0]>, transaction?: Transaction) {
         const existing = await Student.findOne({
             where: {
                 admissionNumber: data.admissionNumber,
@@ -591,7 +591,7 @@ export class StudentService {
     /**
      * Update student
      */
-    static async update(id: number, data: any, transaction?: Transaction) {
+    static async update(id: number, data: Partial<NonNullable<Parameters<typeof Student.create>[0]>>, transaction?: Transaction) {
         const student = await Student.findByPk(id, { transaction })
 
         if (!student) {
@@ -623,7 +623,7 @@ export class RoomService {
     /**
      * Create room
      */
-    static async create(data: any, transaction?: Transaction) {
+    static async create(data: NonNullable<Parameters<typeof Room.create>[0]>, transaction?: Transaction) {
         const existing = await Room.findOne({
             where: {
                 schoolId: data.schoolId,
@@ -666,7 +666,7 @@ export class RoomService {
     /**
      * Update room
      */
-    static async update(id: number, data: any, transaction?: Transaction) {
+    static async update(id: number, data: Partial<NonNullable<Parameters<typeof Room.create>[0]>>, transaction?: Transaction) {
         const room = await Room.findByPk(id, { transaction })
 
         if (!room) {

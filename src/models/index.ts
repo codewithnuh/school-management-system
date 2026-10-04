@@ -27,6 +27,7 @@ import { TimetableEntry } from './TimetableEntry.js'
 import { Exam } from './Exam.js'
 import { ExamSubject } from './ExamSubject.js'
 import { StudentExam } from './StudentExam.js'
+import { Session } from './Session.js'
 
 // Define all model associations
 export function setupAssociations() {
@@ -170,6 +171,7 @@ sequelize.addModels([
   Exam,
   ExamSubject,
   StudentExam,
+  Session,
 ])
 
 // Setup associations
@@ -196,4 +198,5 @@ export {
   Exam,
   ExamSubject,
   StudentExam,
+  Session,
 }

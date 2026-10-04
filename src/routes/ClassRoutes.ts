@@ -177,8 +177,8 @@ router.post('/', authWithRBAC(['ADMIN']), ClassController.createClass)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', ClassController.getAllClasses)
-router.get('/classes-count', ClassController.getAllClassesCount)
+router.get('/', authWithRBAC(), ClassController.getAllClasses)
+router.get('/classes-count', authWithRBAC(['ADMIN']), ClassController.getAllClassesCount)
 
 /**
  * @openapi

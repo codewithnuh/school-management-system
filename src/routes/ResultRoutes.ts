@@ -155,7 +155,7 @@ router.post('/', authWithRBAC(['ADMIN']), ResultController.createResult)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', ResultController.getAllResults)
+router.get('/', authWithRBAC(['ADMIN', 'TEACHER']), ResultController.getAllResults)
 
 /**
  * @openapi
@@ -200,7 +200,7 @@ router.get('/', ResultController.getAllResults)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/results/:id', ResultController.getResultById)
+router.get('/results/:id', authWithRBAC(['ADMIN', 'TEACHER']), ResultController.getResultById)
 
 /**
  * @openapi
@@ -243,6 +243,7 @@ router.get('/results/:id', ResultController.getResultById)
  */
 router.get(
     '/results/student/:studentId',
+    authWithRBAC(['ADMIN', 'TEACHER']),
     ResultController.getResultsByStudentId,
 )
 
@@ -285,7 +286,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/results/exam/:examId', ResultController.getResultsByExamId)
+router.get('/results/exam/:examId', authWithRBAC(['ADMIN', 'TEACHER']), ResultController.getResultsByExamId)
 
 /**
  * @openapi
@@ -344,7 +345,7 @@ router.get('/results/exam/:examId', ResultController.getResultsByExamId)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/results/:id', ResultController.updateResult)
+router.put('/results/:id', authWithRBAC(['ADMIN', 'TEACHER']), ResultController.updateResult)
 
 /**
  * @openapi
@@ -385,6 +386,6 @@ router.put('/results/:id', ResultController.updateResult)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/results/:id', ResultController.deleteResult)
+router.delete('/results/:id', authWithRBAC(['ADMIN']), ResultController.deleteResult)
 
 export default router

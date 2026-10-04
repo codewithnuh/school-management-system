@@ -150,7 +150,7 @@ router.get(
     authWithRBAC(['ADMIN']),
     UserController.getUnregisteredStudents,
 )
-router.get('/users-count', UserController.getAllUsersCount)
+router.get('/users-count', authWithRBAC(['ADMIN']), UserController.getAllUsersCount)
 /**
  * @openapi
  * /users:

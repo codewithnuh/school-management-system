@@ -4,7 +4,7 @@ import express from 'express'
 
 const router = express.Router()
 
-router.post('/', authWithRBAC(['ADMIN'], true), SchoolController.createSchool)
+router.post('/', authWithRBAC(['ADMIN']), SchoolController.createSchool)
 router.get(
     '/schoolId/:id',
     authWithRBAC(['ADMIN']),
@@ -17,5 +17,5 @@ router.get(
     authWithRBAC(['ADMIN']),
     SchoolController.getSchoolByAdminId,
 )
-router.get('/count/schools-count', SchoolController.getAllSchoolsCount)
+router.get('/count/schools-count', authWithRBAC(['ADMIN', 'OWNER']), SchoolController.getAllSchoolsCount)
 export default router

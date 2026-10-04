@@ -18,11 +18,12 @@ import {
     NotFoundError,
     ValidationError,
 } from '../errors'
+import type { DayOfWeek } from './validation.service.js'
 
 interface AutoScheduleConfig {
     classId: number
     academicYearId: number
-    workingDays: string[] // e.g., ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+    workingDays: DayOfWeek[]
     maxPeriodsPerDay?: number // Maximum periods per day for a class (default: all available)
 }
 
@@ -132,7 +133,7 @@ async function trySchedulePeriod(
     task: SchedulingTask,
     classId: number,
     sectionId: number,
-    workingDays: string[],
+    workingDays: DayOfWeek[],
     timeSlots: TimeSlot[],
     transaction: Transaction,
     attempt: number = 0,
@@ -152,7 +153,7 @@ async function trySchedulePeriod(
                     sectionId,
                     subjectId: task.subjectId,
                     teacherId: task.teacherId,
-                    dayOfWeek: day as any,
+                    dayOfWeek: day,
                     timeSlotId: timeSlot.id,
                 }
 
@@ -332,7 +333,7 @@ export async function generateTimetableForClass(
 export async function generateTimetablesForSchool(
     schoolId: number,
     academicYearId: number,
-    workingDays: string[],
+    workingDays: DayOfWeek[],
     transaction?: Transaction,
 ): Promise<{
     success: boolean
@@ -448,7 +449,7 @@ export async function clearTimetableForClass(
 export async function validateTimetableCompleteness(
     classId: number,
     academicYearId: number,
-    workingDays: string[],
+    workingDays: DayOfWeek[],
     transaction?: Transaction,
 ): Promise<{
     isValid: boolean

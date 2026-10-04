@@ -1,13 +1,15 @@
 import { Op } from 'sequelize'
 import { Session } from '@/models/index.js'
-import process from 'process'
+import { env } from '@/config/env.js'
+import type { SessionEntityType } from '@/models/Session.js'
+import { hashSessionToken } from '@/security/session-token.js'
 
-const SESSION_TTL_SECONDS = parseInt(process.env.SESSION_EXPIRY_HOURS || '168', 10) * 3600
+const SESSION_TTL_SECONDS = env.SESSION_EXPIRY_HOURS * 3600
 
 interface SessionRecord {
     token: string
     userId: number
-    entityType: string
+    entityType: SessionEntityType
     expiryDate: Date
     userAgent?: string
     ipAddress?: string
@@ -15,43 +17,34 @@ interface SessionRecord {
 }
 
 class SessionStoreService {
-    private redisEnabled = process.env.REDIS_AUTH_ENABLED === 'true'
-    private redisUrl = process.env.REDIS_URL
-
-    private redisNotConfigured(): boolean {
-        return this.redisEnabled && !this.redisUrl
-    }
-
     async create(record: SessionRecord): Promise<void> {
-        await Session.create(record)
+        const { token, ...attributes } = record
+        await Session.create({ ...attributes, tokenHash: hashSessionToken(token) })
     }
 
     async findByToken(token: string) {
-        return Session.findOne({ where: { token } })
-    }
-
-    async findActiveSession(userId: number, entityType: string, userAgent?: string) {
-        return Session.findOne({
-            where: {
-                userId,
-                entityType,
-                userAgent,
-                expiryDate: { [Op.gt]: new Date() },
-            },
-        })
+        return Session.findOne({ where: { tokenHash: hashSessionToken(token) } })
     }
 
     async deleteByToken(token: string): Promise<void> {
-        await Session.destroy({ where: { token } })
+        await Session.destroy({ where: { tokenHash: hashSessionToken(token) } })
     }
 
     async deleteByCriteria(params: {
         token?: string
         userId?: number
-        entityType?: string
+        entityType?: SessionEntityType
         userAgent?: string
     }): Promise<void> {
-        await Session.destroy({ where: params })
+        const { token, ...filters } = params
+        const where = {
+            ...filters,
+            ...(token ? { tokenHash: hashSessionToken(token) } : {}),
+        }
+        if (Object.keys(where).length === 0) {
+            throw new Error('At least one session filter is required')
+        }
+        await Session.destroy({ where })
     }
 
     async clearExpiredSessions(): Promise<void> {
@@ -62,9 +55,6 @@ class SessionStoreService {
         return SESSION_TTL_SECONDS
     }
 
-    isRedisConfigured(): boolean {
-        return this.redisEnabled && Boolean(this.redisUrl) && !this.redisNotConfigured()
-    }
 }
 
 export const sessionStore = new SessionStoreService()

@@ -30,6 +30,7 @@ import {
 } from '@/middleware/error.middleware.js'
 import { requestLogger } from '@/middleware/loggin.middleware.js'
 import { generalLimiter } from '@/middleware/rateLimit.middleware.js'
+import { protectCookieAuthenticatedRequests } from '@/middleware/csrf.middleware.js'
 import adminRoutes from '@/routes/Admin.js'
 import authRoutes from '@/routes/AuthRoutes.js'
 import classRoutes from '@/routes/ClassRoutes.js'
@@ -72,6 +73,7 @@ export function createApp(shutdown?: GracefulShutdown): Express {
     app.use(express.json({ limit: '1mb' }))
     app.use(express.urlencoded({ extended: false, limit: '1mb' }))
     app.use(cookieParser())
+    app.use(protectCookieAuthenticatedRequests)
     app.use(requestLogger)
     app.use(compression())
 
@@ -99,6 +101,7 @@ export function createApp(shutdown?: GracefulShutdown): Express {
      *   get:
      *     summary: Check API and database readiness
      *     tags: [Health]
+     *     security: []
      *     responses:
      *       200:
      *         description: API and its critical dependencies are ready.

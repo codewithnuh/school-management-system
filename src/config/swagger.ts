@@ -11,6 +11,7 @@ const swaggerDefinition = {
             url: 'https://opensource.org/license/isc-license-txt/',
         },
     },
+    security: [{ bearerAuth: [] }, { cookieAuth: [] }],
     servers: [
         {
             url: '/api/v1',
@@ -66,6 +67,11 @@ const swaggerDefinition = {
                 type: 'http',
                 scheme: 'bearer',
                 bearerFormat: 'JWT',
+            },
+            cookieAuth: {
+                type: 'apiKey',
+                in: 'cookie',
+                name: 'token',
             },
         },
         schemas: {

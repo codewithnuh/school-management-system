@@ -13,6 +13,7 @@ import {
     checkTeacherAvailability,
     checkRoomAvailability,
     checkClassAvailability,
+    type ConflictCheck,
     getAvailableSlotsForTeacher,
     getAvailableSlotsForClass,
     getAvailableSlotsForRoom,
@@ -32,6 +33,34 @@ import {
     validateTimetableCompleteness,
 } from './timetable-generator.service'
 import { NotFoundError, ValidationError } from '../errors'
+import type {
+    DayOfWeek,
+    CreateTimetableInput,
+    UpdateTimetableInput,
+} from './validation.service.js'
+
+type AvailabilityResult = {
+    day: string
+    timeSlotId?: number
+    conflicts: Array<{ type: 'teacher' | 'room' | 'class' } & ConflictCheck>
+    available: boolean
+    teacher?: {
+        id: number
+        available: boolean
+        conflict: ConflictCheck['conflictingEntity']
+    }
+    room?: {
+        id: number
+        available: boolean
+        conflict: ConflictCheck['conflictingEntity']
+    }
+    class?: {
+        id: number
+        sectionId: number
+        available: boolean
+        conflict: ConflictCheck['conflictingEntity']
+    }
+}
 
 /**
  * Main Timetable Service - Orchestrates all timetable operations
@@ -40,7 +69,7 @@ export class TimetableService {
     /**
      * Create a new timetable entry
      */
-    static async createEntry(data: any) {
+    static async createEntry(data: CreateTimetableInput) {
         const result = await scheduleSession(data)
 
         if (!result.success || !result.timetable) {
@@ -55,7 +84,7 @@ export class TimetableService {
     /**
      * Update a timetable entry
      */
-    static async updateEntry(id: number, data: any) {
+    static async updateEntry(id: number, data: UpdateTimetableInput) {
         const result = await updateSession(id, data)
 
         if (!result.success || !result.timetable) {
@@ -151,7 +180,7 @@ export class TimetableService {
     static async generateTimetable(config: {
         classId: number
         academicYearId: number
-        workingDays: string[]
+        workingDays: DayOfWeek[]
     }) {
         return await generateTimetableForClass(config)
     }
@@ -162,7 +191,7 @@ export class TimetableService {
     static async generateSchoolTimetable(config: {
         schoolId: number
         academicYearId: number
-        workingDays: string[]
+        workingDays: DayOfWeek[]
     }) {
         return await generateTimetablesForSchool(
             config.schoolId,
@@ -184,7 +213,7 @@ export class TimetableService {
     static async validateCompleteness(
         classId: number,
         academicYearId?: number,
-        workingDays: string[] = [
+        workingDays: DayOfWeek[] = [
             'monday',
             'tuesday',
             'wednesday',
@@ -226,7 +255,7 @@ export class TimetableService {
         const { classId, sectionId, teacherId, roomId, dayOfWeek, timeSlotId } =
             params
 
-        const results: any = {
+        const results: AvailabilityResult = {
             day: dayOfWeek,
             timeSlotId,
             conflicts: [],

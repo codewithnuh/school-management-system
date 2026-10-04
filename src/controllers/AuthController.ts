@@ -19,6 +19,12 @@ import {
 } from '@/models/index.js'
 import { Op } from 'sequelize'
 import { env } from '@/config/env.js'
+import {
+    AUTH_COOKIE_NAME,
+    AUTH_COOKIE_OPTIONS,
+    clearAuthCookie,
+} from '@/config/auth-cookie.js'
+import { sessionStore } from '@/services/session-store.service.js'
 
 const loginSchema = z.object({
     email: z.string().email(),
@@ -38,6 +44,26 @@ const forgotPasswordResetSchema = z.object({
         .string()
         .min(6, { message: 'New password must be at least 6 characters long' }),
 })
+
+function respondToAuthenticationFailure(error: unknown, response: Response): void {
+    if (error instanceof ZodError) {
+        response.status(400).json(ResponseUtil.error('Validation failed', 400))
+        return
+    }
+
+    const message = error instanceof Error ? error.message.toLowerCase() : ''
+    if (
+        message.includes('invalid credential') ||
+        message.includes('wrong password') ||
+        message.includes('owner not found')
+    ) {
+        response.status(401).json(ResponseUtil.error('Invalid email or password', 401))
+        return
+    }
+
+    console.error('Authentication request failed', error)
+    response.status(500).json(ResponseUtil.error('Authentication failed', 500))
+}
 
 export const AuthController = {
     /**
@@ -99,33 +125,13 @@ export const AuthController = {
             }
 
             // Step 6: Set secure HTTP-only cookie (configured per environment)
-            const isProduction = env.NODE_ENV === 'production'
-
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: isProduction, // must be true in production (over HTTPS)
-                sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-site cookies
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-                path: '/', // Optional: restrict path
-            })
+            res.cookie(AUTH_COOKIE_NAME, token, AUTH_COOKIE_OPTIONS)
 
             // Step 7: Send successful response
             const response = ResponseUtil.success(loginMessage)
             res.status(200).json(response)
         } catch (error) {
-            console.error('Login error:', error)
-
-            if (error instanceof z.ZodError) {
-                const response = ResponseUtil.error('Validation failed', 400)
-                res.status(400).json(response)
-                return
-            }
-
-            const response = ResponseUtil.error(
-                error instanceof Error ? error.message : 'Something went wrong',
-                500,
-            )
-            res.status(500).json(response)
+            respondToAuthenticationFailure(error, res)
         }
     },
     async studentLogin(req: Request, res: Response): Promise<void> {
@@ -167,33 +173,13 @@ export const AuthController = {
             }
 
             // Step 6: Set secure HTTP-only cookie (configured per environment)
-            const isProduction = env.NODE_ENV === 'production'
-
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: isProduction, // must be true in production (over HTTPS)
-                sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-site cookies
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-                path: '/', // Optional: restrict path
-            })
+            res.cookie(AUTH_COOKIE_NAME, token, AUTH_COOKIE_OPTIONS)
 
             // Step 7: Send successful response
             const response = ResponseUtil.success(loginMessage)
             res.status(200).json(response)
         } catch (error) {
-            console.error('Login error:', error)
-
-            if (error instanceof z.ZodError) {
-                const response = ResponseUtil.error('Validation failed', 400)
-                res.status(400).json(response)
-                return
-            }
-
-            const response = ResponseUtil.error(
-                error instanceof Error ? error.message : 'Something went wrong',
-                500,
-            )
-            res.status(500).json(response)
+            respondToAuthenticationFailure(error, res)
         }
     },
     async teacherLogin(req: Request, res: Response): Promise<void> {
@@ -235,33 +221,13 @@ export const AuthController = {
             }
 
             // Step 6: Set secure HTTP-only cookie (configured per environment)
-            const isProduction = env.NODE_ENV === 'production'
-
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: isProduction, // must be true in production (over HTTPS)
-                sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-site cookies
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-                path: '/', // Optional: restrict path
-            })
+            res.cookie(AUTH_COOKIE_NAME, token, AUTH_COOKIE_OPTIONS)
 
             // Step 7: Send successful response
             const response = ResponseUtil.success(loginMessage)
             res.status(200).json(response)
         } catch (error) {
-            console.error('Login error:', error)
-
-            if (error instanceof z.ZodError) {
-                const response = ResponseUtil.error('Validation failed', 400)
-                res.status(400).json(response)
-                return
-            }
-
-            const response = ResponseUtil.error(
-                error instanceof Error ? error.message : 'Something went wrong',
-                500,
-            )
-            res.status(500).json(response)
+            respondToAuthenticationFailure(error, res)
         }
     },
 
@@ -296,12 +262,7 @@ export const AuthController = {
             })
 
             // Set the token as an HTTP-only cookie (adjust secure flag according to your environment)
-            res.cookie('token', token, {
-                httpOnly: true,
-                sameSite: 'strict',
-                secure: false,
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            })
+            res.cookie(AUTH_COOKIE_NAME, token, AUTH_COOKIE_OPTIONS)
 
             if (!success) {
                 throw new Error(loginMessage)
@@ -311,18 +272,7 @@ export const AuthController = {
             const response = ResponseUtil.success(loginMessage)
             res.status(200).json(response)
         } catch (error) {
-            if (error instanceof z.ZodError) {
-                const response = ResponseUtil.error('Validation error', 400)
-                res.status(400).json(response)
-                console.error(error)
-                return
-            }
-            if (error instanceof Error) {
-                const response = ResponseUtil.error(error.message, 400)
-                res.status(500).json(response)
-                console.error(error)
-                return
-            }
+            respondToAuthenticationFailure(error, res)
         }
     },
     async signUp(req: Request, res: Response): Promise<void> {
@@ -358,58 +308,77 @@ export const AuthController = {
      */
     async logout(req: Request, res: Response): Promise<void> {
         try {
-            const token = req.cookies.token
-            const userAgent = req.headers['user-agent']
-            const isSessionExists = await Session.findOne({
-                where: { token, userAgent },
-            })
+            const token = req.cookies?.[AUTH_COOKIE_NAME]
+            if (!token) {
+                res.status(401).json(ResponseUtil.error('No session found', 401))
+                return
+            }
+            const userAgent = req.headers['user-agent'] ?? 'unknown'
+            const isSessionExists = await sessionStore.findByToken(token)
             const decodedToken = jwt.verify(
                 token,
                 env.JWT_SECRET,
+                { algorithms: ['HS256'] },
             ) as CurrentUserPayload
             const userId = decodedToken.userId
             const entityType = decodedToken.entityType
 
-            if (!isSessionExists) {
-                res.status(404).json(
-                    ResponseUtil.error('Session does not exist', 404),
-                )
+            if (
+                !isSessionExists ||
+                isSessionExists.userId !== userId ||
+                isSessionExists.entityType !== entityType ||
+                isSessionExists.expiryDate <= new Date()
+            ) {
+                res.status(401).json(ResponseUtil.error('Invalid or expired session', 401))
                 return
             }
             await authService.logout(
                 token,
                 userId,
                 entityType,
-                userAgent as string,
+                userAgent,
             )
             const response = ResponseUtil.success('Logout successful')
             res.status(200).json(response)
         } catch (error) {
-            console.log(error)
-            if (error instanceof Error) {
-                const response = ResponseUtil.error(error.message, 400)
-                res.status(400).json(response)
+            if (error instanceof jwt.JsonWebTokenError) {
+                res.status(401).json(ResponseUtil.error('Invalid or expired session', 401))
+                return
             }
+            console.error('Logout request failed', error)
+            res.status(500).json(ResponseUtil.error('Logout failed', 500))
         }
     },
     async logoutFromAllSessions(req: Request, res: Response): Promise<void> {
         try {
-            const token = req.cookies.token
+            const token = req.cookies?.[AUTH_COOKIE_NAME]
+            if (!token) {
+                res.status(401).json(ResponseUtil.error('No session found', 401))
+                return
+            }
 
             const decodedToken = jwt.verify(
                 token,
                 env.JWT_SECRET,
+                { algorithms: ['HS256'] },
             ) as CurrentUserPayload
-            console.log(decodedToken)
+            const activeSession = await sessionStore.findByToken(token)
+            if (
+                !activeSession ||
+                activeSession.expiryDate <= new Date() ||
+                activeSession.userId !== decodedToken.userId ||
+                activeSession.entityType !== decodedToken.entityType
+            ) {
+                res.status(401).json(ResponseUtil.error('Invalid or expired session', 401))
+                return
+            }
             const userId = decodedToken.userId
             const entityType = decodedToken.entityType
-            await Session.destroy({
-                where: {
-                    userId,
-                    entityType,
-                },
+            await sessionStore.deleteByCriteria({
+                userId,
+                entityType,
             })
-            res.clearCookie('token')
+            clearAuthCookie(res)
             res.status(200).json(
                 ResponseUtil.success(
                     'Logout successful from all sessions',
@@ -417,12 +386,13 @@ export const AuthController = {
                 ),
             )
         } catch (error) {
-            console.log(error)
-            if (error instanceof Error) {
-                res.status(400).json(ResponseUtil.error('Logout failed', 400))
+            if (error instanceof jwt.JsonWebTokenError) {
+                res.status(401).json(ResponseUtil.error('Invalid or expired session', 401))
+                return
             }
+            console.error('Logout all sessions request failed', error)
+            res.status(500).json(ResponseUtil.error('Logout failed', 500))
         }
-        // const session=await Session.findAll({where:toke})
     },
     /**
      * Initiates the forgot password process.
@@ -500,7 +470,7 @@ export const AuthController = {
                 await authService.verifySession(token)
 
             if (!isValid) {
-                res.clearCookie('token') // Clear invalid/expired token
+                clearAuthCookie(res)
                 res.status(401).json(ResponseUtil.error('Session expired', 401))
                 return
             }

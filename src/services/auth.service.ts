@@ -3,7 +3,6 @@ import {
     Owner,
     Parent,
     School,
-    Session,
     Teacher,
     User,
 } from '@/models/index.js'
@@ -23,6 +22,10 @@ export enum EntityType {
     USER = 'USER',
     PARENT = 'PARENT',
     OWNER = 'OWNER',
+}
+
+function isEntityType(value: unknown): value is EntityType {
+    return Object.values(EntityType).some(entityType => entityType === value)
 }
 
 /**
@@ -111,22 +114,6 @@ class AuthService {
             throw new Error('Invalid credentials')
         }
 
-        // Check if an active session already exists for the user with the same entityType
-        const activeSession = await sessionStore.findActiveSession(
-            userStringify.id,
-            entityType,
-            userAgent,
-        )
-
-        if (activeSession) {
-            // Return existing session token if active session is found
-            return {
-                success: false,
-                token: activeSession.token,
-                message: 'Session already exists',
-            }
-        }
-
         const payload: CurrentUserPayload = {
             userId: userStringify.id,
             entityType: entityType,
@@ -137,6 +124,7 @@ class AuthService {
         }
 
         const token = jwt.sign(payload, JWT_SECRET, {
+            algorithm: 'HS256',
             expiresIn: JWT_EXPIRY,
         } as SignOptions)
 
@@ -189,22 +177,6 @@ class AuthService {
             isUserExists.password,
         )
         if (!passwordMatch) throw new Error('Invalid Credentials')
-        // Check if an active session already exists for the user with the same entityType
-        const activeSession = await sessionStore.findActiveSession(
-            isUserExists.id,
-            entityType,
-            userAgent,
-        )
-
-        if (activeSession) {
-            // Return existing session token if active session is found
-            return {
-                success: false,
-                token: activeSession.token,
-                message: 'Session already exists',
-            }
-        }
-
         const payload: CurrentUserPayload = {
             userId: isUserExists.id,
             entityType: entityType,
@@ -215,6 +187,7 @@ class AuthService {
         }
 
         const token = jwt.sign(payload, JWT_SECRET, {
+            algorithm: 'HS256',
             expiresIn: JWT_EXPIRY,
         } as SignOptions)
 
@@ -269,22 +242,6 @@ class AuthService {
             isTeacherExists.password!,
         )
         if (!passwordMatch) throw new Error('Invalid Credentials')
-        // Check if an active session already exists for the user with the same entityType
-        const activeSession = await sessionStore.findActiveSession(
-            isTeacherExists.id,
-            entityType,
-            userAgent,
-        )
-
-        if (activeSession) {
-            // Return existing session token if active session is found
-            return {
-                success: false,
-                token: activeSession.token,
-                message: 'Session already exists',
-            }
-        }
-
         const payload: CurrentUserPayload = {
             userId: isTeacherExists.id,
             entityType: entityType,
@@ -295,6 +252,7 @@ class AuthService {
         }
 
         const token = jwt.sign(payload, JWT_SECRET, {
+            algorithm: 'HS256',
             expiresIn: JWT_EXPIRY,
         } as SignOptions)
 
@@ -335,12 +293,6 @@ class AuthService {
             ownerExists.password,
         )
         if (!passwordMatch) throw new Error('Wrong password')
-        const activeSession = await sessionStore.findActiveSession(
-            ownerExists.id,
-            'OWNER',
-            userAgent,
-        )
-        if (activeSession) throw new Error('Session already exists')
         const payload: CurrentUserPayload = {
             userId: ownerExists.id,
             entityType: EntityType.OWNER,
@@ -352,6 +304,7 @@ class AuthService {
         await sessionStore.clearExpiredSessions()
 
         const token = jwt.sign(payload, JWT_SECRET, {
+            algorithm: 'HS256',
             expiresIn: JWT_EXPIRY,
         } as SignOptions)
 
@@ -449,9 +402,22 @@ class AuthService {
             if (!JWT_SECRET) {
                 throw new Error('JWT_SECRET is not defined')
             }
-            jwt.verify(token, JWT_SECRET)
-            const decoded = jwt.decode(token) as CurrentUserPayload
-            return decoded
+            const decoded = jwt.verify(token, JWT_SECRET, {
+                algorithms: ['HS256'],
+            })
+            if (
+                typeof decoded === 'string' ||
+                typeof decoded.userId !== 'number' ||
+                !Number.isSafeInteger(decoded.userId) ||
+                decoded.userId < 1 ||
+                !isEntityType(decoded.entityType)
+            ) {
+                return null
+            }
+            return {
+                userId: decoded.userId,
+                entityType: decoded.entityType,
+            }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             return null
@@ -526,23 +492,30 @@ class AuthService {
     }> {
         try {
             // 1. Retrieve session by token regardless of expiry
-            const session = await Session.findOne({
-                where: { token },
-            })
+            const session = await sessionStore.findByToken(token)
             if (!session) {
                 return { isValid: false, user: null, role: null }
             }
 
             // 2. Check if the session is expired; if yes, destroy it and return invalid status
             if (session.expiryDate < new Date()) {
-                await session.destroy()
+                await sessionStore.deleteByToken(token)
                 return { isValid: false, user: null, role: null }
             }
 
             console.log(`Session valid until: ${session.expiryDate}`)
 
             // 3. Verify JWT token
-            const decoded = jwt.verify(token, JWT_SECRET!) as CurrentUserPayload
+            const decoded = await this.getCurrentUser(token)
+            if (!decoded) {
+                return { isValid: false, user: null, role: null }
+            }
+            if (
+                decoded.userId !== session.userId ||
+                decoded.entityType !== session.entityType
+            ) {
+                return { isValid: false, user: null, role: null }
+            }
 
             // 4. Fetch user entity based on role
             const user = await this.fetchUserEntity(

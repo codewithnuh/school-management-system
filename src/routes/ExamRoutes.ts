@@ -140,7 +140,7 @@ router.post('/', authWithRBAC(['ADMIN']), ExamController.createExam)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', ExamController.getAllExams)
+router.get('/', authWithRBAC(['ADMIN', 'TEACHER']), ExamController.getAllExams)
 
 /**
  * @openapi
@@ -176,7 +176,7 @@ router.get('/', ExamController.getAllExams)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id', ExamController.getExamById)
+router.get('/:id', authWithRBAC(['ADMIN', 'TEACHER']), ExamController.getExamById)
 
 /**
  * @openapi
@@ -234,7 +234,7 @@ router.get('/:id', ExamController.getExamById)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.put('/:id', ExamController.updateExam)
+router.put('/:id', authWithRBAC(['ADMIN']), ExamController.updateExam)
 
 /**
  * @openapi
@@ -268,6 +268,6 @@ router.put('/:id', ExamController.updateExam)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', ExamController.deleteExam)
+router.delete('/:id', authWithRBAC(['ADMIN']), ExamController.deleteExam)
 
 export default router

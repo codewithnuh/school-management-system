@@ -4,6 +4,31 @@ import { parseEnv } from '@/blocks/env-config/index.js'
 
 loadDotEnv()
 
+const corsOriginsSchema = z
+    .string()
+    .default('http://localhost:5173,http://localhost:3000')
+    .transform(value =>
+        value
+            .split(',')
+            .map(origin => origin.trim())
+            .filter(Boolean),
+    )
+    .refine(
+        origins =>
+            origins.every(origin => {
+                try {
+                    const parsed = new URL(origin)
+                    return (
+                        (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+                        parsed.origin === origin
+                    )
+                } catch {
+                    return false
+                }
+            }),
+        { message: 'CORS_ORIGINS must be a comma-separated list of exact HTTP(S) origins' },
+    )
+
 const envSchema = z.object({
     NODE_ENV: z
         .enum(['development', 'test', 'production'])
@@ -34,15 +59,7 @@ const envSchema = z.object({
     JWT_EXPIRES_IN: z.string().trim().min(1).default('7d'),
     SESSION_EXPIRY_HOURS: z.coerce.number().int().min(1).max(8760).default(168),
     FRONTEND_URL: z.string().url().default('http://localhost:5173'),
-    CORS_ORIGINS: z
-        .string()
-        .default('http://localhost:5173,http://localhost:3000')
-        .transform(value =>
-            value
-                .split(',')
-                .map(origin => origin.trim())
-                .filter(Boolean),
-        ),
+    CORS_ORIGINS: corsOriginsSchema,
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
     UPLOADTHING_TOKEN: z.string().trim().min(1).optional(),
 })

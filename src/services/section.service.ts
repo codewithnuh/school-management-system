@@ -3,6 +3,8 @@ import { Class, Timetable, TimetableEntry } from '@/models/index.js'
 import { CreateSectionInput, Section } from '@/models/Section.js'
 import { SectionTeacher } from '@/models/SectionTeacher.js'
 import { Teacher } from '@/models/Teacher.js'
+import type { WhereOptions } from 'sequelize'
+import type { SectionAttributes } from '@/models/Section.js'
 export class SectionService {
     static async createSection(input: CreateSectionInput) {
         const transaction = await sequelize.transaction()
@@ -81,7 +83,7 @@ export class SectionService {
         }
 
         // Build the query
-        const whereClause: any = { id: sectionIds }
+        const whereClause: WhereOptions<SectionAttributes> = { id: sectionIds }
 
         // Add classId filter if provided
         if (classId) {
