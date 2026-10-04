@@ -17,20 +17,23 @@ const examTypes = [
     'OTHER',
 ] as const
 
-export const ExamSchema = z
-    .object({
-        schoolId: z.number().int().positive(),
-        academicYearId: z.number().int().positive(),
-        name: z.string().trim().min(1).max(120),
-        type: z.enum(examTypes),
-        startDate: z.coerce.date(),
-        endDate: z.coerce.date(),
-        isActive: z.boolean().default(true),
-    })
-    .refine(value => value.endDate >= value.startDate, {
+export const ExamInputSchema = z.object({
+    schoolId: z.number().int().positive(),
+    academicYearId: z.number().int().positive(),
+    name: z.string().trim().min(1).max(120),
+    type: z.enum(examTypes),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+    isActive: z.boolean().default(true),
+})
+
+export const ExamSchema = ExamInputSchema.refine(
+    value => value.endDate >= value.startDate,
+    {
         path: ['endDate'],
         message: 'End date must be on or after the start date',
-    })
+    },
+)
 
 export const examSchema = ExamSchema
 export type ExamInput = z.output<typeof ExamSchema>

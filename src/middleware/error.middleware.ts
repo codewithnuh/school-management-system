@@ -1,16 +1,6 @@
 import type { ErrorRequestHandler } from 'express'
 import { ZodError } from 'zod'
-
-export class AppError extends Error {
-    constructor(
-        message: string,
-        public readonly statusCode: number,
-    ) {
-        super(message)
-        this.name = 'AppError'
-        Object.setPrototypeOf(this, new.target.prototype)
-    }
-}
+import { AppError, ValidationError } from '@/errors/index.js'
 
 export const handleInvalidJSON: ErrorRequestHandler = (
     error,
@@ -41,6 +31,14 @@ export const handleValidationErrors: ErrorRequestHandler = (
                 field: issue.path.join('.'),
                 message: issue.message,
             })),
+        })
+        return
+    }
+    if (error instanceof ValidationError) {
+        response.status(error.statusCode).json({
+            success: false,
+            message: error.message,
+            errors: error.details ?? [],
         })
         return
     }

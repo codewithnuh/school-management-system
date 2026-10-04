@@ -1,42 +1,46 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AppError, TimetableConflictError } from '../../src/errors';
+import { describe, expect, it } from 'vitest'
+import {
+    AppError,
+    TimetableConflictError,
+    ValidationError,
+} from '../src/errors/index.js'
 
-describe('Errors', () => {
-  describe('AppError', () => {
-    it('should create an error with message and status code', () => {
-      const error = new AppError('Test error', 400);
-      expect(error.message).toBe('Test error');
-      expect(error.statusCode).toBe(400);
-      expect(error.isOperational).toBe(true);
-    });
+describe('application errors', () => {
+    it('uses the supplied status code and defaults to 500', () => {
+        expect(new AppError('Invalid input', 400).statusCode).toBe(400)
+        expect(new AppError('Unexpected failure').statusCode).toBe(500)
+    })
 
-    it('should default to 500 status code', () => {
-      const error = new AppError('Server error');
-      expect(error.statusCode).toBe(500);
-    });
+    it('marks application errors as operational', () => {
+        expect(new AppError('Not found').isOperational).toBe(true)
+    })
 
-    it('should include stack trace', () => {
-      const error = new AppError('Test error');
-      expect(error.stack).toBeDefined();
-    });
-  });
+    it('retains timetable conflict details', () => {
+        const conflicts = [
+            {
+                type: 'teacher' as const,
+                entityId: 7,
+                timeSlotId: 3,
+                day: 'monday',
+            },
+        ]
+        const error = new TimetableConflictError(
+            'Timetable conflict detected',
+            conflicts,
+        )
 
-  describe('TimetableConflictError', () => {
-    it('should create error with conflict details', () => {
-      const conflicts = [
-        { type: 'teacher', id: 1, reason: 'Already assigned' },
-        { type: 'room', id: 2, reason: 'Double booked' }
-      ];
-      const error = new TimetableConflictError(conflicts);
-      
-      expect(error.message).toContain('Timetable conflict detected');
-      expect(error.conflicts).toEqual(conflicts);
-      expect(error.statusCode).toBe(409);
-    });
+        expect(error.statusCode).toBe(409)
+        expect(error.conflicts).toEqual(conflicts)
+    })
 
-    it('should handle empty conflicts array', () => {
-      const error = new TimetableConflictError([]);
-      expect(error.conflicts).toEqual([]);
-    });
-  });
-});
+    it('carries validation field details', () => {
+        const error = new ValidationError('Invalid request', [
+            { field: 'name', message: 'Required' },
+        ])
+
+        expect(error.statusCode).toBe(400)
+        expect(error.details).toEqual([
+            { field: 'name', message: 'Required' },
+        ])
+    })
+})

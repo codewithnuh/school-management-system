@@ -86,7 +86,10 @@ export const CreateStudentSchema = z.object({
   sectionId: IdSchema,
   admissionNumber: z.string().min(1).max(50),
   admissionDate: z.string().date(),
-  dateOfBirth: z.string().date(),
+  dateOfBirth: z.string().date().refine(
+    value => new Date(`${value}T00:00:00Z`).getTime() < Date.now(),
+    'Date of birth must be in the past',
+  ),
   gender: z.enum(['male', 'female', 'other']),
   bloodGroup: z.string().optional(),
   address: z.string().optional(),

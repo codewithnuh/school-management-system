@@ -1,5 +1,9 @@
 import type { WhereOptions } from 'sequelize'
-import { Exam, type ExamAttributes, ExamSchema } from '@/models/Exam.js'
+import {
+    Exam,
+    type ExamAttributes,
+    ExamInputSchema,
+} from '@/models/Exam.js'
 import { Teacher } from '@/models/Teacher.js'
 import { User } from '@/models/User.js'
 import type { SessionEntityType } from '@/models/Session.js'
@@ -23,7 +27,7 @@ export class ExamService {
     }
 
     static async createExam(schoolId: number, input: unknown): Promise<Exam> {
-        const examInput = ExamSchema.omit({ schoolId: true }).parse(input)
+        const examInput = ExamInputSchema.omit({ schoolId: true }).parse(input)
         return Exam.create({ ...examInput, schoolId })
     }
 
@@ -42,7 +46,9 @@ export class ExamService {
         input: unknown,
         schoolId: number,
     ): Promise<Exam | null> {
-        const data = ExamSchema.omit({ schoolId: true }).partial().parse(input)
+        const data = ExamInputSchema.omit({ schoolId: true })
+            .partial()
+            .parse(input)
         const exam = await this.getExamById(id, schoolId)
         if (!exam) return null
         await exam.update(data)
