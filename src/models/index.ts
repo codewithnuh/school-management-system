@@ -147,7 +147,7 @@ export function setupAssociations() {
   // StudentExam associations
   StudentExam.belongsTo(Student, { foreignKey: 'studentId', as: 'student' })
   StudentExam.belongsTo(ExamSubject, { foreignKey: 'examSubjectId', as: 'examSubject' })
-  StudentExam.belongsTo(Teacher, { foreignKey: 'evaluatedBy', as: 'evaluatedBy' })
+  StudentExam.belongsTo(Teacher, { foreignKey: 'evaluatedBy', as: 'evaluator' })
 }
 
 // Load models into Sequelize

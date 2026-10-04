@@ -8,6 +8,7 @@ import {
     UpdatedAt,
 } from 'sequelize-typescript'
 import { z } from 'zod'
+import type { Teacher } from './Teacher.js'
 
 export const StudentExamSchema = z.object({
     id: z.number().optional(),
@@ -96,4 +97,6 @@ export class StudentExam
     @UpdatedAt
     @Column({ type: DataType.DATE, field: 'updated_at' })
     updatedAt!: Date
+
+    declare evaluator?: Teacher
 }

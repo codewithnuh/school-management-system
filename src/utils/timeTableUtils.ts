@@ -35,7 +35,7 @@ export function generateTimeSlots(
         periodNumber += 1
 
         // Add break
-        if (breakLength > 0) {
+        if (breakLength > 0 && addMinutes(slotEnd, breakLength) < parseTime(endTime)) {
             const breakEnd = addMinutes(slotEnd, breakLength)
             slots.push({
                 name: 'Break',
