@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { TimetableService } from '../services/timetable.service';
 import { validate } from '../middleware';
-import { CreateTimetableSchema, UpdateTimetableSchema } from '../services/validation.service';
+import { DayOfWeekSchema } from '../services/validation.service';
+import { z } from 'zod';
 import { AuthRequest } from '../types';
 
 /**
@@ -169,10 +170,22 @@ export class TimetableController {
     const { classId } = req.params;
     const { academicYearId, workingDays } = req.query;
 
+    const parsedWorkingDays = z.array(DayOfWeekSchema).safeParse(
+      workingDays
+        ? (workingDays as string).split(',')
+        : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+    );
+    if (!parsedWorkingDays.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'workingDays must contain lowercase weekday names',
+      });
+    }
+
     const result = await TimetableService.validateCompleteness(
       parseInt(classId),
       academicYearId ? parseInt(academicYearId as string) : undefined,
-      workingDays ? (workingDays as string).split(',') : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+      parsedWorkingDays.data
     );
 
     return res.json({
