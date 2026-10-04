@@ -4,8 +4,8 @@ import express from 'express'
 import authWithRBAC from '@/middleware/auth.middleware.js'
 
 const app = express()
-app.post('/schools', authWithRBAC(['ADMIN']), (_request, response) => response.sendStatus(201))
-app.get('/schools/:id', authWithRBAC(['ADMIN']), (_request, response) => response.sendStatus(200))
+app.post('/api/v1/schools', authWithRBAC(['ADMIN']), (_request, response) => response.sendStatus(201))
+app.get('/api/v1/schools/:id', authWithRBAC(['ADMIN']), (_request, response) => response.sendStatus(200))
 
 describe('school API authorization boundary', () => {
     it('requires authentication to create a school', async () => {
