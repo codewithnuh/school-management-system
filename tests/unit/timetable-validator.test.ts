@@ -1,221 +1,115 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { 
-  checkTeacherAvailability,
-  checkRoomAvailability,
-  checkClassAvailability,
-  validateScheduleEntry 
-} from '../../src/services/timetable-validator.service';
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock database models
-const mockTimetable = {
-  findOne: vi.fn(),
-};
+const models = vi.hoisted(() => ({
+    classFindByPk: vi.fn(),
+    classSubjectFindOne: vi.fn(),
+    roomFindByPk: vi.fn(),
+    sectionFindByPk: vi.fn(),
+    sectionTeacherFindOne: vi.fn(),
+    subjectFindByPk: vi.fn(),
+    teacherFindByPk: vi.fn(),
+    timeSlotFindByPk: vi.fn(),
+    timetableEntryFindOne: vi.fn(),
+}))
 
-vi.mock('../../src/models', () => ({
-  default: {},
-  Timetable: mockTimetable,
-  TimeSlot: { findAll: vi.fn() },
-  Class: {},
-  Section: {},
-  Subject: {},
-  Teacher: {},
-  Room: {},
-}));
+vi.mock('@/models/Class.js', () => ({ Class: { findByPk: models.classFindByPk } }))
+vi.mock('@/models/ClassSubject.js', () => ({ ClassSubject: { findOne: models.classSubjectFindOne } }))
+vi.mock('@/models/Room.js', () => ({ Room: { findByPk: models.roomFindByPk } }))
+vi.mock('@/models/Section.js', () => ({ Section: { findByPk: models.sectionFindByPk } }))
+vi.mock('@/models/SectionTeacher.js', () => ({ SectionTeacher: { findOne: models.sectionTeacherFindOne } }))
+vi.mock('@/models/Subject.js', () => ({ Subject: { findByPk: models.subjectFindByPk } }))
+vi.mock('@/models/Teacher.js', () => ({ Teacher: { findByPk: models.teacherFindByPk } }))
+vi.mock('@/models/TimeSlot.js', () => ({ TimeSlot: { findByPk: models.timeSlotFindByPk } }))
+vi.mock('@/models/TimetableEntry.js', () => ({ TimetableEntry: { findOne: models.timetableEntryFindOne } }))
 
-describe('Timetable Validator Service', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+import {
+    checkClassAvailability,
+    checkRoomAvailability,
+    checkTeacherAvailability,
+    validateScheduleEntry,
+} from '@/services/timetable-validator.service.js'
 
-  describe('checkTeacherAvailability', () => {
-    it('should return no conflict when teacher is available', async () => {
-      mockTimetable.findOne.mockResolvedValue(null);
-
-      const result = await checkTeacherAvailability(1, 'monday', 1);
-
-      expect(result.hasConflict).toBe(false);
-      expect(mockTimetable.findOne).toHaveBeenCalledWith({
-        where: {
-          teacherId: 1,
-          dayOfWeek: 'monday',
-          timeSlotId: 1,
-        },
-        include: expect.anything(),
-        transaction: undefined,
-      });
-    });
-
-    it('should return conflict when teacher is already scheduled', async () => {
-      mockTimetable.findOne.mockResolvedValue({
-        id: 5,
-        subject: { name: 'Mathematics' },
-      });
-
-      const result = await checkTeacherAvailability(1, 'monday', 1);
-
-      expect(result.hasConflict).toBe(true);
-      expect(result.conflictType).toBe('teacher');
-      expect(result.conflictingEntity).toEqual({
-        type: 'timetable',
-        id: 5,
-        name: 'Mathematics',
-      });
-    });
-
-    it('should exclude specific timetable entry when provided', async () => {
-      mockTimetable.findOne.mockResolvedValue(null);
-
-      await checkTeacherAvailability(1, 'monday', 1, 10);
-
-      expect(mockTimetable.findOne).toHaveBeenCalledWith({
-        where: {
-          teacherId: 1,
-          dayOfWeek: 'monday',
-          timeSlotId: 1,
-          id: { [Symbol.for('Op.ne')]: 10 },
-        },
-        include: expect.anything(),
-        transaction: undefined,
-      });
-    });
-  });
-
-  describe('checkRoomAvailability', () => {
-    it('should return no conflict when room is available', async () => {
-      mockTimetable.findOne.mockResolvedValue(null);
-
-      const result = await checkRoomAvailability(101, 'monday', 1);
-
-      expect(result.hasConflict).toBe(false);
-    });
-
-    it('should return conflict when room is already booked', async () => {
-      mockTimetable.findOne.mockResolvedValue({
-        classId: 5,
-        class: { name: 'Class 10-A' },
-      });
-
-      const result = await checkRoomAvailability(101, 'monday', 1);
-
-      expect(result.hasConflict).toBe(true);
-      expect(result.conflictType).toBe('room');
-      expect(result.conflictingEntity).toEqual({
-        type: 'class',
-        id: 5,
-        name: 'Class 10-A',
-      });
-    });
-  });
-
-  describe('checkClassAvailability', () => {
-    it('should return no conflict when class is free', async () => {
-      mockTimetable.findOne.mockResolvedValue(null);
-
-      const result = await checkClassAvailability(1, 1, 'monday', 1);
-
-      expect(result.hasConflict).toBe(false);
-    });
-
-    it('should return conflict when class already has a session', async () => {
-      mockTimetable.findOne.mockResolvedValue({
-        subjectId: 3,
-        subject: { name: 'Physics' },
-      });
-
-      const result = await checkClassAvailability(1, 1, 'monday', 1);
-
-      expect(result.hasConflict).toBe(true);
-      expect(result.conflictType).toBe('class');
-      expect(result.conflictingEntity).toEqual({
-        type: 'subject',
-        id: 3,
-        name: 'Physics',
-      });
-    });
-  });
-
-  describe('validateScheduleEntry', () => {
-    it('should validate a correct schedule entry', async () => {
-      mockTimetable.findOne.mockResolvedValue(null);
-
-      const result = await validateScheduleEntry({
-        classId: 1,
-        sectionId: 1,
-        subjectId: 1,
-        teacherId: 1,
-        roomId: 101,
-        dayOfWeek: 'monday',
-        timeSlotId: 1,
-      });
-
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
-      expect(result.conflicts).toHaveLength(0);
-    });
-
-    it('should detect teacher conflict', async () => {
-      mockTimetable.findOne
-        .mockResolvedValueOnce({ // Teacher conflict
-          id: 5,
-          subject: { name: 'Math' },
+describe('timetable validation', () => {
+    beforeEach(() => {
+        vi.resetAllMocks()
+        models.classFindByPk.mockResolvedValue({ schoolId: 1 })
+        models.classSubjectFindOne.mockResolvedValue({ id: 1 })
+        models.roomFindByPk.mockResolvedValue({ schoolId: 1 })
+        models.sectionFindByPk.mockResolvedValue({ classId: 1 })
+        models.sectionTeacherFindOne.mockResolvedValue({ id: 1 })
+        models.subjectFindByPk.mockResolvedValue({ schoolId: 1 })
+        models.teacherFindByPk.mockResolvedValue({ schoolId: 1 })
+        models.timeSlotFindByPk.mockResolvedValue({
+            id: 1,
+            schoolId: 1,
+            periodNumber: 1,
+            isActive: true,
+            isBreak: false,
         })
-        .mockResolvedValue(null); // No room or class conflict
+        models.timetableEntryFindOne.mockResolvedValue(null)
+    })
 
-      const result = await validateScheduleEntry({
-        classId: 1,
-        sectionId: 1,
-        subjectId: 1,
-        teacherId: 1,
-        roomId: 101,
-        dayOfWeek: 'monday',
-        timeSlotId: 1,
-      });
+    it('allows an available teacher, room, and class period', async () => {
+        const results = await Promise.all([
+            checkTeacherAvailability(1, 'monday', 1),
+            checkRoomAvailability(1, 'monday', 1),
+            checkClassAvailability(1, 1, 'monday', 1),
+        ])
+        expect(results.every(result => !result.hasConflict)).toBe(true)
+    })
 
-      expect(result.valid).toBe(false);
-      expect(result.conflicts).toHaveLength(1);
-      expect(result.conflicts[0].type).toBe('teacher');
-    });
-
-    it('should detect multiple conflicts', async () => {
-      mockTimetable.findOne
-        .mockResolvedValueOnce({ // Teacher conflict
-          id: 5,
-          subject: { name: 'Math' },
+    it('reports a teacher conflict when the period is occupied', async () => {
+        models.timetableEntryFindOne.mockResolvedValue({ id: 12 })
+        const result = await checkTeacherAvailability(1, 'monday', 1)
+        expect(result).toMatchObject({
+            hasConflict: true,
+            conflictType: 'teacher',
+            conflictingEntity: { id: 12 },
         })
-        .mockResolvedValueOnce({ // Room conflict
-          classId: 3,
-          class: { name: 'Class 9-B' },
+    })
+
+    it('rejects an inactive slot and a slot belonging to another school', async () => {
+        models.timeSlotFindByPk.mockResolvedValueOnce({
+            id: 1,
+            schoolId: 1,
+            isActive: false,
+            isBreak: false,
         })
-        .mockResolvedValue(null); // No class conflict
+        const inactive = await checkTeacherAvailability(1, 'monday', 1)
+        expect(inactive.hasConflict).toBe(true)
 
-      const result = await validateScheduleEntry({
-        classId: 1,
-        sectionId: 1,
-        subjectId: 1,
-        teacherId: 1,
-        roomId: 101,
-        dayOfWeek: 'monday',
-        timeSlotId: 1,
-      });
+        models.timeSlotFindByPk.mockResolvedValueOnce({
+            id: 1,
+            schoolId: 2,
+            isActive: true,
+            isBreak: false,
+        })
+        const foreign = await checkTeacherAvailability(1, 'monday', 1)
+        expect(foreign.hasConflict).toBe(true)
+    })
 
-      expect(result.valid).toBe(false);
-      expect(result.conflicts).toHaveLength(2);
-      expect(result.conflicts.map(c => c.type)).toContain('teacher');
-      expect(result.conflicts.map(c => c.type)).toContain('room');
-    });
+    it('validates school, section, subject, teacher assignment, and slot references', async () => {
+        const result = await validateScheduleEntry({
+            classId: 1,
+            sectionId: 1,
+            subjectId: 1,
+            teacherId: 1,
+            roomId: 1,
+            dayOfWeek: 'monday',
+            timeSlotId: 1,
+        })
+        expect(result).toEqual({ valid: true, errors: [], conflicts: [] })
 
-    it('should reject invalid input data', async () => {
-      const result = await validateScheduleEntry({
-        classId: -1, // Invalid negative ID
-        sectionId: 1,
-        subjectId: 1,
-        teacherId: 1,
-        dayOfWeek: 'invalid_day',
-        timeSlotId: 1,
-      } as any);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
-    });
-  });
-});
+        models.sectionTeacherFindOne.mockResolvedValueOnce(null)
+        const missingAssignment = await validateScheduleEntry({
+            classId: 1,
+            sectionId: 1,
+            subjectId: 1,
+            teacherId: 1,
+            dayOfWeek: 'monday',
+            timeSlotId: 1,
+        })
+        expect(missingAssignment.valid).toBe(false)
+        expect(missingAssignment.errors).toHaveLength(1)
+    })
+})

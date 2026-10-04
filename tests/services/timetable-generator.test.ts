@@ -1,126 +1,131 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TimetableGeneratorService } from '../../src/services/timetable-generator.service';
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock services and models
-vi.mock('../../src/services/timetable-validator.service', () => ({
-  TimetableValidatorService: class {
-    checkTeacherConflict = vi.fn();
-    checkRoomConflict = vi.fn();
-    checkSectionConflict = vi.fn();
-    validateTimeSlot = vi.fn();
-  }
-}));
+const mocks = vi.hoisted(() => ({
+    classFindByPk: vi.fn(),
+    sectionFindAll: vi.fn(),
+    sectionFindByPk: vi.fn(),
+    classSubjectFindAll: vi.fn(),
+    timeSlotFindAll: vi.fn(),
+    sectionTeacherFindOne: vi.fn(),
+    timetableFindOrCreate: vi.fn(),
+    timeSlotFindByPk: vi.fn(),
+    entryCreate: vi.fn(),
+    transaction: vi.fn(),
+    commit: vi.fn(),
+    rollback: vi.fn(),
+    validateScheduleEntry: vi.fn(),
+}))
 
-vi.mock('../../src/models', () => ({
-  Timetable: {
-    create: vi.fn(),
-    findByPk: vi.fn()
-  },
-  TimetableEntry: {
-    bulkCreate: vi.fn(),
-    findAll: vi.fn(),
-    destroy: vi.fn()
-  },
-  Section: {
-    findAll: vi.fn()
-  },
-  Subject: {
-    findAll: vi.fn()
-  },
-  Teacher: {
-    findAll: vi.fn()
-  },
-  Room: {
-    findAll: vi.fn()
-  },
-  TimeSlot: {
-    findAll: vi.fn()
-  },
-  sequelize: {
-    transaction: vi.fn()
-  }
-}));
+vi.mock('@/models/Class.js', () => ({ Class: { findByPk: mocks.classFindByPk } }))
+vi.mock('@/models/Section.js', () => ({ Section: { findAll: mocks.sectionFindAll, findByPk: mocks.sectionFindByPk } }))
+vi.mock('@/models/ClassSubject.js', () => ({ ClassSubject: { findAll: mocks.classSubjectFindAll } }))
+vi.mock('@/models/TimeSlot.js', () => ({ TimeSlot: { findAll: mocks.timeSlotFindAll, findByPk: mocks.timeSlotFindByPk } }))
+vi.mock('@/models/SectionTeacher.js', () => ({ SectionTeacher: { findOne: mocks.sectionTeacherFindOne } }))
+vi.mock('@/models/Timetable.js', () => ({ Timetable: { findOrCreate: mocks.timetableFindOrCreate } }))
+vi.mock('@/models/TimetableEntry.js', () => ({ TimetableEntry: { create: mocks.entryCreate } }))
+vi.mock('@/infrastructure/persistence/sequelize/client.js', () => ({
+    default: { transaction: mocks.transaction },
+}))
+vi.mock('@/services/timetable-validator.service.js', () => ({
+    validateScheduleEntry: mocks.validateScheduleEntry,
+}))
 
-describe('TimetableGeneratorService', () => {
-  let generator: TimetableGeneratorService;
+import { generateTimetableForClass } from '@/services/timetable-generator.service.js'
+import { generateTimeSlots } from '@/utils/timeTableUtils.js'
 
-  beforeEach(() => {
-    generator = new TimetableGeneratorService();
-    vi.clearAllMocks();
-  });
+describe('timetable generation', () => {
+    beforeEach(() => {
+        vi.resetAllMocks()
+        mocks.commit.mockResolvedValue(undefined)
+        mocks.rollback.mockResolvedValue(undefined)
+        mocks.transaction.mockResolvedValue({ commit: mocks.commit, rollback: mocks.rollback })
+        mocks.classFindByPk.mockResolvedValue({
+            id: 1,
+            name: 'Grade 1',
+            schoolId: 10,
+            academicYearId: 2,
+        })
+        mocks.sectionFindAll.mockResolvedValue([{ id: 11, name: 'A' }])
+        mocks.sectionFindByPk.mockResolvedValue({ id: 11, name: 'A', classId: 1 })
+        mocks.classSubjectFindAll.mockResolvedValue([
+            { subjectId: 5, periodsPerWeek: 1 },
+        ])
+        mocks.timeSlotFindAll.mockResolvedValue([
+            { id: 20, periodNumber: 1 },
+            { id: 21, periodNumber: 2 },
+        ])
+        mocks.sectionTeacherFindOne.mockResolvedValue({ teacherId: 8 })
+        mocks.timetableFindOrCreate.mockResolvedValue([
+            { id: 30, classId: 1, sectionId: 11, academicYearId: 2 },
+            false,
+        ])
+        mocks.timeSlotFindByPk.mockResolvedValue({
+            id: 20,
+            schoolId: 10,
+            periodNumber: 1,
+            isActive: true,
+            isBreak: false,
+        })
+        mocks.entryCreate.mockResolvedValue({
+            id: 40,
+            timetableId: 30,
+            subjectId: 5,
+            teacherId: 8,
+        })
+        mocks.validateScheduleEntry.mockResolvedValue({
+            valid: true,
+            errors: [],
+            conflicts: [],
+        })
+    })
 
-  describe('generateTimetable', () => {
-    it('should generate a complete timetable for all sections', async () => {
-      const { Section, Subject, Teacher, Room, TimeSlot, Timetable, TimetableEntry } = await import('../../src/models');
-      
-      (Section.findAll as any).mockResolvedValue([
-        { id: 1, name: 'Class A', classId: 1 }
-      ]);
-      (Subject.findAll as any).mockResolvedValue([
-        { id: 1, name: 'Math', periodsPerWeek: 5 }
-      ]);
-      (Teacher.findAll as any).mockResolvedValue([
-        { id: 1, name: 'John Doe' }
-      ]);
-      (Room.findAll as any).mockResolvedValue([
-        { id: 1, name: 'Room 101' }
-      ]);
-      (TimeSlot.findAll as any).mockResolvedValue([
-        { id: 1, startTime: '08:00', endTime: '08:45' },
-        { id: 2, startTime: '08:45', endTime: '09:30' }
-      ]);
-      (Timetable.create as any).mockResolvedValue({ id: 1, save: vi.fn() });
-      (TimetableEntry.bulkCreate as any).mockResolvedValue([]);
+    it('creates scheduled entries for configured subjects and sections', async () => {
+        const result = await generateTimetableForClass({
+            classId: 1,
+            academicYearId: 2,
+            workingDays: ['monday', 'tuesday'],
+        })
 
-      const result = await generator.generateTimetable(1, 1);
+        expect(result.success).toBe(true)
+        expect(result.scheduledCount).toBe(1)
+        expect(result.timetable).toHaveLength(1)
+        expect(mocks.entryCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                timetableId: 30,
+                subjectId: 5,
+                teacherId: 8,
+                dayOfWeek: 'MONDAY',
+                periodNumber: 1,
+            }),
+            expect.objectContaining({ transaction: expect.anything() }),
+        )
+        expect(mocks.commit).toHaveBeenCalledOnce()
+    })
 
-      expect(result.success).toBe(true);
-      expect(result.timetableId).toBeDefined();
-      expect(Timetable.create).toHaveBeenCalled();
-      expect(TimetableEntry.bulkCreate).toHaveBeenCalled();
-    });
+    it('rolls back when the class is not in the requested academic year', async () => {
+        await expect(
+            generateTimetableForClass({
+                classId: 1,
+                academicYearId: 3,
+                workingDays: ['monday'],
+            }),
+        ).rejects.toThrow('Class does not belong to the requested academic year')
+        expect(mocks.rollback).toHaveBeenCalledOnce()
+        expect(mocks.commit).not.toHaveBeenCalled()
+    })
 
-    it('should handle generation failures gracefully', async () => {
-      const { Section } = await import('../../src/models');
-      (Section.findAll as any).mockRejectedValue(new Error('Database error'));
-
-      await expect(generator.generateTimetable(1, 1))
-        .rejects.toThrow('Failed to generate timetable');
-    });
-  });
-
-  describe('backtracking algorithm', () => {
-    it('should find valid slot assignments using backtracking', async () => {
-      const { TimetableValidatorService } = await import('../../src/services/timetable-validator.service');
-      
-      // Mock validator to allow first slot, reject second
-      const mockValidator = new TimetableValidatorService();
-      (mockValidator.validateTimeSlot as any)
-        .mockResolvedValueOnce({ isValid: true, conflicts: [] })
-        .mockResolvedValueOnce({ isValid: false, conflicts: [{ type: 'teacher', id: 1 }] });
-
-      // This would test the actual backtracking logic
-      // Implementation depends on the specific algorithm structure
-      expect(mockValidator).toBeDefined();
-    });
-  });
-
-  describe('distributePeriods', () => {
-    it('should distribute periods evenly across the week', () => {
-      const periodsPerWeek = 5;
-      const workingDays = 5;
-      
-      // The service should have a method to distribute periods
-      // This is a placeholder test - actual implementation may vary
-      expect(periodsPerWeek).toBeGreaterThan(0);
-      expect(workingDays).toBeGreaterThan(0);
-    });
-
-    it('should handle odd number of periods', () => {
-      const periodsPerWeek = 3;
-      const workingDays = 5;
-      
-      expect(periodsPerWeek).toBeLessThan(workingDays);
-    });
-  });
-});
+    it('generates periods within the requested time range and inserts breaks', () => {
+        expect(
+            generateTimeSlots({
+                startTime: '08:00',
+                endTime: '10:00',
+                periodLength: 45,
+                breakLength: 15,
+            }),
+        ).toEqual([
+            { name: 'Period 1', startTime: '08:00', endTime: '08:45', periodNumber: 1, isBreak: false },
+            { name: 'Break', startTime: '08:45', endTime: '09:00', periodNumber: 2, isBreak: true },
+            { name: 'Period 3', startTime: '09:00', endTime: '09:45', periodNumber: 3, isBreak: false },
+        ])
+    })
+})
