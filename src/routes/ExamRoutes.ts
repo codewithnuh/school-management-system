@@ -1,119 +1,81 @@
-import express from 'express'
+import { Router } from 'express'
 import { ExamController } from '@/controllers/ExamController.js'
 import authWithRBAC from '@/middleware/auth.middleware.js'
 
-const router = express.Router()
-
-/**
- * @openapi
- * tags:
- *   - name: Exams
- *     description: API endpoints for managing exams.
- */
+const router = Router()
 
 /**
  * @openapi
  * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
  *   schemas:
- *     Exam:
+ *     ExamInput:
  *       type: object
+ *       required: [academicYearId, name, type, startDate, endDate]
  *       properties:
- *         examId:
- *           type: number
- *         examName:
+ *         academicYearId: { type: integer, minimum: 1 }
+ *         name: { type: string, minLength: 1, maxLength: 120 }
+ *         type:
  *           type: string
- *         academicYear:
- *           type: string
- *         classId:
- *           type: number
- *         sectionId:
- *           type: number
- *         examDate:
- *           type: string
- *           format: date
- *         totalMarks:
- *           type: number
- *         passingMarks:
- *           type: number
- *         examType:
- *           type: string
- *         description:
- *           type: string
- *         isPublished:
- *           type: boolean
- *       required:
- *         - examName
- *         - classId
- *         - examDate
- *         - academicYear
- *         - totalMarks
+ *           enum: [UNIT_TEST, HALF_YEARLY, ANNUAL, QUARTERLY, OTHER]
+ *         startDate: { type: string, format: date-time }
+ *         endDate: { type: string, format: date-time }
+ *         isActive: { type: boolean, default: true }
+ *     Exam:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ExamInput'
+ *         - type: object
+ *           required: [id, schoolId, createdAt, updatedAt]
+ *           properties:
+ *             id: { type: integer }
+ *             schoolId: { type: integer }
+ *             createdAt: { type: string, format: date-time }
+ *             updatedAt: { type: string, format: date-time }
  *     ExamResponse:
  *       type: object
+ *       required: [success, data, error, message, statusCode, timestamp]
  *       properties:
- *         success:
- *           type: boolean
- *         data:
- *           $ref: '#/components/schemas/Exam'
- *         message:
- *           type: string
- *     ErrorResponse:
+ *         success: { type: boolean }
+ *         data: { $ref: '#/components/schemas/Exam' }
+ *         error: { type: string, nullable: true }
+ *         message: { type: string, nullable: true }
+ *         statusCode: { type: integer }
+ *         timestamp: { type: string, format: date-time }
+ *     ExamListResponse:
  *       type: object
  *       properties:
- *         success:
- *           type: boolean
- *           default: false
- *         message:
- *           type: string
- *
+ *         success: { type: boolean }
+ *         data:
+ *           type: array
+ *           items: { $ref: '#/components/schemas/Exam' }
+ *         error: { type: string, nullable: true }
+ *         message: { type: string, nullable: true }
+ *         statusCode: { type: integer }
+ *         timestamp: { type: string, format: date-time }
  */
 
 /**
  * @openapi
  * /exams:
  *   post:
- *     summary: Create a new exam
- *     tags:
- *       - Exams
+ *     summary: Create an exam
+ *     tags: [Exams]
  *     security:
  *       - bearerAuth: []
+ *       - cookieAuth: []
  *     requestBody:
- *       description: Exam creation data
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Exam'
- *           examples:
- *             exam:
- *               summary: Exam creation payload
- *               value:
- *                 examName: "Midterm Exam"
- *                 classId: 1
- *                 examDate: "2023-07-15"
- *                 academicYear: "2023-2024"
- *                 totalMarks: 100
- *                 passingMarks: 40
- *                 examType: "Unit Test"
- *                 description: "Midterm examination for 10th grade students"
- *                 isPublished: false
+ *           schema: { $ref: '#/components/schemas/ExamInput' }
  *     responses:
  *       201:
- *         description: Exam created successfully.
+ *         description: Exam created
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ExamResponse'
- *       400:
- *         description: Invalid input data.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *             schema: { $ref: '#/components/schemas/ExamResponse' }
+ *       400: { description: Invalid input }
+ *       401: { description: Authentication required }
+ *       403: { description: Role is not allowed }
  */
 router.post('/', authWithRBAC(['ADMIN']), ExamController.createExam)
 
@@ -121,24 +83,18 @@ router.post('/', authWithRBAC(['ADMIN']), ExamController.createExam)
  * @openapi
  * /exams:
  *   get:
- *     summary: Fetch all exams
- *     tags:
- *       - Exams
+ *     summary: List exams
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: List of exams retrieved successfully.
+ *         description: Exams
  *         content:
  *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Exam'
- *       500:
- *         description: Server error retrieving exams.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *             schema: { $ref: '#/components/schemas/ExamListResponse' }
+ *       401: { description: Authentication required }
  */
 router.get('/', authWithRBAC(['ADMIN', 'TEACHER']), ExamController.getAllExams)
 
@@ -146,35 +102,24 @@ router.get('/', authWithRBAC(['ADMIN', 'TEACHER']), ExamController.getAllExams)
  * @openapi
  * /exams/{id}:
  *   get:
- *     summary: Fetch an exam by ID
- *     tags:
- *       - Exams
+ *     summary: Get an exam
+ *     tags: [Exams]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         description: Numeric ID of the exam to fetch
  *         required: true
- *         schema:
- *           type: number
+ *         schema: { type: integer, minimum: 1 }
  *     responses:
  *       200:
- *         description: Exam retrieved successfully.
+ *         description: Exam
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Exam'
- *       400:
- *         description: Invalid exam ID.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Exam not found.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *             schema: { $ref: '#/components/schemas/ExamResponse' }
+ *       400: { description: Invalid exam ID }
+ *       404: { description: Exam not found }
  */
 router.get('/:id', authWithRBAC(['ADMIN', 'TEACHER']), ExamController.getExamById)
 
@@ -183,56 +128,35 @@ router.get('/:id', authWithRBAC(['ADMIN', 'TEACHER']), ExamController.getExamByI
  * /exams/{id}:
  *   put:
  *     summary: Update an exam
- *     tags:
- *       - Exams
+ *     tags: [Exams]
  *     security:
  *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         description: Numeric ID of the exam to update
  *         required: true
- *         schema:
- *           type: number
+ *         schema: { type: integer, minimum: 1 }
  *     requestBody:
- *       description: Updated exam data
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Exam'
- *           examples:
- *             exam:
- *               summary: Updated exam payload
- *               value:
- *                 examName: "Updated Midterm Exam"
- *                 classId: 1
- *                 examDate: "2023-07-20"
- *                 academicYear: "2023-2024"
- *                 totalMarks: 100
- *                 passingMarks: 40
- *                 examType: "Unit Test"
- *                 description: "Updated information for midterm exam"
- *                 isPublished: false
+ *             allOf:
+ *               - $ref: '#/components/schemas/ExamInput'
+ *               - type: object
+ *                 properties:
+ *                   schoolId:
+ *                     type: integer
+ *                     readOnly: true
  *     responses:
  *       200:
- *         description: Exam updated successfully.
+ *         description: Exam updated
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Exam'
- *       400:
- *         description: Invalid exam ID or input data.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Exam not found.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *             schema: { $ref: '#/components/schemas/ExamResponse' }
+ *       400: { description: Invalid input or exam ID }
+ *       404: { description: Exam not found }
  */
 router.put('/:id', authWithRBAC(['ADMIN']), ExamController.updateExam)
 
@@ -241,32 +165,19 @@ router.put('/:id', authWithRBAC(['ADMIN']), ExamController.updateExam)
  * /exams/{id}:
  *   delete:
  *     summary: Delete an exam
- *     tags:
- *       - Exams
+ *     tags: [Exams]
  *     security:
  *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         description: Numeric ID of the exam to delete
  *         required: true
- *         schema:
- *           type: number
+ *         schema: { type: integer, minimum: 1 }
  *     responses:
- *       204:
- *         description: Exam deleted successfully. No content returned.
- *       400:
- *         description: Invalid exam ID.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Exam not found.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *       204: { description: Exam deleted }
+ *       400: { description: Invalid exam ID }
+ *       404: { description: Exam not found }
  */
 router.delete('/:id', authWithRBAC(['ADMIN']), ExamController.deleteExam)
 
