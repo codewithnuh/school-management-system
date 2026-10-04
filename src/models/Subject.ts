@@ -81,10 +81,10 @@ export class Subject
     isActive!: boolean
 
     @CreatedAt
-    @Column({ field: 'created_at' })
+    @Column({ type: DataType.DATE, field: 'created_at' })
     createdAt!: Date
 
     @UpdatedAt
-    @Column({ field: 'updated_at' })
+    @Column({ type: DataType.DATE, field: 'updated_at' })
     updatedAt!: Date
 }

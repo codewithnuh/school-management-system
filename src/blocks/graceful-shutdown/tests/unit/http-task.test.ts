@@ -5,30 +5,6 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createHttpShutdownTask } from '@/blocks/graceful-shutdown/utils/http.js'
 import { PRIORITY } from '@/blocks/graceful-shutdown/constants.js'
 
-const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
-
-/**
- * Resolves once the server has at least one active TCP connection.
- *
- * Prevents the fixed-sleep race where `server.close()` (and therefore the
- * timeout path) behaves completely differently depending on whether the
- * client has actually connected yet. Under load the connect can take longer
- * than a hardcoded sleep.
- */
-async function waitForConnection(
-    server: Server,
-    timeoutMs = 2_000,
-): Promise<void> {
-    await Promise.race([
-        new Promise<void>(resolve =>
-            server.once('connection', () => resolve()),
-        ),
-        sleep(timeoutMs).then(() => {
-            throw new Error('Timed out waiting for the client to connect')
-        }),
-    ])
-}
-
 describe('createHttpShutdownTask', () => {
     const servers: Server[] = []
 
@@ -65,15 +41,18 @@ describe('createHttpShutdownTask', () => {
     })
 
     it('waits for an in-flight request to finish before resolving', async () => {
-        const server = createServer((_req, res) =>
-            setTimeout(() => res.end('ok'), 150),
-        )
+        let requestStarted!: () => void
+        const started = new Promise<void>(resolve => (requestStarted = resolve))
+        const server = createServer((_req, res) => {
+            requestStarted()
+            setTimeout(() => res.end('ok'), 150)
+        })
         servers.push(server)
         await new Promise<void>(r => server.listen(0, r))
         const port = (server.address() as AddressInfo).port
 
         const inflight = fetch(`http://127.0.0.1:${port}/`)
-        await waitForConnection(server)
+        await started
 
         const task = createHttpShutdownTask(server, { timeout: 5_000 })
         await task.handler()
@@ -92,15 +71,17 @@ describe('createHttpShutdownTask', () => {
     })
 
     it('rejects when the server has active connections beyond the task timeout', async () => {
+        let requestStarted!: () => void
+        const started = new Promise<void>(resolve => (requestStarted = resolve))
         const server = createServer(() => {
-            // Never respond.
+            requestStarted()
         })
         servers.push(server)
         await new Promise<void>(r => server.listen(0, r))
         const port = (server.address() as AddressInfo).port
 
         const inflight = fetch(`http://127.0.0.1:${port}/`).catch(() => {})
-        await waitForConnection(server)
+        await started
 
         const task = createHttpShutdownTask(server, { timeout: 100 })
         await expect(task.handler()).rejects.toThrow()

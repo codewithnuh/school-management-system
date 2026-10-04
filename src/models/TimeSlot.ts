@@ -81,10 +81,10 @@ export class TimeSlot extends Model<
     declare isActive: boolean
 
     @CreatedAt
-    @Column({ field: 'created_at' })
+    @Column({ type: DataType.DATE, field: 'created_at' })
     declare createdAt: Date
 
     @UpdatedAt
-    @Column({ field: 'updated_at' })
+    @Column({ type: DataType.DATE, field: 'updated_at' })
     declare updatedAt: Date
 }
