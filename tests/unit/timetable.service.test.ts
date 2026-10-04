@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TimetableService } from '../../src/services/timetable.service';
 import { TimetableConflictError, NotFoundError } from '../../src/errors';
+import type { TimetableEntry } from '../../src/models/TimetableEntry';
 
 // Mock the services
 vi.mock('../../src/services/timetable-scheduler.service', () => ({
@@ -47,13 +48,16 @@ vi.mock('../../src/models', () => ({
 describe('TimetableService', () => {
   const mockTimetable = {
     id: 1,
-    classId: 1,
-    sectionId: 1,
+    timetableId: 1,
     subjectId: 1,
     teacherId: 1,
-    roomId: 1,
-    dayOfWeek: 'monday',
-    timeSlotId: 1,
+    roomId: null,
+    dayOfWeek: 'MONDAY' as const,
+    periodNumber: 1,
+    isSubstitute: false,
+    notes: null,
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
   };
 
   beforeEach(() => {
@@ -65,7 +69,7 @@ describe('TimetableService', () => {
       const { scheduleSession } = await import('../../src/services/timetable-scheduler.service');
       vi.mocked(scheduleSession).mockResolvedValue({
         success: true,
-        timetable: mockTimetable as any,
+        timetable: mockTimetable as unknown as TimetableEntry,
       });
 
       const result = await TimetableService.createEntry({
